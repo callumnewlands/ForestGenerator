@@ -1,5 +1,8 @@
+import org.joml.Matrix4f;
+import org.lwjgl.BufferUtils;
 import org.lwjgl.system.NativeType;
 import java.io.IOException;
+import java.nio.FloatBuffer;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
@@ -16,8 +19,10 @@ import static org.lwjgl.opengl.GL20C.glDeleteShader;
 import static org.lwjgl.opengl.GL20C.glGetProgrami;
 import static org.lwjgl.opengl.GL20C.glGetShaderInfoLog;
 import static org.lwjgl.opengl.GL20C.glGetShaderi;
+import static org.lwjgl.opengl.GL20C.glGetUniformLocation;
 import static org.lwjgl.opengl.GL20C.glLinkProgram;
 import static org.lwjgl.opengl.GL20C.glShaderSource;
+import static org.lwjgl.opengl.GL20C.glUniformMatrix4fv;
 import static org.lwjgl.opengl.GL20C.glUseProgram;
 
 public class ShaderProgram {
@@ -43,7 +48,7 @@ public class ShaderProgram {
 			String infoLog = glGetShaderInfoLog(shaderHandle);
 			System.out.println("ERROR : SHADER : "
 					+ (type == GL_VERTEX_SHADER ? "VERTEX" : "FRAGMENT")
-					+ " - COMPILATION_FAILED\n" + infoLog);
+					+ " - COMPILATION FAILED\n" + infoLog);
 		}
 		return shaderHandle;
 	}
@@ -57,7 +62,7 @@ public class ShaderProgram {
 		int success = glGetProgrami(handle, GL_LINK_STATUS);
 		if (success == GL_FALSE) {
 			String infoLog = glGetShaderInfoLog(fragmentShader);
-			System.out.println("ERROR : SHADER PROGRAM - LINKING_FAILED\n" + infoLog);
+			System.out.println("ERROR : SHADER PROGRAM - LINKING FAILED\n" + infoLog);
 		}
 
 		glDeleteShader(vertexShader);
@@ -68,4 +73,12 @@ public class ShaderProgram {
 		glUseProgram(this.handle);
 	}
 
+	public void setUniform(final String name, final Matrix4f value) {
+		this.use();
+		final int matrixOrder = 4;
+		int location = glGetUniformLocation(this.handle, name);
+		FloatBuffer buffer = BufferUtils.createFloatBuffer(matrixOrder * matrixOrder);
+		value.get(buffer);
+		glUniformMatrix4fv(location, false, buffer);
+	}
 }

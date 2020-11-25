@@ -41,9 +41,4 @@ public class VertexArray {
 		glDrawElements(GL_TRIANGLES, numberOfIndices, GL_UNSIGNED_INT, 0);
 		glBindVertexArray(0);
 	}
-
-	public int getHandle() {
-		return handle;
-	}
-
 }

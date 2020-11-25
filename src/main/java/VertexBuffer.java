@@ -19,7 +19,8 @@ public class VertexBuffer {
 	private static final int SIZE_OF_FLOAT_BYTES = 4;
 
 	private final List<VertexAttribute> attributes;
-	private FloatBuffer dataBuffer = null;
+	private FloatBuffer dataBuffer;
+	// Distance between the same attribute for consecutive vertices (= vertex size in bytes)
 	private final int stride;
 	private final int numberOfVertices;
 	private final int handle;

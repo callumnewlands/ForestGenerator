@@ -1,13 +1,12 @@
 import java.nio.IntBuffer;
 
-
-import org.lwjgl.system.MemoryUtil;
-
 import static org.lwjgl.opengl.GL15.GL_STATIC_DRAW;
 import static org.lwjgl.opengl.GL15.glBindBuffer;
 import static org.lwjgl.opengl.GL15.glGenBuffers;
 import static org.lwjgl.opengl.GL15C.GL_ELEMENT_ARRAY_BUFFER;
 import static org.lwjgl.opengl.GL15C.glBufferData;
+
+import org.lwjgl.system.MemoryUtil;
 
 /**
  * Represents and Element Buffer Object (EBO)
