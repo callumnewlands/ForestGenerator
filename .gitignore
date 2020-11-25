@@ -1,0 +1,29 @@
+HELP.md
+target/
+!.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+# Compiled class file
+*.class
+
+# Log file
+*.log
+
+# IntelliJ files
+.idea
+*.iws
+*.iml
+*.ipr
+
+# Package Files
+*.jar
+*.war
+*.nar
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+# Project exclude paths
+/target/
