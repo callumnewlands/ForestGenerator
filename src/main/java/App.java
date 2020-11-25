@@ -1,3 +1,7 @@
+import java.io.IOException;
+import java.util.List;
+import java.util.Objects;
+
 import static org.lwjgl.glfw.Callbacks.glfwFreeCallbacks;
 import static org.lwjgl.glfw.GLFW.GLFW_CONTEXT_VERSION_MAJOR;
 import static org.lwjgl.glfw.GLFW.GLFW_CONTEXT_VERSION_MINOR;
@@ -39,7 +43,6 @@ import org.lwjgl.Version;
 import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.glfw.GLFWVidMode;
 import org.lwjgl.opengl.GL;
-import java.util.Objects;
 
 public class App {
 
@@ -47,14 +50,17 @@ public class App {
 	private static final int MINOR_VERSION = 6;
 	private static final int WINDOW_WIDTH = 800;
 	private static final int WINDOW_HEIGHT = 600;
-
+	private static final String VERTEX_SHADER_PATH = "/shader.vert";
+	private static final String FRAGMENT_SHADER_PATH = "/shader.frag";
 	private long window;
+	private ShaderProgram shaderProgram;
+	private VertexArray rectangleVertexArray;
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws IOException {
 		new App().run();
 	}
 
-	public void run() {
+	public void run() throws IOException {
 		System.out.println("Hello LWJGL " + Version.getVersion() + "!");
 
 		init();
@@ -69,7 +75,7 @@ public class App {
 		Objects.requireNonNull(glfwSetErrorCallback(null)).free();
 	}
 
-	private void init() {
+	private void init() throws IOException {
 		GLFWErrorCallback.createPrint(System.err).set();
 
 		// Initialize GLFW. Most GLFW functions will not work before doing this.
@@ -81,9 +87,7 @@ public class App {
 
 		// This line is critical for LWJGL's interoperation with GLFW's OpenGL context
 		GL.createCapabilities();
-		glEnable(GL_DEPTH_TEST);
-		glClearColor(.1f, .4f, 0f, 0f);
-
+		initScene();
 	}
 
 	private long initWindow() {
@@ -122,9 +126,33 @@ public class App {
 		return window;
 	}
 
+	private void initScene() throws IOException {
+		glEnable(GL_DEPTH_TEST);
+		glClearColor(.1f, .4f, 0f, 0f);
+		shaderProgram = new ShaderProgram(VERTEX_SHADER_PATH, FRAGMENT_SHADER_PATH);
+
+		float[] vertices = {
+				0.5f, 0.5f, 0.0f,  // top right
+				0.5f, -0.5f, 0.0f,  // bottom right
+				-0.5f, -0.5f, 0.0f,  // bottom left
+				-0.5f, 0.5f, 0.0f   // top left
+		};
+		List<VertexAttribute> attributes = List.of(VertexAttribute.POSITION);
+		final int[] indices = {
+				0, 1, 3,  // first Triangle
+				1, 2, 3   // second Triangle
+		};
+		rectangleVertexArray = new VertexArray(vertices, 4, indices, attributes);
+	}
+
 	private void loop() {
 		while (!glfwWindowShouldClose(window)) {
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+			shaderProgram.use();
+
+			rectangleVertexArray.draw();
+
 			glfwSwapBuffers(window);
 			glfwPollEvents();
 		}
@@ -133,5 +161,6 @@ public class App {
 	private void exit() {
 		glfwSetWindowShouldClose(window, true);
 	}
+
 
 }
