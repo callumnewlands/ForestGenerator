@@ -20,7 +20,6 @@ import static org.lwjgl.glfw.GLFW.GLFW_OPENGL_PROFILE;
 import static org.lwjgl.glfw.GLFW.GLFW_PRESS;
 import static org.lwjgl.glfw.GLFW.GLFW_RELEASE;
 import static org.lwjgl.glfw.GLFW.GLFW_RESIZABLE;
-import static org.lwjgl.glfw.GLFW.GLFW_TRUE;
 import static org.lwjgl.glfw.GLFW.GLFW_VISIBLE;
 import static org.lwjgl.glfw.GLFW.glfwCreateWindow;
 import static org.lwjgl.glfw.GLFW.glfwDefaultWindowHints;
@@ -182,16 +181,13 @@ public class App {
 		glClearColor(.1f, .4f, 0f, 0f);
 
 		float[] vertices = {
-				0.5f, 0.5f, 0.0f,  // top right
-				0.5f, -0.5f, 0.0f,  // bottom right
-				-0.5f, -0.5f, 0.0f,  // bottom left
-				-0.5f, 0.5f, 0.0f   // top left
+				0.5f, 0.5f, 0.0f,
+				0.5f, -0.5f, 0.0f,
+				-0.5f, -0.5f, 0.0f,
+				-0.5f, 0.5f, 0.0f
 		};
 		List<VertexAttribute> attributes = List.of(VertexAttribute.POSITION);
-		final int[] indices = {
-				0, 1, 3,  // first Triangle
-				1, 2, 3   // second Triangle
-		};
+		final int[] indices = {0, 1, 3, 1, 2, 3};
 		rectangleVertexArray = new VertexArray(vertices, 4, indices, attributes);
 	}
 
@@ -199,8 +195,8 @@ public class App {
 	private void loop() {
 		while (!glfwWindowShouldClose(window)) {
 			updateDeltaTime();
-			stepper += deltaTime;
-			stepper -= (int) stepper;
+//			stepper += deltaTime;
+//			stepper -= (int) stepper;
 			renderScene();
 			glfwSwapBuffers(window);
 			pollKeys();
@@ -209,12 +205,10 @@ public class App {
 	}
 
 	private void updateDeltaTime() {
-
+		// On first frame
 		if (lastFrame == 0.0) {
 			lastFrame = glfwGetTime();
-			updateDeltaTime();
 		}
-
 		this.deltaTime = glfwGetTime() - lastFrame;
 		lastFrame = glfwGetTime();
 	}
