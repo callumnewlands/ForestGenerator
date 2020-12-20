@@ -127,4 +127,29 @@ class LSystemTest {
 		assertEquals("B(9.0)", ls.performDerivationStep());
 		assertEquals("B(10.0)", ls.performDerivationStep());
 	}
+
+	@Test
+	public void moreComplexParametricLSystem() {
+		ParametricParameterModule Ain = new ParametricParameterModule('A', List.of("x", "y"));
+		Module Aout1 = new ParametricExpressionModule('A', List.of("x", "y"),
+				vars -> List.of(vars.get("x") * 2, vars.get("x") + vars.get("y")));
+		Module Aout2 = new ParametricExpressionModule('B', List.of("x"),
+				vars -> List.of(vars.get("x")));
+		ParametricParameterModule Bin = new ParametricParameterModule('B', List.of("x"));
+		Module Bout = new ParametricExpressionModule('B', List.of("x"), vars -> List.of(vars.get("x") - 1));
+		LSystem ls = new LSystem(
+				List.of(new ParametricValueModule('B', 2f),
+						new ParametricValueModule('A', 4f, 2f)),
+				List.of(),
+				List.of(new ProductionBuilder(List.of(Bin), List.of(Bout)).build(),
+						new ProductionBuilder(List.of(Ain), List.of(Aout1, Aout2)).build()
+				));
+
+		assertEquals("B(2.0)A(4.0,2.0)", ls.getStateSting());
+		assertEquals("B(1.0)A(8.0,6.0)B(4.0)", ls.performDerivationStep());
+		assertEquals("B(0.0)A(16.0,14.0)B(8.0)B(3.0)", ls.performDerivationStep());
+		assertEquals("B(-1.0)A(32.0,30.0)B(16.0)B(7.0)B(2.0)", ls.performDerivationStep());
+		assertEquals("B(-2.0)A(64.0,62.0)B(32.0)B(15.0)B(6.0)B(1.0)", ls.performDerivationStep());
+		assertEquals("B(-3.0)A(128.0,126.0)B(64.0)B(31.0)B(14.0)B(5.0)B(0.0)", ls.performDerivationStep());
+	}
 }

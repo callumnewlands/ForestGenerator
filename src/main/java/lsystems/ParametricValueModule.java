@@ -12,6 +12,10 @@ public class ParametricValueModule extends ParametricModule implements Axiomatic
 		this(name, List.of(value));
 	}
 
+	public ParametricValueModule(char name, Float... values) {
+		this(name, List.of(values));
+	}
+
 	public ParametricValueModule(char name, List<Float> values) {
 		super(name);
 		this.values = values;
