@@ -3,6 +3,8 @@ package lsystems;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
+import lsystems.modules.Module;
+import lsystems.modules.PredecessorModule;
 
 public class ProductionBuilder {
 

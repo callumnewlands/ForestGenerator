@@ -3,6 +3,8 @@ package lsystems;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+import lsystems.modules.AxiomaticModule;
+import lsystems.modules.Module;
 import org.apache.commons.math3.distribution.EnumeratedDistribution;
 import org.apache.commons.math3.util.Pair;
 
@@ -15,6 +17,7 @@ public class LSystem {
 	private final int longestPred;
 
 	// TODO it is assumed that a module replaces itself if no matching production is found
+	// TODO environmentally sensitive/open L-system?
 
 	public LSystem(List<AxiomaticModule> axiom, List<Module> ignored, List<Production> productions) {
 		this.axiom = axiom;

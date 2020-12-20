@@ -2,13 +2,18 @@ package lsystems;
 
 import java.util.List;
 
-import static lsystems.DefinedModules.F;
-import static lsystems.DefinedModules.LB;
-import static lsystems.DefinedModules.MI;
-import static lsystems.DefinedModules.PL;
-import static lsystems.DefinedModules.RB;
+import static lsystems.modules.DefinedModules.F;
+import static lsystems.modules.DefinedModules.LB;
+import static lsystems.modules.DefinedModules.MI;
+import static lsystems.modules.DefinedModules.PL;
+import static lsystems.modules.DefinedModules.RB;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import lsystems.modules.CharModule;
+import lsystems.modules.Module;
+import lsystems.modules.ParametricExpressionModule;
+import lsystems.modules.ParametricParameterModule;
+import lsystems.modules.ParametricValueModule;
 import org.junit.jupiter.api.Test;
 
 class LSystemTest {

@@ -1,4 +1,4 @@
-package lsystems;
+package lsystems.modules;
 
 public final class DefinedModules {
 	private DefinedModules() {

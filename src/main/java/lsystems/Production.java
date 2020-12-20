@@ -5,6 +5,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import lsystems.modules.Module;
+import lsystems.modules.ParametricExpressionModule;
+import lsystems.modules.ParametricParameterModule;
+import lsystems.modules.ParametricValueModule;
+import lsystems.modules.PredecessorModule;
 
 public class Production {
 
@@ -33,14 +38,13 @@ public class Production {
 		return predecessor.size();
 	}
 
-	// TODO consider context (and condition)
+	// TODO consider context (and (param.) condition)
 	public boolean matchesPred(List<Module> pred) {
 		return predecessor.equals(pred);
 	}
 
 	// Given the modules in "currentPred" match this production, what are the values of the params?
 	private Map<String, Float> getParamsFromModules(List<Module> currentPred) {
-		//TODO
 		Map<String, Float> params = new HashMap<>();
 		for (int i = 0; i < this.predecessor.size(); i++) {
 			if (!(this.predecessor.get(i) instanceof ParametricParameterModule)) {
