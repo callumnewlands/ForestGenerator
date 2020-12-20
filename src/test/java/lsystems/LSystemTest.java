@@ -20,13 +20,15 @@ class LSystemTest {
 		LSystem ls = new LSystem(
 				List.of(A),
 				List.of(),
-				List.of(new Production(
-						List.of(A),
-						List.of(A, B)
-				), new Production(
-						List.of(B),
-						List.of(A)
-				)));
+				List.of(new ProductionBuilder(
+								List.of(A),
+								List.of(A, B)
+						).build(),
+						new ProductionBuilder(
+								List.of(B),
+								List.of(A)
+						).build()
+				));
 		assertEquals("A", ls.getStateSting());
 		assertEquals("AB", ls.performDerivationStep());
 		assertEquals("ABA", ls.performDerivationStep());
@@ -45,13 +47,15 @@ class LSystemTest {
 		LSystem ls = new LSystem(
 				List.of(A),
 				List.of(LB, RB),
-				List.of(new Production(
-						List.of(B),
-						List.of(B, B)
-				), new Production(
-						List.of(A),
-						List.of(B, LB, A, RB, A)
-				)));
+				List.of(new ProductionBuilder(
+								List.of(B),
+								List.of(B, B)
+						).build(),
+						new ProductionBuilder(
+								List.of(A),
+								List.of(B, LB, A, RB, A)
+						).build()
+				));
 		assertEquals("A", ls.getStateSting());
 		assertEquals("B[A]A", ls.performDerivationStep());
 		assertEquals("BB[B[A]A]B[A]A", ls.performDerivationStep());
@@ -64,13 +68,15 @@ class LSystemTest {
 		LSystem ls = new LSystem(
 				List.of(X),
 				List.of(LB, RB, PL, MI),
-				List.of(new Production(
-						List.of(X),
-						List.of(F, LB, PL, X, RB, LB, MI, X, RB, F, X)
-				), new Production(
-						List.of(F),
-						List.of(F, F)
-				)));
+				List.of(new ProductionBuilder(
+								List.of(X),
+								List.of(F, LB, PL, X, RB, LB, MI, X, RB, F, X)
+						).build(),
+						new ProductionBuilder(
+								List.of(F),
+								List.of(F, F)
+						).build()
+				));
 		assertEquals("X", ls.getStateSting());
 		assertEquals("F[+X][-X]FX", ls.performDerivationStep());
 		assertEquals("FF[+F[+X][-X]FX][-F[+X][-X]FX]FFF[+X][-X]FX", ls.performDerivationStep());
@@ -84,10 +90,11 @@ class LSystemTest {
 		LSystem ls = new LSystem(
 				List.of(F),
 				List.of(PL, MI),
-				List.of(new Production(
-						List.of(F),
-						List.of(F, PL, F, MI, F, MI, F, PL, F)
-				)));
+				List.of(new ProductionBuilder(
+								List.of(F),
+								List.of(F, PL, F, MI, F, MI, F, PL, F)
+						).build()
+				));
 		assertEquals("F", ls.getStateSting());
 		assertEquals("F+F-F-F+F", ls.performDerivationStep());
 		assertEquals("F+F-F-F+F+F+F-F-F+F-F+F-F-F+F-F+F-F-F+F+F+F-F-F+F", ls.performDerivationStep());
@@ -96,5 +103,28 @@ class LSystemTest {
 				"F+F-F-F+F+F+F-F-F+F-F+F-F-F+F-F+F-F-F+F+F+F-F-F+F-" +
 				"F+F-F-F+F+F+F-F-F+F-F+F-F-F+F-F+F-F-F+F+F+F-F-F+F+" +
 				"F+F-F-F+F+F+F-F-F+F-F+F-F-F+F-F+F-F-F+F+F+F-F-F+F", ls.performDerivationStep());
+	}
+
+	@Test
+	public void simpleParametricLSystem() {
+		ParametricParameterModule Bin = new ParametricParameterModule('B', List.of("x"));
+		Module Bout = new ParametricExpressionModule('B', List.of("x"), vars -> List.of(vars.get("x") + 1));
+		LSystem ls = new LSystem(
+				List.of(new ParametricValueModule('B', 0f)),
+				List.of(),
+				List.of(new ProductionBuilder(List.of(Bin), List.of(Bout)).build()
+				));
+
+		assertEquals("B(0.0)", ls.getStateSting());
+		assertEquals("B(1.0)", ls.performDerivationStep());
+		assertEquals("B(2.0)", ls.performDerivationStep());
+		assertEquals("B(3.0)", ls.performDerivationStep());
+		assertEquals("B(4.0)", ls.performDerivationStep());
+		assertEquals("B(5.0)", ls.performDerivationStep());
+		assertEquals("B(6.0)", ls.performDerivationStep());
+		assertEquals("B(7.0)", ls.performDerivationStep());
+		assertEquals("B(8.0)", ls.performDerivationStep());
+		assertEquals("B(9.0)", ls.performDerivationStep());
+		assertEquals("B(10.0)", ls.performDerivationStep());
 	}
 }

@@ -2,8 +2,9 @@ package lsystems;
 
 import java.util.Objects;
 
-public class CharModule implements Module {
-	private char value;
+public class CharModule implements PredecessorModule, AxiomaticModule {
+
+	private final char value;
 
 	public CharModule(char value) {
 		this.value = value;

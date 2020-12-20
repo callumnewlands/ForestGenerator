@@ -8,13 +8,15 @@ import org.apache.commons.math3.util.Pair;
 
 public class LSystem {
 
-	private List<Module> state;
-	private final List<Module> axiom;
+	private List<? extends Module> state;
+	private final List<AxiomaticModule> axiom;
 	private final List<Module> ignored;
 	private final List<Production> productions;
 	private final int longestPred;
 
-	public LSystem(List<Module> axiom, List<Module> ignored, List<Production> productions) {
+	// TODO it is assumed that a module replaces itself if no matching production is found
+
+	public LSystem(List<AxiomaticModule> axiom, List<Module> ignored, List<Production> productions) {
 		this.axiom = axiom;
 		this.ignored = ignored;
 		this.state = this.axiom;
@@ -42,7 +44,7 @@ public class LSystem {
 			}
 			// Maximal length matching
 			for (int len = this.longestPred; len > 0; len--) {
-				List<Module> pred = this.state.subList(head, head + len);
+				List<Module> pred = (List<Module>) this.state.subList(head, head + len);
 				List<Production> matches = getAllWhichMatch(pred);
 				Production production = null;
 				if (matches.size() == 1) {
