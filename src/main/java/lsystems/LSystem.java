@@ -16,7 +16,8 @@ public class LSystem {
 	private final List<Production> productions;
 	private final int longestPred;
 
-	// TODO it is assumed that a module replaces itself if no matching production is found
+	// TODO "ignored" are not symbols which shouldn't be replaced with themself (as above) but rather ones
+	//  	which are not considered when determining context
 	// TODO environmentally sensitive/open L-system?
 
 	public LSystem(List<AxiomaticModule> axiom, List<Module> ignored, List<Production> productions) {
@@ -31,20 +32,10 @@ public class LSystem {
 		return this.productions.stream().filter(p -> p.matchesPred(pred)).collect(Collectors.toList());
 	}
 
-	private boolean isIgnored(Module module) {
-		return this.ignored.stream().anyMatch(i -> i.equals(module));
-	}
-
 	public String performDerivationStep() {
 		int head = 0;
 		List<Module> result = new ArrayList<>();
 		while (head < this.state.size()) {
-			Module current = this.state.get(head);
-			if (isIgnored(current)) {
-				result.add(current);
-				head++;
-				continue;
-			}
 			// Maximal length matching
 			for (int len = this.longestPred; len > 0; len--) {
 				List<Module> pred = (List<Module>) this.state.subList(head, head + len);
@@ -61,9 +52,8 @@ public class LSystem {
 					break;
 				}
 				if (len == 1) {
-					throw new RuntimeException(
-							String.format("Cannot derive from string: %s position: %d(%s)",
-									this.getStateSting(), head, pred.toString()));
+					result.add(this.state.get(head));
+					head++;
 				}
 			}
 		}
