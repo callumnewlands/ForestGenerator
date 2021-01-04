@@ -1,6 +1,5 @@
-import org.joml.Matrix4f;
-import org.lwjgl.BufferUtils;
-import org.lwjgl.system.NativeType;
+package rendering;
+
 import java.io.IOException;
 import java.nio.FloatBuffer;
 import java.nio.file.Files;
@@ -24,6 +23,10 @@ import static org.lwjgl.opengl.GL20C.glLinkProgram;
 import static org.lwjgl.opengl.GL20C.glShaderSource;
 import static org.lwjgl.opengl.GL20C.glUniformMatrix4fv;
 import static org.lwjgl.opengl.GL20C.glUseProgram;
+
+import org.joml.Matrix4f;
+import org.lwjgl.BufferUtils;
+import org.lwjgl.system.NativeType;
 
 public class ShaderProgram {
 

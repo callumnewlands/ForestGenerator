@@ -1,3 +1,5 @@
+package rendering;
+
 import java.nio.IntBuffer;
 
 import static org.lwjgl.opengl.GL15.GL_STATIC_DRAW;

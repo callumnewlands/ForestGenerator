@@ -60,6 +60,10 @@ import org.lwjgl.Version;
 import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.glfw.GLFWVidMode;
 import org.lwjgl.opengl.GL;
+import rendering.Camera;
+import rendering.ShaderProgram;
+import rendering.VertexArray;
+import rendering.VertexAttribute;
 
 public class App {
 

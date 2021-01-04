@@ -1,4 +1,5 @@
-import org.lwjgl.system.MemoryUtil;
+package rendering;
+
 import java.nio.FloatBuffer;
 import java.util.List;
 
@@ -10,6 +11,8 @@ import static org.lwjgl.opengl.GL15.glBufferData;
 import static org.lwjgl.opengl.GL15.glGenBuffers;
 import static org.lwjgl.opengl.GL20C.glEnableVertexAttribArray;
 import static org.lwjgl.opengl.GL20C.glVertexAttribPointer;
+
+import org.lwjgl.system.MemoryUtil;
 
 /**
  * Represents a Vertex Buffer Object (VBO)

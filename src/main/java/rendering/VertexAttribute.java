@@ -1,3 +1,5 @@
+package rendering;
+
 public class VertexAttribute {
 
 	private final String name;

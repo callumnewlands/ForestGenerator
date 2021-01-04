@@ -16,8 +16,9 @@ public class LSystem {
 	private final List<Production> productions;
 	private final int longestPred;
 
-	// TODO "ignored" are not symbols which shouldn't be replaced with themself (as above) but rather ones
-	//  	which are not considered when determining context
+	// TODO context sensitivity
+	// 		"ignored" are not symbols which shouldn't be replaced with themself (as above) but rather ones
+	//	  	which are not considered when determining context
 	// TODO environmentally sensitive/open L-system?
 
 	public LSystem(List<AxiomaticModule> axiom, List<Module> ignored, List<Production> productions) {

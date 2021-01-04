@@ -1,3 +1,5 @@
+package rendering;
+
 import java.util.List;
 
 import static org.lwjgl.opengl.GL11C.GL_TRIANGLES;
