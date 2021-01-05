@@ -9,7 +9,10 @@ public abstract class ParametricModule implements Module {
 		this.name = name;
 	}
 
-	abstract int getNumberOfParameters();
+	@Override
+	public char getName() {
+		return name;
+	}
 
 	@Override
 	public boolean equals(Object o) {

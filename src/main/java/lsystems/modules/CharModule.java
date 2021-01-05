@@ -11,6 +11,16 @@ public class CharModule implements PredecessorModule, AxiomaticModule {
 	}
 
 	@Override
+	public int getNumberOfParameters() {
+		return 0;
+	}
+
+	@Override
+	public char getName() {
+		return value;
+	}
+
+	@Override
 	public boolean equals(Object o) {
 		if (this == o) {
 			return true;

@@ -79,6 +79,10 @@ public class LSystem {
 		return dist.sample();
 	}
 
+	public List<Module> getState() {
+		return (List<Module>) this.state;
+	}
+
 	public String getStateSting() {
 		return this.state.stream().map(Object::toString).collect(Collectors.joining());
 	}

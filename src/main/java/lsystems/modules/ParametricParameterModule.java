@@ -18,7 +18,7 @@ public class ParametricParameterModule extends ParametricModule implements Prede
 	}
 
 	@Override
-	int getNumberOfParameters() {
+	public int getNumberOfParameters() {
 		return params.size();
 	}
 

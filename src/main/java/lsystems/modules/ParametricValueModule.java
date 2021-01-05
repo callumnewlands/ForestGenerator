@@ -26,7 +26,7 @@ public class ParametricValueModule extends ParametricModule implements Axiomatic
 	}
 
 	@Override
-	int getNumberOfParameters() {
+	public int getNumberOfParameters() {
 		return values.size();
 	}
 
