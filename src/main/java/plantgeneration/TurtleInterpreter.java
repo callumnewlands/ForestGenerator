@@ -13,10 +13,18 @@ public class TurtleInterpreter {
 
 	private final float rotationAngle;
 	private final float stepSize;
+	private final float r = 0.5f;
+	private final List<Vector3f> unitCross = List.of(
+			new Vector3f(r, 0, -r),
+			new Vector3f(r, 0, r),
+			new Vector3f(-r, 0, r),
+			new Vector3f(-r, 0, -r)
+	);
 	private Vector3f position;
 	private Vector3f heading;
 	private Vector3f up;
 	private List<Vector3f> vertices;
+	private List<Vector3f> prevCross;
 
 	public TurtleInterpreter() {
 		this(1f, (float) Math.PI / 2);
@@ -31,47 +39,36 @@ public class TurtleInterpreter {
 		this.position = new Vector3f(0, 0, 0);
 		this.heading = new Vector3f(0, 1, 0);
 		this.up = new Vector3f(0, 0, 1);
-		this.vertices = new ArrayList<>(getCrossSection());
+		this.vertices = new ArrayList<>(unitCross);
+		prevCross = new ArrayList<>(unitCross);
+		// Sets prevCross elements to be different objects to unitCross
+		updateCrossSection((new Matrix4f()).identity());
 	}
 
-	private List<Vector3f> getCrossSection() {
-
-		final float r = 0.5f;
-		List<Vector3f> unitCross = List.of(
-				new Vector3f(-r, r, 0),
-				new Vector3f(r, r, 0),
-				new Vector3f(-r, -r, 0),
-				new Vector3f(r, -r, 0)
-		);
-		Matrix4f model = (new Matrix4f())
-				.identity()
-				.translate(position);
-
-		Vector3f globalUp = new Vector3f(0, 1, 0);
-		Vector3f globalZ = new Vector3f(0, 0, 1);
-		if (heading.equals(globalUp)) {
-			model = model.lookAlong(heading, globalZ);
-		} else {
-			model = model.lookAlong(heading, globalUp);
-		}
-		return unitCross.stream().map(model::transformPosition).collect(Collectors.toList());
+	private void updateCrossSection(Matrix4f model) {
+		prevCross = prevCross.stream()
+				.map(Vector3f::new)
+				.map(model::transformPosition)
+				.collect(Collectors.toList());
 	}
 
 	private void moveForwards(float distance, boolean drawGeometry) {
-		position = MathUtils.add(position, MathUtils.multiply(distance, heading));
+		Matrix4f model = (new Matrix4f()).translation(MathUtils.multiply(distance, heading));
+		position = model.transformPosition(position);
+		updateCrossSection(model);
 		// TODO this probably won't work for not drawing
 		if (drawGeometry) {
-			this.vertices.addAll(getCrossSection());
+			this.vertices.addAll(prevCross);
 		}
 	}
 
 	private void turn(float angle, Vector3f axis) {
-		// Negative angle as positive rotation is anticlockwise around axis when looking along the negative direction
-		Matrix4f model = (new Matrix4f()).identity().rotate(-angle, axis);
+		Matrix4f model = (new Matrix4f()).identity().rotate(angle, axis);
 		up = model.transformDirection(up);
 		heading = model.transformDirection(heading);
+		updateCrossSection(model);
 		// TODO should it be drawn here too?
-		this.vertices.addAll(getCrossSection());
+		this.vertices.addAll(prevCross);
 	}
 
 	private void throwInvalidTypeException(Module module) {
@@ -128,9 +125,5 @@ public class TurtleInterpreter {
 			}
 		}
 		return this.vertices;
-	}
-
-	enum Axis {
-		Heading, Up, Left
 	}
 }
