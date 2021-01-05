@@ -157,4 +157,66 @@ class LSystemTest {
 		assertEquals("B(-2.0)A(64.0,62.0)B(32.0)B(15.0)B(6.0)B(1.0)", ls.performDerivationStep());
 		assertEquals("B(-3.0)A(128.0,126.0)B(64.0)B(31.0)B(14.0)B(5.0)B(0.0)", ls.performDerivationStep());
 	}
+
+	// L system from Figure 2.8 of 'Algorithmic Beauty of Plants' by Prusinkiewicz and Lindenmayer
+	@Test
+	public void canHandleABoP_2_8() {
+		/*
+			Param values used for fig 2.8:
+			Fig d1 		d2 		a 		lr 		T (tropism force)	e 		n
+			a 	94.74 	132.63 	18.95 	1.109 	0.00,-1.00,0.00 	0.22 	6
+			b 	137.50 	137.50 	18.95 	1.109 	0.00,-1.00,0.00 	0.14 	8
+			c 	112.50 	157.50 	22.50 	1.790 	-0.02,-1.00,0.00 	0.27 	8
+			d 	180.00 	252.00 	36.00 	1.070 	-0.61,0.77,-0.19 	0.40 	6
+		 */
+
+		float d1 = 94.74f;
+		float d2 = 132.63f;
+		float a = 18.95f;
+		float lr = 1.109f;
+		float vr = 1.732f;
+
+		CharModule A = new CharModule('A');
+		ParametricParameterModule ExIn = new ParametricParameterModule('!', List.of("w"));
+		Module ExOut = new ParametricExpressionModule('!', List.of("w"), vars -> List.of(vars.get("w") * vr));
+		ParametricParameterModule FIn = new ParametricParameterModule('F', List.of("l"));
+		Module FOut = new ParametricExpressionModule('F', List.of("l"), vars -> List.of(vars.get("l") * lr));
+
+		LSystem ls = new LSystem(
+				List.of(
+						new ParametricValueModule('!', 1f),
+						new ParametricValueModule('F', 200f),
+						new ParametricValueModule('/', 45f),
+						A
+				),
+				List.of(),
+				List.of(
+						new ProductionBuilder(List.of(A), List.of(
+								new ParametricValueModule('!', vr),
+								new ParametricValueModule('F', 50f),
+								LB,
+								new ParametricValueModule('&', a),
+								new ParametricValueModule('F', 50f),
+								A,
+								RB,
+								new ParametricValueModule('/', d1),
+								LB,
+								new ParametricValueModule('&', a),
+								new ParametricValueModule('F', 50f),
+								A,
+								RB,
+								new ParametricValueModule('/', d2),
+								new ParametricValueModule('&', a),
+								new ParametricValueModule('F', 50f),
+								A
+						)).build(),
+						new ProductionBuilder(List.of(FIn), List.of(FOut)).build(),
+						new ProductionBuilder(List.of(ExIn), List.of(ExOut)).build()
+				));
+
+		// Checks no errors thrown in 10 derivations steps
+		for (int i = 0; i < 10; i++) {
+			ls.performDerivationStep();
+		}
+	}
 }

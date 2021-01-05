@@ -17,7 +17,7 @@ class TurtleInterpreterTest {
 	public void handlesForwardCorrectly() {
 		TurtleInterpreter interpreter = new TurtleInterpreter();
 
-		List<Vector3f> result = interpreter.interpretString(List.of(F, F, F));
+		List<Vector3f> result = interpreter.interpretInstructions(List.of(F, F, F));
 
 		final float r = 0.5f;
 		List<Vector3f> expected = List.of(
@@ -49,7 +49,7 @@ class TurtleInterpreterTest {
 	public void handlesPositiveRotationAroundLocalUp() {
 		TurtleInterpreter interpreter = new TurtleInterpreter();
 
-		List<Vector3f> result = interpreter.interpretString(List.of(PL, PL, PL, PL));
+		List<Vector3f> result = interpreter.interpretInstructions(List.of(PL, PL, PL, PL));
 
 		// Positive (anticlockwise) 90deg rotations around -ve Z (looking towards origin)
 		final float r = 0.5f;
@@ -89,7 +89,7 @@ class TurtleInterpreterTest {
 
 		Module MI = new ParametricValueModule('+', -(float) Math.PI / 2);
 
-		List<Vector3f> result = interpreter.interpretString(List.of(MI, MI, MI, MI));
+		List<Vector3f> result = interpreter.interpretInstructions(List.of(MI, MI, MI, MI));
 
 		// Positive (anticlockwise) 90deg rotations around -ve Z (looking towards origin)
 		final float r = 0.5f;

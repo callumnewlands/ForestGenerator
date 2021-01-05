@@ -56,7 +56,7 @@ public class TurtleInterpreter {
 		Matrix4f model = (new Matrix4f()).translation(MathUtils.multiply(distance, heading));
 		position = model.transformPosition(position);
 		updateCrossSection(model);
-		// TODO this probably won't work for not drawing
+		// TODO this probably won't work for not drawing - probably need to specify EBO as well
 		if (drawGeometry) {
 			this.vertices.addAll(prevCross);
 		}
@@ -113,7 +113,10 @@ public class TurtleInterpreter {
 		}
 	}
 
-	public List<Vector3f> interpretString(List<Module> instructions) {
+	// TODO Brackets and Leaves
+	// TODO cross section shape and size
+
+	public List<Vector3f> interpretInstructions(List<Module> instructions) {
 		init();
 		for (Module module : instructions) {
 			switch (module.getName()) {
