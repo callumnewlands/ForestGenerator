@@ -9,10 +9,12 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lsystems.modules.Module;
 import lsystems.modules.ParametricValueModule;
+import org.apache.commons.lang3.ArrayUtils;
 import org.joml.AxisAngle4f;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
+import org.joml.Vector4f;
 import utils.MathUtils;
 
 public class TurtleInterpreter {
@@ -24,15 +26,17 @@ public class TurtleInterpreter {
 			new Vector3f(-r, 0, r),
 			new Vector3f(-r, 0, -r)
 	);
+	private final Stack<Turtle> states = new Stack<>();
 	@Setter
 	private float rotationAngle;
 	@Setter
 	private float stepSize;
 	@Setter
 	private List<Character> ignored = new ArrayList<>();
+	@Setter
+	private Vector4f tropism = null;
 	private Turtle turtle = new Turtle();
 	private List<Vector3f> vertices;
-	private final Stack<Turtle> states = new Stack<>();
 
 	public TurtleInterpreter() {
 		this.stepSize = 1f;
@@ -50,16 +54,24 @@ public class TurtleInterpreter {
 	}
 
 	private void updateCrossSection(Matrix4f model) {
+		updateCrossSection(model, true);
+	}
+
+	private void updateCrossSection(Matrix4f model, boolean adjustForTropism) {
 		turtle.prevCross = turtle.prevCross.stream()
 				.map(Vector3f::new)
 				.map(model::transformPosition)
 				.collect(Collectors.toList());
+		if (adjustForTropism) {
+			adjustForTropisms();
+		}
 	}
 
 	private void moveForwards(float distance, boolean drawGeometry) {
 		Matrix4f model = (new Matrix4f()).translation(MathUtils.multiply(distance, turtle.heading));
 		turtle.position = model.transformPosition(turtle.position);
 		updateCrossSection(model);
+
 		// TODO this probably won't work for not drawing - probably need to specify EBO as well
 		if (drawGeometry) {
 			this.vertices.addAll(turtle.prevCross);
@@ -67,18 +79,36 @@ public class TurtleInterpreter {
 	}
 
 	private void turn(float angle, Vector3f axis) {
-//		Matrix4f model = (new Matrix4f()).identity().rotate(angle, axis);
-		Matrix4f model = (new Matrix4f()).identity()
-				.rotateAround(
-						new Quaternionf(new AxisAngle4f(angle, axis)),
-						turtle.position.x,
-						turtle.position.y,
-						turtle.position.z);
+		Quaternionf rotation = new Quaternionf(new AxisAngle4f(angle, axis));
+		Matrix4f model = (new Matrix4f()).identity().rotateAround(rotation,
+				turtle.position.x,
+				turtle.position.y,
+				turtle.position.z);
 		turtle.up = model.transformDirection(turtle.up);
 		turtle.heading = model.transformDirection(turtle.heading);
 		updateCrossSection(model);
+
 		// TODO should it be drawn here too?
 		this.vertices.addAll(turtle.prevCross);
+	}
+
+	private void adjustForTropisms() {
+		if (tropism == null) {
+			return;
+		}
+		Vector3f tropismVector = new Vector3f(tropism.x, tropism.y, tropism.z);
+		float elasticity = tropism.w;
+		float adjustment = elasticity * MathUtils.cross(turtle.heading, tropismVector).length();
+		Quaternionf rotation = new Quaternionf().identity().slerp(
+				new Quaternionf().rotateTo(turtle.heading, tropismVector), adjustment);
+
+		Matrix4f model = (new Matrix4f()).identity().rotateAround(rotation,
+				turtle.position.x,
+				turtle.position.y,
+				turtle.position.z);
+		turtle.up = model.transformDirection(turtle.up);
+		turtle.heading = model.transformDirection(turtle.heading);
+		updateCrossSection(model, false);
 	}
 
 	private void throwInvalidTypeException(Module module) {
@@ -96,6 +126,34 @@ public class TurtleInterpreter {
 				if (module instanceof ParametricValueModule) {
 					float step = ((ParametricValueModule) module).getValues().get(0);
 					moveForwards(step, true);
+				} else {
+					throwInvalidTypeException(module);
+				}
+				break;
+			default:
+				throw new RuntimeException("Too many parameters in: " + module.toString());
+		}
+	}
+
+	private void parseT(Module module) {
+		switch (module.getNumberOfParameters()) {
+			case 1:
+				if (module instanceof ParametricValueModule) {
+					float val = ((ParametricValueModule) module).getValues().get(0);
+					if (val == 0) {
+						this.tropism = null;
+						break;
+					} else {
+						throw new RuntimeException("Non-zero single parameter in module " + module.toString());
+					}
+				} else {
+					throwInvalidTypeException(module);
+				}
+			case 4:
+				if (module instanceof ParametricValueModule) {
+					List<Float> vals = ((ParametricValueModule) module).getValues();
+					float[] floats = ArrayUtils.toPrimitive(vals.toArray(new Float[0]));
+					this.tropism = new Vector4f(floats);
 				} else {
 					throwInvalidTypeException(module);
 				}
@@ -123,9 +181,8 @@ public class TurtleInterpreter {
 		}
 	}
 
-	// Leaves
+	// TODO Leaves (Geometry/model reference injection)
 	// TODO cross section shape and size
-	// TODO Tropism and other global flags?
 
 	public List<Vector3f> interpretInstructions(List<Module> instructions) {
 		init();
@@ -136,6 +193,7 @@ public class TurtleInterpreter {
 			}
 			switch (name) {
 				case 'F' -> parseF(module);
+				case 'T' -> parseT(module);
 				case '+' -> parseRotation(module, turtle.up);
 				case '-' -> turn(-this.rotationAngle, turtle.up);
 				case '&' -> parseRotation(module, MathUtils.cross(turtle.up, turtle.heading).normalize());
@@ -146,6 +204,10 @@ public class TurtleInterpreter {
 			}
 		}
 		return this.vertices;
+	}
+
+	public Vector3f getTurtleHeading() {
+		return turtle.heading;
 	}
 
 	@NoArgsConstructor

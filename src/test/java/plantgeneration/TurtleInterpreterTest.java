@@ -1,5 +1,7 @@
 package plantgeneration;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import static lsystems.modules.DefinedModules.F;
@@ -15,8 +17,21 @@ import lsystems.modules.Module;
 import lsystems.modules.ParametricValueModule;
 import org.joml.Vector3f;
 import org.junit.jupiter.api.Test;
+import utils.MathUtils;
 
 class TurtleInterpreterTest {
+
+
+	private static void assertVectorsEqual(Vector3f expected, Vector3f actual, float delta) {
+		assertTrue(actual.equals(expected, delta),
+				String.format("Actual: %s 'neq' Expected: %s", actual, expected));
+
+	}
+
+	private static void assertVectorsEqual(Vector3f expected, Vector3f actual) {
+		final float delta = 0.000001f;
+		assertVectorsEqual(expected, actual, delta);
+	}
 
 	private static void assertVectorListsEqual(List<Vector3f> expected, List<Vector3f> actual) {
 		assertEquals(expected.size(), actual.size());
@@ -230,6 +245,109 @@ class TurtleInterpreterTest {
 	}
 
 	@Test
+	public void canHandleVeryLargeString() {
+		TurtleInterpreter interpreter = new TurtleInterpreter();
+
+		List<Module> instructions = List.of(
+				F, LB, PL, F, LB, PL, F, LB, PL, F, RB, LB, MI, F, RB, F, F, RB, LB, MI, F, LB, PL, F, RB, LB,
+				MI, F, RB, F, F, RB, F, F, LB, PL, F, RB, LB, MI, F, RB, F, F, RB, LB, MI, F, LB, PL, F, LB, PL,
+				F, RB, LB, MI, F, RB, F, F, RB, LB, MI, F, LB, PL, F, RB, LB, MI, F, RB, F, F, RB, F, F, LB, PL,
+				F, RB, LB, MI, F, RB, F, F, RB, F, F, LB, PL, F, LB, PL, F, RB, LB, MI, F, RB, F, F, RB, LB, MI,
+				F, LB, PL, F, RB, LB, MI, F, RB, F, F, RB, F, F, LB, PL, F, RB, LB, MI, F, RB, F, F,
+				F, LB, PL, F, LB, PL, F, LB, PL, F, RB, LB, MI, F, RB, F, F, RB, LB, MI, F, LB, PL, F, RB, LB,
+				MI, F, RB, F, F, RB, F, F, LB, PL, F, RB, LB, MI, F, RB, F, F, RB, LB, MI, F, LB, PL, F, LB, PL,
+				F, RB, LB, MI, F, RB, F, F, RB, LB, MI, F, LB, PL, F, RB, LB, MI, F, RB, F, F, RB, F, F, LB, PL,
+				F, RB, LB, MI, F, RB, F, F, RB, F, F, LB, PL, F, LB, PL, F, RB, LB, MI, F, RB, F, F, RB, LB, MI,
+				F, LB, PL, F, RB, LB, MI, F, RB, F, F, RB, F, F, LB, PL, F, RB, LB, MI, F, RB, F, F,
+				F, LB, PL, F, LB, PL, F, LB, PL, F, RB, LB, MI, F, RB, F, F, RB, LB, MI, F, LB, PL, F, RB, LB,
+				MI, F, RB, F, F, RB, F, F, LB, PL, F, RB, LB, MI, F, RB, F, F, RB, LB, MI, F, LB, PL, F, LB, PL,
+				F, RB, LB, MI, F, RB, F, F, RB, LB, MI, F, LB, PL, F, RB, LB, MI, F, RB, F, F, RB, F, F, LB, PL,
+				F, RB, LB, MI, F, RB, F, F, RB, F, F, LB, PL, F, LB, PL, F, RB, LB, MI, F, RB, F, F, RB, LB, MI,
+				F, LB, PL, F, RB, LB, MI, F, RB, F, F, RB, F, F, LB, PL, F, RB, LB, MI, F, RB, F, F,
+				F, LB, PL, F, LB, PL, F, LB, PL, F, RB, LB, MI, F, RB, F, F, RB, LB, MI, F, LB, PL, F, RB, LB,
+				MI, F, RB, F, F, RB, F, F, LB, PL, F, RB, LB, MI, F, RB, F, F, RB, LB, MI, F, LB, PL, F, LB, PL,
+				F, RB, LB, MI, F, RB, F, F, RB, LB, MI, F, LB, PL, F, RB, LB, MI, F, RB, F, F, RB, F, F, LB, PL,
+				F, RB, LB, MI, F, RB, F, F, RB, F, F, LB, PL, F, LB, PL, F, RB, LB, MI, F, RB, F, F, RB, LB, MI,
+				F, LB, PL, F, RB, LB, MI, F, RB, F, F, RB, F, F, LB, PL, F, RB, LB, MI, F, RB, F, F,
+				F, LB, PL, F, LB, PL, F, LB, PL, F, RB, LB, MI, F, RB, F, F, RB, LB, MI, F, LB, PL, F, RB, LB,
+				MI, F, RB, F, F, RB, F, F, LB, PL, F, RB, LB, MI, F, RB, F, F, RB, LB, MI, F, LB, PL, F, LB, PL,
+				F, RB, LB, MI, F, RB, F, F, RB, LB, MI, F, LB, PL, F, RB, LB, MI, F, RB, F, F, RB, F, F, LB, PL,
+				F, RB, LB, MI, F, RB, F, F, RB, F, F, LB, PL, F, LB, PL, F, RB, LB, MI, F, RB, F, F, RB, LB, MI,
+				F, LB, PL, F, RB, LB, MI, F, RB, F, F, RB, F, F, LB, PL, F, RB, LB, MI, F, RB, F, F,
+				F, LB, PL, F, LB, PL, F, LB, PL, F, RB, LB, MI, F, RB, F, F, RB, LB, MI, F, LB, PL, F, RB, LB,
+				MI, F, RB, F, F, RB, F, F, LB, PL, F, RB, LB, MI, F, RB, F, F, RB, LB, MI, F, LB, PL, F, LB, PL,
+				F, RB, LB, MI, F, RB, F, F, RB, LB, MI, F, LB, PL, F, RB, LB, MI, F, RB, F, F, RB, F, F, LB, PL,
+				F, RB, LB, MI, F, RB, F, F, RB, F, F, LB, PL, F, LB, PL, F, RB, LB, MI, F, RB, F, F, RB, LB, MI,
+				F, LB, PL, F, RB, LB, MI, F, RB, F, F, RB, F, F, LB, PL, F, RB, LB, MI, F, RB, F, F,
+				F, LB, PL, F, LB, PL, F, LB, PL, F, RB, LB, MI, F, RB, F, F, RB, LB, MI, F, LB, PL, F, RB, LB,
+				MI, F, RB, F, F, RB, F, F, LB, PL, F, RB, LB, MI, F, RB, F, F, RB, LB, MI, F, LB, PL, F, LB, PL,
+				F, RB, LB, MI, F, RB, F, F, RB, LB, MI, F, LB, PL, F, RB, LB, MI, F, RB, F, F, RB, F, F, LB, PL,
+				F, RB, LB, MI, F, RB, F, F, RB, F, F, LB, PL, F, LB, PL, F, RB, LB, MI, F, RB, F, F, RB, LB, MI,
+				F, LB, PL, F, RB, LB, MI, F, RB, F, F, RB, F, F, LB, PL, F, RB, LB, MI, F, RB, F, F,
+				F, LB, PL, F, LB, PL, F, LB, PL, F, RB, LB, MI, F, RB, F, F, RB, LB, MI, F, LB, PL, F, RB, LB,
+				MI, F, RB, F, F, RB, F, F, LB, PL, F, RB, LB, MI, F, RB, F, F, RB, LB, MI, F, LB, PL, F, LB, PL,
+				F, RB, LB, MI, F, RB, F, F, RB, LB, MI, F, LB, PL, F, RB, LB, MI, F, RB, F, F, RB, F, F, LB, PL,
+				F, RB, LB, MI, F, RB, F, F, RB, F, F, LB, PL, F, LB, PL, F, RB, LB, MI, F, RB, F, F, RB, LB, MI,
+				F, LB, PL, F, RB, LB, MI, F, RB, F, F, RB, F, F, LB, PL, F, RB, LB, MI, F, RB, F, F,
+				F, LB, PL, F, LB, PL, F, LB, PL, F, RB, LB, MI, F, RB, F, F, RB, LB, MI, F, LB, PL, F, RB, LB,
+				MI, F, RB, F, F, RB, F, F, LB, PL, F, RB, LB, MI, F, RB, F, F, RB, LB, MI, F, LB, PL, F, LB, PL,
+				F, RB, LB, MI, F, RB, F, F, RB, LB, MI, F, LB, PL, F, RB, LB, MI, F, RB, F, F, RB, F, F, LB, PL,
+				F, RB, LB, MI, F, RB, F, F, RB, F, F, LB, PL, F, LB, PL, F, RB, LB, MI, F, RB, F, F, RB, LB, MI,
+				F, LB, PL, F, RB, LB, MI, F, RB, F, F, RB, F, F, LB, PL, F, RB, LB, MI, F, RB, F, F,
+				F, LB, PL, F, LB, PL, F, LB, PL, F, RB, LB, MI, F, RB, F, F, RB, LB, MI, F, LB, PL, F, RB, LB,
+				MI, F, RB, F, F, RB, F, F, LB, PL, F, RB, LB, MI, F, RB, F, F, RB, LB, MI, F, LB, PL, F, LB, PL,
+				F, RB, LB, MI, F, RB, F, F, RB, LB, MI, F, LB, PL, F, RB, LB, MI, F, RB, F, F, RB, F, F, LB, PL,
+				F, RB, LB, MI, F, RB, F, F, RB, F, F, LB, PL, F, LB, PL, F, RB, LB, MI, F, RB, F, F, RB, LB, MI,
+				F, LB, PL, F, RB, LB, MI, F, RB, F, F, RB, F, F, LB, PL, F, RB, LB, MI, F, RB, F, F,
+				F, LB, PL, F, LB, PL, F, LB, PL, F, RB, LB, MI, F, RB, F, F, RB, LB, MI, F, LB, PL, F, RB, LB,
+				MI, F, RB, F, F, RB, F, F, LB, PL, F, RB, LB, MI, F, RB, F, F, RB, LB, MI, F, LB, PL, F, LB, PL,
+				F, RB, LB, MI, F, RB, F, F, RB, LB, MI, F, LB, PL, F, RB, LB, MI, F, RB, F, F, RB, F, F, LB, PL,
+				F, RB, LB, MI, F, RB, F, F, RB, F, F, LB, PL, F, LB, PL, F, RB, LB, MI, F, RB, F, F, RB, LB, MI,
+				F, LB, PL, F, RB, LB, MI, F, RB, F, F, RB, F, F, LB, PL, F, RB, LB, MI, F, RB, F, F,
+				F, LB, PL, F, LB, PL, F, LB, PL, F, RB, LB, MI, F, RB, F, F, RB, LB, MI, F, LB, PL, F, RB, LB,
+				MI, F, RB, F, F, RB, F, F, LB, PL, F, RB, LB, MI, F, RB, F, F, RB, LB, MI, F, LB, PL, F, LB, PL,
+				F, RB, LB, MI, F, RB, F, F, RB, LB, MI, F, LB, PL, F, RB, LB, MI, F, RB, F, F, RB, F, F, LB, PL,
+				F, RB, LB, MI, F, RB, F, F, RB, F, F, LB, PL, F, LB, PL, F, RB, LB, MI, F, RB, F, F, RB, LB, MI,
+				F, LB, PL, F, RB, LB, MI, F, RB, F, F, RB, F, F, LB, PL, F, RB, LB, MI, F, RB, F, F,
+				F, LB, PL, F, LB, PL, F, LB, PL, F, RB, LB, MI, F, RB, F, F, RB, LB, MI, F, LB, PL, F, RB, LB,
+				MI, F, RB, F, F, RB, F, F, LB, PL, F, RB, LB, MI, F, RB, F, F, RB, LB, MI, F, LB, PL, F, LB, PL,
+				F, RB, LB, MI, F, RB, F, F, RB, LB, MI, F, LB, PL, F, RB, LB, MI, F, RB, F, F, RB, F, F, LB, PL,
+				F, RB, LB, MI, F, RB, F, F, RB, F, F, LB, PL, F, LB, PL, F, RB, LB, MI, F, RB, F, F, RB, LB, MI,
+				F, LB, PL, F, RB, LB, MI, F, RB, F, F, RB, F, F, LB, PL, F, RB, LB, MI, F, RB, F, F,
+				F, LB, PL, F, LB, PL, F, LB, PL, F, RB, LB, MI, F, RB, F, F, RB, LB, MI, F, LB, PL, F, RB, LB,
+				MI, F, RB, F, F, RB, F, F, LB, PL, F, RB, LB, MI, F, RB, F, F, RB, LB, MI, F, LB, PL, F, LB, PL,
+				F, RB, LB, MI, F, RB, F, F, RB, LB, MI, F, LB, PL, F, RB, LB, MI, F, RB, F, F, RB, F, F, LB, PL,
+				F, RB, LB, MI, F, RB, F, F, RB, F, F, LB, PL, F, LB, PL, F, RB, LB, MI, F, RB, F, F, RB, LB, MI,
+				F, LB, PL, F, RB, LB, MI, F, RB, F, F, RB, F, F, LB, PL, F, RB, LB, MI, F, RB, F, F,
+				F, LB, PL, F, LB, PL, F, LB, PL, F, RB, LB, MI, F, RB, F, F, RB, LB, MI, F, LB, PL, F, RB, LB,
+				MI, F, RB, F, F, RB, F, F, LB, PL, F, RB, LB, MI, F, RB, F, F, RB, LB, MI, F, LB, PL, F, LB, PL,
+				F, RB, LB, MI, F, RB, F, F, RB, LB, MI, F, LB, PL, F, RB, LB, MI, F, RB, F, F, RB, F, F, LB, PL,
+				F, RB, LB, MI, F, RB, F, F, RB, F, F, LB, PL, F, LB, PL, F, RB, LB, MI, F, RB, F, F, RB, LB, MI,
+				F, LB, PL, F, RB, LB, MI, F, RB, F, F, RB, F, F, LB, PL, F, RB, LB, MI, F, RB, F, F,
+				F, LB, PL, F, LB, PL, F, LB, PL, F, RB, LB, MI, F, RB, F, F, RB, LB, MI, F, LB, PL, F, RB, LB,
+				MI, F, RB, F, F, RB, F, F, LB, PL, F, RB, LB, MI, F, RB, F, F, RB, LB, MI, F, LB, PL, F, LB, PL,
+				F, RB, LB, MI, F, RB, F, F, RB, LB, MI, F, LB, PL, F, RB, LB, MI, F, RB, F, F, RB, F, F, LB, PL,
+				F, RB, LB, MI, F, RB, F, F, RB, F, F, LB, PL, F, LB, PL, F, RB, LB, MI, F, RB, F, F, RB, LB, MI,
+				F, LB, PL, F, RB, LB, MI, F, RB, F, F, RB, F, F, LB, PL, F, RB, LB, MI, F, RB, F, F,
+				F, LB, PL, F, LB, PL, F, LB, PL, F, RB, LB, MI, F, RB, F, F, RB, LB, MI, F, LB, PL, F, RB, LB,
+				MI, F, RB, F, F, RB, F, F, LB, PL, F, RB, LB, MI, F, RB, F, F, RB, LB, MI, F, LB, PL, F, LB, PL,
+				F, RB, LB, MI, F, RB, F, F, RB, LB, MI, F, LB, PL, F, RB, LB, MI, F, RB, F, F, RB, F, F, LB, PL,
+				F, RB, LB, MI, F, RB, F, F, RB, F, F, LB, PL, F, LB, PL, F, RB, LB, MI, F, RB, F, F, RB, LB, MI,
+				F, LB, PL, F, RB, LB, MI, F, RB, F, F, RB, F, F, LB, PL, F, RB, LB, MI, F, RB, F, F,
+				F, LB, PL, F, LB, PL, F, LB, PL, F, RB, LB, MI, F, RB, F, F, RB, LB, MI, F, LB, PL, F, RB, LB,
+				MI, F, RB, F, F, RB, F, F, LB, PL, F, RB, LB, MI, F, RB, F, F, RB, LB, MI, F, LB, PL, F, LB, PL,
+				F, RB, LB, MI, F, RB, F, F, RB, LB, MI, F, LB, PL, F, RB, LB, MI, F, RB, F, F, RB, F, F, LB, PL,
+				F, RB, LB, MI, F, RB, F, F, RB, F, F, LB, PL, F, LB, PL, F, RB, LB, MI, F, RB, F, F, RB, LB, MI,
+				F, LB, PL, F, RB, LB, MI, F, RB, F, F, RB, F, F, LB, PL, F, RB, LB, MI, F, RB, F, F);
+
+		List<Vector3f> result = interpreter.interpretInstructions(instructions);
+
+		long expectedSize = 4 * (instructions.stream().filter(m -> !m.equals(LB) && !m.equals(RB)).count() + 1);
+
+		assertEquals(expectedSize, result.size());
+	}
+
+	@Test
 	public void handlesBrackets() {
 		TurtleInterpreter interpreter = new TurtleInterpreter();
 		CharModule X = new CharModule('X');
@@ -265,6 +383,35 @@ class TurtleInterpreterTest {
 		);
 
 		assertVectorListsEqual(expected, result);
+
+	}
+
+	@Test
+	public void handlesTropism() {
+		TurtleInterpreter interpreter = new TurtleInterpreter();
+		float e = 0.1f;
+		ParametricValueModule T = new ParametricValueModule('T', List.of(0f, -1f, 0f, e));
+
+		List<Module> instructions = new ArrayList<>(List.of(T, F, PL));
+
+		Vector3f prevHeading = new Vector3f(-1, 0, 0);
+		double prevAngle = 0;
+		// Doesn't work past i = 2 but I think that's because of compounded rounding errors
+		for (int i = 0; i < 2; i++) {
+			instructions.addAll(Collections.nCopies(i, F));
+			System.out.println("Inst: " + instructions);
+			interpreter.interpretInstructions(instructions);
+
+			float a = e * MathUtils.cross(prevHeading, new Vector3f(0, -1, 0)).length();
+			double angle = prevAngle + a * (Math.PI / 2 - prevAngle);
+			prevAngle = angle;
+			prevHeading = interpreter.getTurtleHeading();
+
+			assertVectorsEqual(
+					new Vector3f(-(float) Math.cos(angle), -(float) Math.sin(angle), 0),
+					prevHeading,
+					0.0001f);
+		}
 
 	}
 
