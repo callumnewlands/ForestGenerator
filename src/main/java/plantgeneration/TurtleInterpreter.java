@@ -111,73 +111,65 @@ public class TurtleInterpreter {
 		updateCrossSection(model, false);
 	}
 
-	private void throwInvalidTypeException(Module module) {
+	private void throwInvalidTypeException(Module module) throws RuntimeException {
 		throw new RuntimeException(String.format("Unable to parse module type: %s for module %s",
 				module.getClass(),
 				module.toString()));
 	}
 
+	private float getFirstValueFromParametricModule(Module module) {
+		return getAllValuesFromParametricModule(module).get(0);
+	}
+
+	private List<Float> getAllValuesFromParametricModule(Module module) {
+		if (module instanceof ParametricValueModule) {
+			return ((ParametricValueModule) module).getValues();
+		} else {
+			throwInvalidTypeException(module);
+		}
+		// Will never be reached as throwInvalidTypeException will throw first
+		throw new RuntimeException();
+	}
+
 	private void parseF(Module module) {
 		switch (module.getNumberOfParameters()) {
-			case 0:
-				moveForwards(this.stepSize, true);
-				break;
-			case 1:
-				if (module instanceof ParametricValueModule) {
-					float step = ((ParametricValueModule) module).getValues().get(0);
-					moveForwards(step, true);
-				} else {
-					throwInvalidTypeException(module);
-				}
-				break;
-			default:
-				throw new RuntimeException("Too many parameters in: " + module.toString());
+			case 0 -> moveForwards(this.stepSize, true);
+			case 1 -> {
+				float step = getFirstValueFromParametricModule(module);
+				moveForwards(step, true);
+			}
+			default -> throw new RuntimeException("Too many parameters in: " + module.toString());
 		}
 	}
 
 	private void parseT(Module module) {
 		switch (module.getNumberOfParameters()) {
-			case 1:
-				if (module instanceof ParametricValueModule) {
-					float val = ((ParametricValueModule) module).getValues().get(0);
-					if (val == 0) {
-						this.tropism = null;
-						break;
-					} else {
-						throw new RuntimeException("Non-zero single parameter in module " + module.toString());
-					}
+			case 1 -> {
+				float val = getFirstValueFromParametricModule(module);
+				// T(0) stops applying tropism
+				if (val == 0) {
+					this.tropism = null;
 				} else {
-					throwInvalidTypeException(module);
+					throw new RuntimeException("Non-zero single parameter in module " + module.toString());
 				}
-			case 4:
-				if (module instanceof ParametricValueModule) {
-					List<Float> vals = ((ParametricValueModule) module).getValues();
-					float[] floats = ArrayUtils.toPrimitive(vals.toArray(new Float[0]));
-					this.tropism = new Vector4f(floats);
-				} else {
-					throwInvalidTypeException(module);
-				}
-				break;
-			default:
-				throw new RuntimeException("Too many parameters in: " + module.toString());
+			}
+			case 4 -> {
+				List<Float> vals = getAllValuesFromParametricModule(module);
+				float[] floats = ArrayUtils.toPrimitive(vals.toArray(new Float[0]));
+				this.tropism = new Vector4f(floats);
+			}
+			default -> throw new RuntimeException("Too many parameters in: " + module.toString());
 		}
 	}
 
 	private void parseRotation(Module module, Vector3f axis) {
 		switch (module.getNumberOfParameters()) {
-			case 0:
-				turn(this.rotationAngle, axis);
-				break;
-			case 1:
-				if (module instanceof ParametricValueModule) {
-					float angle = ((ParametricValueModule) module).getValues().get(0);
-					turn(angle, axis);
-				} else {
-					throwInvalidTypeException(module);
-				}
-				break;
-			default:
-				throw new RuntimeException("Too many parameters in: " + module.toString());
+			case 0 -> turn(this.rotationAngle, axis);
+			case 1 -> {
+				float angle = getFirstValueFromParametricModule(module);
+				turn(angle, axis);
+			}
+			default -> throw new RuntimeException("Too many parameters in: " + module.toString());
 		}
 	}
 
