@@ -62,6 +62,13 @@ public class LSystem {
 		return this.getStateSting();
 	}
 
+	public List<Module> performDerivations(int n) {
+		for (int i = 0; i < n; i++) {
+			performDerivationStep();
+		}
+		return getState();
+	}
+
 	private Production chooseStochasticProduction(List<Production> matches, List<Module> pred) {
 		if (matches.stream().anyMatch(p -> p.getProbability() == null)) {
 			throw new RuntimeException(String.format(
@@ -86,4 +93,5 @@ public class LSystem {
 	public String getStateSting() {
 		return this.state.stream().map(Object::toString).collect(Collectors.joining());
 	}
+
 }

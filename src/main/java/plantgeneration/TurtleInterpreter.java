@@ -15,7 +15,7 @@ import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 import org.joml.Vector4f;
-import utils.MathUtils;
+import utils.VectorUtils;
 
 public class TurtleInterpreter {
 
@@ -56,7 +56,6 @@ public class TurtleInterpreter {
 	private void updateCrossSection(Matrix4f model) {
 		updateCrossSection(model, true);
 	}
-
 	private void updateCrossSection(Matrix4f model, boolean adjustForTropism) {
 		turtle.prevCross = turtle.prevCross.stream()
 				.map(Vector3f::new)
@@ -68,7 +67,7 @@ public class TurtleInterpreter {
 	}
 
 	private void moveForwards(float distance, boolean drawGeometry) {
-		Matrix4f model = (new Matrix4f()).translation(MathUtils.multiply(distance, turtle.heading));
+		Matrix4f model = (new Matrix4f()).translation(VectorUtils.multiply(distance, turtle.heading));
 		turtle.position = model.transformPosition(turtle.position);
 		updateCrossSection(model);
 
@@ -98,7 +97,7 @@ public class TurtleInterpreter {
 		}
 		Vector3f tropismVector = new Vector3f(tropism.x, tropism.y, tropism.z);
 		float elasticity = tropism.w;
-		float adjustment = elasticity * MathUtils.cross(turtle.heading, tropismVector).length();
+		float adjustment = elasticity * VectorUtils.cross(turtle.heading, tropismVector).length();
 		Quaternionf rotation = new Quaternionf().identity().slerp(
 				new Quaternionf().rotateTo(turtle.heading, tropismVector), adjustment);
 
@@ -146,11 +145,11 @@ public class TurtleInterpreter {
 		switch (module.getNumberOfParameters()) {
 			case 1 -> {
 				float val = getFirstValueFromParametricModule(module);
-				// T(0) stops applying tropism
+				// T(0) = stop applying tropism
 				if (val == 0) {
 					this.tropism = null;
 				} else {
-					throw new RuntimeException("Non-zero single parameter in module " + module.toString());
+					throw new RuntimeException("Behaviour undefined: Non-zero single parameter in T module " + module.toString());
 				}
 			}
 			case 4 -> {
@@ -158,7 +157,7 @@ public class TurtleInterpreter {
 				float[] floats = ArrayUtils.toPrimitive(vals.toArray(new Float[0]));
 				this.tropism = new Vector4f(floats);
 			}
-			default -> throw new RuntimeException("Too many parameters in: " + module.toString());
+			default -> throw new RuntimeException("Undefined number of parameters in: " + module.toString());
 		}
 	}
 
@@ -188,11 +187,12 @@ public class TurtleInterpreter {
 				case 'T' -> parseT(module);
 				case '+' -> parseRotation(module, turtle.up);
 				case '-' -> turn(-this.rotationAngle, turtle.up);
-				case '&' -> parseRotation(module, MathUtils.cross(turtle.up, turtle.heading).normalize());
+				case '&' -> parseRotation(module, VectorUtils.cross(turtle.up, turtle.heading).normalize());
 				case '/' -> parseRotation(module, turtle.heading);
 				case '[' -> states.push(this.turtle.copy());
 				case ']' -> turtle = states.pop();
-				default -> throw new RuntimeException("Unable to interpret module: " + module.toString());
+				default -> throw new RuntimeException("Unable to interpret module: " + module.toString() +
+						". Is it missing from TurtleInterpreter.ignored?");
 			}
 		}
 		return this.vertices;

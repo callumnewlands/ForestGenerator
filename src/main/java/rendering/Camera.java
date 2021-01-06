@@ -2,7 +2,7 @@ package rendering;
 
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
-import utils.MathUtils;
+import utils.VectorUtils;
 
 public class Camera {
 
@@ -45,12 +45,12 @@ public class Camera {
 		this.direction.normalize();
 		this.front = new Vector3f(direction.x, 0.0f, direction.z);
 		this.front.normalize();
-		this.right = MathUtils.cross(front, GLOBAL_UP).normalize();
-		this.up = MathUtils.cross(right, front).normalize();
+		this.right = VectorUtils.cross(front, GLOBAL_UP).normalize();
+		this.up = VectorUtils.cross(right, front).normalize();
 	}
 
 	public Matrix4f getViewMatrix() {
-		Vector3f target = MathUtils.add(position, direction);
+		Vector3f target = VectorUtils.add(position, direction);
 		return (new Matrix4f()).lookAt(position, target, up);
 	}
 
@@ -60,22 +60,22 @@ public class Camera {
 
 		switch (direction) {
 			case FORWARD:
-				position = MathUtils.add(position, MathUtils.multiply(velocity, front));
+				position = VectorUtils.add(position, VectorUtils.multiply(velocity, front));
 				break;
 			case BACKWARD:
-				position = MathUtils.subtract(position, MathUtils.multiply(velocity, front));
+				position = VectorUtils.subtract(position, VectorUtils.multiply(velocity, front));
 				break;
 			case LEFT:
-				position = MathUtils.subtract(position, MathUtils.multiply(velocity, right));
+				position = VectorUtils.subtract(position, VectorUtils.multiply(velocity, right));
 				break;
 			case RIGHT:
-				position = MathUtils.add(position, MathUtils.multiply(velocity, right));
+				position = VectorUtils.add(position, VectorUtils.multiply(velocity, right));
 				break;
 			case UP:
-				position = MathUtils.add(position, MathUtils.multiply(velocity, up));
+				position = VectorUtils.add(position, VectorUtils.multiply(velocity, up));
 				break;
 			case DOWN:
-				position = MathUtils.subtract(position, MathUtils.multiply(velocity, up));
+				position = VectorUtils.subtract(position, VectorUtils.multiply(velocity, up));
 				break;
 			default:
 		}

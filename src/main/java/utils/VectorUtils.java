@@ -1,9 +1,12 @@
 package utils;
 
+import java.util.List;
+import java.util.stream.Stream;
+import org.apache.commons.lang3.ArrayUtils;
 import org.joml.Vector3f;
 
-public final class MathUtils {
-	private MathUtils() {
+public final class VectorUtils {
+	private VectorUtils() {
 	}
 
 	public static Vector3f add(final Vector3f vec1, final Vector3f vec2) {
@@ -22,4 +25,7 @@ public final class MathUtils {
 		return (new Vector3f(vec1)).cross(vec2);
 	}
 
+	public static float[] getVertexData(List<Vector3f> vertices) {
+		return ArrayUtils.toPrimitive(vertices.stream().flatMap(v -> Stream.of(v.x, v.y, v.z)).toArray(Float[]::new));
+	}
 }

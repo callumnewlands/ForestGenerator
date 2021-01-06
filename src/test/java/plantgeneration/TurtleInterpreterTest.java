@@ -17,7 +17,7 @@ import lsystems.modules.Module;
 import lsystems.modules.ParametricValueModule;
 import org.joml.Vector3f;
 import org.junit.jupiter.api.Test;
-import utils.MathUtils;
+import utils.VectorUtils;
 
 class TurtleInterpreterTest {
 
@@ -402,7 +402,7 @@ class TurtleInterpreterTest {
 			System.out.println("Inst: " + instructions);
 			interpreter.interpretInstructions(instructions);
 
-			float a = e * MathUtils.cross(prevHeading, new Vector3f(0, -1, 0)).length();
+			float a = e * VectorUtils.cross(prevHeading, new Vector3f(0, -1, 0)).length();
 			double angle = prevAngle + a * (Math.PI / 2 - prevAngle);
 			prevAngle = angle;
 			prevHeading = interpreter.getTurtleHeading();

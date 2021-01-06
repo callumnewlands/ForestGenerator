@@ -1,7 +1,10 @@
 import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.IntStream;
 
+import static lsystems.modules.DefinedModules.LB;
+import static lsystems.modules.DefinedModules.RB;
 import static org.lwjgl.glfw.Callbacks.glfwFreeCallbacks;
 import static org.lwjgl.glfw.GLFW.GLFW_CONTEXT_VERSION_MAJOR;
 import static org.lwjgl.glfw.GLFW.GLFW_CONTEXT_VERSION_MINOR;
@@ -54,16 +57,25 @@ import static org.lwjgl.opengl.GL11C.glEnable;
 import static org.lwjgl.opengl.GL11C.glGetString;
 import static org.lwjgl.system.MemoryUtil.NULL;
 
+import lsystems.LSystem;
+import lsystems.ProductionBuilder;
+import lsystems.modules.CharModule;
+import lsystems.modules.Module;
+import lsystems.modules.ParametricExpressionModule;
+import lsystems.modules.ParametricParameterModule;
+import lsystems.modules.ParametricValueModule;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.lwjgl.Version;
 import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.glfw.GLFWVidMode;
 import org.lwjgl.opengl.GL;
+import plantgeneration.TurtleInterpreter;
 import rendering.Camera;
 import rendering.ShaderProgram;
 import rendering.VertexArray;
 import rendering.VertexAttribute;
+import utils.VectorUtils;
 
 public class App {
 
@@ -77,6 +89,7 @@ public class App {
 
 	private ShaderProgram shaderProgram;
 	private VertexArray rectangleVertexArray;
+	private VertexArray treeVertexArray;
 	private Camera camera;
 
 	private double lastFrame = 0.0;
@@ -193,8 +206,87 @@ public class App {
 		List<VertexAttribute> attributes = List.of(VertexAttribute.POSITION);
 		final int[] indices = {0, 1, 3, 1, 2, 3};
 		rectangleVertexArray = new VertexArray(vertices, 4, indices, attributes);
+
+		//Create a tree
+		LSystem lSystem = fig2_8_System();
+		List<Module> instructions = lSystem.performDerivations(6);
+		TurtleInterpreter turtleInterpreter = new TurtleInterpreter();
+		turtleInterpreter.setIgnored(List.of('!', 'A'));
+		List<Vector3f> data = turtleInterpreter.interpretInstructions(instructions);
+		treeVertexArray = new VertexArray(
+				VectorUtils.getVertexData(data),
+				data.size(),
+				IntStream.range(0, (data.size() - 4) / 4).flatMap(
+						// For each 4 vertices, construct a cube
+						i -> List.of(
+								0, 1, 2,
+								2, 3, 0,
+								// right
+								1, 5, 6,
+								6, 2, 1,
+								// back
+								7, 6, 5,
+								5, 4, 7,
+								// left
+								4, 0, 3,
+								3, 7, 4,
+								// bottom
+								4, 5, 1,
+								1, 0, 4,
+								// top
+								3, 2, 6,
+								6, 7, 3).stream().mapToInt(n -> 4 * i + n))
+						.toArray(),
+				attributes);
 	}
 
+	private LSystem fig2_8_System() {
+		float d1 = 1.6535f;//94.74f;
+		float d2 = 2.3148f; //132.63f;
+		float a = 0.1053f * (float) Math.PI;//18.95f;
+		float lr = 1.109f;
+		float vr = 1.732f;
+		float e = 0.022f;
+
+		CharModule A = new CharModule('A');
+		ParametricParameterModule ExIn = new ParametricParameterModule('!', List.of("w"));
+		Module ExOut = new ParametricExpressionModule('!', List.of("w"), vars -> List.of(vars.get("w") * vr));
+		ParametricParameterModule FIn = new ParametricParameterModule('F', List.of("l"));
+		Module FOut = new ParametricExpressionModule('F', List.of("l"), vars -> List.of(vars.get("l") * lr));
+
+		return new LSystem(
+				List.of(
+						new ParametricValueModule('T', List.of(0f, -1f, 0f, e)),
+						new ParametricValueModule('!', 1f),
+						new ParametricValueModule('F', 200f),
+						new ParametricValueModule('/', (float) Math.PI / 4),
+						A
+				),
+				List.of(),
+				List.of(
+						new ProductionBuilder(List.of(A), List.of(
+								new ParametricValueModule('!', vr),
+								new ParametricValueModule('F', 50f),
+								LB,
+								new ParametricValueModule('&', a),
+								new ParametricValueModule('F', 50f),
+								A,
+								RB,
+								new ParametricValueModule('/', d1),
+								LB,
+								new ParametricValueModule('&', a),
+								new ParametricValueModule('F', 50f),
+								A,
+								RB,
+								new ParametricValueModule('/', d2),
+								new ParametricValueModule('&', a),
+								new ParametricValueModule('F', 50f),
+								A
+						)).build(),
+						new ProductionBuilder(List.of(FIn), List.of(FOut)).build(),
+						new ProductionBuilder(List.of(ExIn), List.of(ExOut)).build()
+				));
+	}
 
 	private void loop() {
 		while (!glfwWindowShouldClose(window)) {
@@ -223,8 +315,10 @@ public class App {
 		shaderProgram.setUniform("view", camera.getViewMatrix());
 		shaderProgram.setUniform("model", (new Matrix4f())
 				.identity()
-				.rotate((float) (Math.PI * 2 * stepper), new Vector3f(0f, 1f, 0f)));
-		rectangleVertexArray.draw();
+				.scale(0.01f));
+//				.rotate((float) (Math.PI * 2 * stepper), new Vector3f(0f, 1f, 0f)));
+//		rectangleVertexArray.draw();
+		treeVertexArray.draw();
 	}
 
 	// Not handled with a callback (instead polled each render cycle) to allow for holding down of keys
