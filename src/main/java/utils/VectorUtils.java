@@ -57,83 +57,67 @@ public final class VectorUtils {
 		return new VertexArray(data, vertices.size(), indices, List.of(VertexAttribute.POSITION));
 	}
 
-	public static VertexArray getVAOWithPosNorm(List<Vector3f> vertices) {
-		float[] data = ArrayUtils.toPrimitive(IntStream.range(0, (vertices.size() - 4) / 4).boxed().flatMap(
-				// For each 4 vertices (V_n), construct a cuboid (with V_n as the base and V_{n+1} as the top)
-				i -> List.of(
-						// base
-						List.of(0, 3, 2, 1),
-						// right
-						List.of(0, 1, 5, 4),
-						// front
-						List.of(1, 2, 6, 5),
-						// left
-						List.of(2, 3, 7, 6),
-						// back
-						List.of(3, 0, 4, 7),
-						// top
-						List.of(4, 5, 6, 7)
-				).stream()
+	public static VertexArray getVAOWithPosNorm(List<Vector3f> vertices, int numEdges) {
+
+		List<List<Integer>> faces = new ArrayList<>();
+
+		// TODO think about not repeating the top and bottom vertices so many times and/or only including them at the ends?
+		//		How about adding a close symbol to the turtle which creates a zero width face and then never generating the ends of the prisms?
+
+		// Base
+		for (int i = 1; i < numEdges + 1; i++) {
+			int j = (i % numEdges) + 1;
+			faces.add(List.of(0, i, j));
+		}
+		// Top
+		for (int i = 1; i < numEdges + 1; i++) {
+			int j = (i % numEdges) + 1;
+			faces.add(List.of(numEdges + 1, i + numEdges + 1, j + numEdges + 1));
+		}
+
+		// Sides
+		for (int i = 1; i < numEdges + 1; i++) {
+			int j = (i % numEdges) + 1;
+			faces.add(List.of(i, j, j + numEdges + 1, i + numEdges + 1));
+		}
+
+		int numSegments = (vertices.size() - (numEdges + 1)) / (numEdges + 1);
+		float[] data = ArrayUtils.toPrimitive(IntStream.range(0, numSegments).boxed().flatMap(
+				// For each 'numEdges' vertices (V), construct a prism with (V) as the base
+				i -> faces.stream()
 						.map(f -> f
 								.stream()
-								.map(n -> n + 4 * i)
+								.map(n -> n + (numEdges + 1) * i)
 								.collect(Collectors.toList()))// Convert to vertex index
 						.flatMap(f -> {
-							List<Float> faceData = new ArrayList<>(24);
-							for (int n = 0; n < 4; n++) {
+							List<Float> faceData = new ArrayList<>(6 * numEdges);
+							int s = f.size();
+							// TODO the normal is the same for each corner of the face
+							for (int n = 0; n < s; n++) {
 								int i0 = f.get(n);
 								Vector3f v = vertices.get(i0);
-								int i1 = f.get((n + 1) % 4);
-								int i2 = f.get((n + 3) % 4);
+								int i1 = f.get((n + 1) % s);
+								int i2 = f.get((n + (s - 1)) % s);
 								Vector3f a1 = VectorUtils.subtract(vertices.get(i1), v).normalize();
 								Vector3f a2 = VectorUtils.subtract(vertices.get(i2), v).normalize();
 								Vector3f norm = VectorUtils.cross(a2, a1).normalize();
-//								Vector3f norm = new Vector3f(v.x, v.y, v.z);
 								faceData.addAll(List.of(v.x, v.y, v.z, norm.x, norm.y, norm.z));
 							}
 							return faceData.stream();
 						}) // Create vertex with normals for each face
 		).toArray(Float[]::new));
-		int[] indices = IntStream.range(0, (data.length / 6 - 4) / 4).flatMap(
-				i -> List.of(
-						0, 1, 2,
-						2, 3, 0
-				).stream().mapToInt(n -> 4 * i + n)
+
+		List<Integer> prismIndices = IntStream.range(0, 6 * numEdges).boxed().collect(Collectors.toList()); // base and top
+		// sides
+		for (int i = 0; i < numEdges; i++) {
+			int finalI = i;
+			prismIndices.addAll(List.of(0, 1, 2, 2, 3, 0).stream().map(n -> 6 * numEdges + n + 4 * finalI).collect(Collectors.toList()));
+		}
+
+		int[] indices = IntStream.range(0, numSegments).boxed().flatMapToInt(
+				i -> prismIndices.stream().mapToInt(n -> n + (10 * numEdges) * i)
 		).toArray();
 
-//		data = ArrayUtils.toPrimitive(List.of(
-//				0, 0, 0, 0, 0, -1,
-//				1, 0, 0, 0, 0, -1,
-//				1, 1, 0, 0, 0, -1,
-//				0, 1, 0, 0, 0, -1,
-//				0, 0, 1, 0, 0, 1,
-//				1, 0, 1, 0, 0, 1,
-//				1, 1, 1, 0, 0, 1,
-//				0, 1, 1, 0, 0, 1,
-//				0, 0, 0, -1, 0, 0,
-//				1, 0, 0, 1, 0, 0,
-//				1, 1, 0, 1, 0, 0,
-//				0, 1, 0, -1, 0, 0,
-//				0, 0, 1, -1, 0, 0,
-//				1, 0, 1, 1, 0, 0,
-//				1, 1, 1, 1, 0, 0,
-//				0, 1, 1, -1, 0, 0,
-//				0, 0, 0, 0, -1, 0,
-//				1, 0, 0, 0, -1, 0,
-//				1, 1, 0, 0, 1, 0,
-//				0, 1, 0, 0, 1, 0,
-//				0, 0, 1, 0, -1, 0,
-//				1, 0, 1, 0, -1, 0,
-//				1, 1, 1, 0, 1, 0,
-//				0, 1, 1, 0, 1, 0).stream().map(Integer::floatValue).toArray(Float[]::new));
-//
-//		indices = ArrayUtils.toPrimitive(ArrayUtils.toArray(
-//				4, 5, 6, 4, 6, 7,
-//				8, 11, 15, 8, 12, 15,
-//				16, 20, 21, 16, 17, 21,
-//				9, 10, 14, 9, 13, 14,
-//				19, 18, 22, 19, 22, 23,
-//				0, 1, 2, 0, 2, 3));
 
 		return new VertexArray(data, data.length / 6, indices, List.of(VertexAttribute.POSITION, VertexAttribute.NORMAL));
 	}

@@ -209,10 +209,11 @@ public class App {
 
 //		Create a tree
 		List<Module> instructions = fig2_8_System().performDerivations(7);
-		TurtleInterpreter turtleInterpreter = new TurtleInterpreter();
+		int numEdges = 20;
+		TurtleInterpreter turtleInterpreter = new TurtleInterpreter(numEdges);
 		turtleInterpreter.setIgnored(List.of('A'));
 		List<Vector3f> data = turtleInterpreter.interpretInstructions(instructions);
-		treeVertexArray = VectorUtils.getVAOWithPosNorm(data);
+		treeVertexArray = VectorUtils.getVAOWithPosNorm(data, numEdges);
 	}
 
 	private LSystem fig2_8_System() {
@@ -279,8 +280,8 @@ public class App {
 	private void loop() {
 		while (!glfwWindowShouldClose(window)) {
 			updateDeltaTime();
-//			stepper += deltaTime;
-//			stepper -= (int) stepper;
+			stepper += deltaTime / 10;
+			stepper -= (int) stepper;
 			renderScene();
 			glfwSwapBuffers(window);
 			pollKeys();
@@ -303,8 +304,8 @@ public class App {
 		shaderProgram.setUniform("view", camera.getViewMatrix());
 		shaderProgram.setUniform("model", (new Matrix4f())
 				.identity()
-				.scale(0.01f));
-//				.rotate((float) (Math.PI * 2 * stepper), new Vector3f(0f, 1f, 0f)));
+				.scale(0.01f)
+				.rotate((float) (Math.PI * 2 * stepper), new Vector3f(0f, 1f, 0f)));
 //		rectangleVertexArray.draw();
 		treeVertexArray.draw();
 	}

@@ -20,13 +20,8 @@ import utils.VectorUtils;
 public class TurtleInterpreter {
 
 	private final float HALF = 0.5f;
-	private final List<Vector3f> unitCross = List.of(
-			new Vector3f(HALF, 0, -HALF),
-			new Vector3f(HALF, 0, HALF),
-			new Vector3f(-HALF, 0, HALF),
-			new Vector3f(-HALF, 0, -HALF)
-	);
 	private final Stack<Turtle> states = new Stack<>();
+	private final int numEdges;
 	@Setter
 	private float rotationAngle;
 	@Setter
@@ -38,19 +33,36 @@ public class TurtleInterpreter {
 	private Turtle turtle = new Turtle();
 	private List<Vector3f> vertices;
 
-	public TurtleInterpreter() {
+	// TODO Leaves (Geometry/model reference injection)
+
+	public TurtleInterpreter(int numEdges) {
+		this.numEdges = numEdges;
 		this.stepSize = 1f;
 		this.rotationAngle = (float) Math.PI / 2;
+	}
+
+	public TurtleInterpreter() {
+		this(4);
 	}
 
 	private void init() {
 		turtle.position = new Vector3f(0, 0, 0);
 		turtle.heading = new Vector3f(0, 1, 0);
 		turtle.up = new Vector3f(0, 0, 1);
-		this.vertices = new ArrayList<>(unitCross);
-		turtle.prevCross = new ArrayList<>(unitCross);
-		// Sets prevCross elements to be different objects to unitCross
+		this.vertices = new ArrayList<>(getUnitCross());
+		turtle.prevCross = new ArrayList<>(getUnitCross());
+		// Sets prevCross elements to be different objects to unitCross()
 		updateCrossSection((new Matrix4f()).identity());
+	}
+
+	private List<Vector3f> getUnitCross() {
+		List<Vector3f> vertices = new ArrayList<>();
+		vertices.add(new Vector3f(0, 0, 0)); // Centre
+		for (int i = 0; i < numEdges; i++) {
+			double theta = 2 * Math.PI * i / numEdges;
+			vertices.add(new Vector3f((float) Math.sin(theta), 0, (float) Math.cos(theta)));
+		}
+		return vertices;
 	}
 
 	private void updateCrossSection(Matrix4f model) {
@@ -99,7 +111,7 @@ public class TurtleInterpreter {
 		updateCrossSection(model);
 
 		if (oldRadius == 0.5f) {
-			this.vertices.addAll(unitCross.stream()
+			this.vertices.addAll(getUnitCross().stream()
 					.map(Vector3f::new)
 					.map(model::transformPosition)
 					.collect(Collectors.toList()));
@@ -196,8 +208,6 @@ public class TurtleInterpreter {
 			throw new RuntimeException("Too many parameters in: " + module.toString());
 		}
 	}
-	// TODO Leaves (Geometry/model reference injection)
-	// TODO cross section shape
 
 	public List<Vector3f> interpretInstructions(List<Module> instructions) {
 		init();
