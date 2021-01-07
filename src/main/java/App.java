@@ -51,9 +51,7 @@ import static org.lwjgl.opengl.GL11.GL_COLOR_BUFFER_BIT;
 import static org.lwjgl.opengl.GL11.GL_DEPTH_BUFFER_BIT;
 import static org.lwjgl.opengl.GL11.glClear;
 import static org.lwjgl.opengl.GL11.glClearColor;
-import static org.lwjgl.opengl.GL11C.GL_DEPTH_TEST;
 import static org.lwjgl.opengl.GL11C.GL_VERSION;
-import static org.lwjgl.opengl.GL11C.glEnable;
 import static org.lwjgl.opengl.GL11C.glGetString;
 import static org.lwjgl.system.MemoryUtil.NULL;
 
@@ -194,8 +192,7 @@ public class App {
 	}
 
 	private void initScene() {
-		glEnable(GL_DEPTH_TEST);
-		glClearColor(.1f, .4f, 0f, 0f);
+		glClearColor(.529f, .808f, .922f, 0f);
 
 		float[] vertices = {
 				0.5f, 0.5f, 0.0f,
@@ -211,13 +208,13 @@ public class App {
 		LSystem lSystem = fig2_8_System();
 		List<Module> instructions = lSystem.performDerivations(6);
 		TurtleInterpreter turtleInterpreter = new TurtleInterpreter();
-		turtleInterpreter.setIgnored(List.of('!', 'A'));
+		turtleInterpreter.setIgnored(List.of('A'));
 		List<Vector3f> data = turtleInterpreter.interpretInstructions(instructions);
 		treeVertexArray = new VertexArray(
 				VectorUtils.getVertexData(data),
 				data.size(),
 				IntStream.range(0, (data.size() - 4) / 4).flatMap(
-						// For each 4 vertices, construct a cube
+						// For each 4 vertices (V_n), construct a cuboid (with V_n as the base and V_{n+1} as the top)
 						i -> List.of(
 								0, 1, 2,
 								2, 3, 0,

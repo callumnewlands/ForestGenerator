@@ -19,12 +19,12 @@ import utils.VectorUtils;
 
 public class TurtleInterpreter {
 
-	private final float r = 0.5f;
+	private final float HALF = 0.5f;
 	private final List<Vector3f> unitCross = List.of(
-			new Vector3f(r, 0, -r),
-			new Vector3f(r, 0, r),
-			new Vector3f(-r, 0, r),
-			new Vector3f(-r, 0, -r)
+			new Vector3f(HALF, 0, -HALF),
+			new Vector3f(HALF, 0, HALF),
+			new Vector3f(-HALF, 0, HALF),
+			new Vector3f(-HALF, 0, -HALF)
 	);
 	private final Stack<Turtle> states = new Stack<>();
 	@Setter
@@ -56,6 +56,7 @@ public class TurtleInterpreter {
 	private void updateCrossSection(Matrix4f model) {
 		updateCrossSection(model, true);
 	}
+
 	private void updateCrossSection(Matrix4f model, boolean adjustForTropism) {
 		turtle.prevCross = turtle.prevCross.stream()
 				.map(Vector3f::new)
@@ -66,15 +67,12 @@ public class TurtleInterpreter {
 		}
 	}
 
-	private void moveForwards(float distance, boolean drawGeometry) {
+	private void moveForwards(float distance) {
 		Matrix4f model = (new Matrix4f()).translation(VectorUtils.multiply(distance, turtle.heading));
 		turtle.position = model.transformPosition(turtle.position);
 		updateCrossSection(model);
 
-		// TODO this probably won't work for not drawing - probably need to specify EBO as well
-		if (drawGeometry) {
-			this.vertices.addAll(turtle.prevCross);
-		}
+		this.vertices.addAll(turtle.prevCross);
 	}
 
 	private void turn(float angle, Vector3f axis) {
@@ -87,9 +85,27 @@ public class TurtleInterpreter {
 		turtle.heading = model.transformDirection(turtle.heading);
 		updateCrossSection(model);
 
-		// TODO should it be drawn here too?
 		this.vertices.addAll(turtle.prevCross);
 	}
+
+	private void scale(float radius) {
+		float oldRadius = turtle.radius;
+		turtle.radius = radius;
+		Matrix4f model = new Matrix4f().scaleAround(
+				radius / oldRadius,
+				turtle.position.x,
+				turtle.position.y,
+				turtle.position.z);
+		updateCrossSection(model);
+
+		if (oldRadius == 0.5f) {
+			this.vertices.addAll(unitCross.stream()
+					.map(Vector3f::new)
+					.map(model::transformPosition)
+					.collect(Collectors.toList()));
+		}
+	}
+
 
 	private void adjustForTropisms() {
 		if (tropism == null) {
@@ -97,6 +113,7 @@ public class TurtleInterpreter {
 		}
 		Vector3f tropismVector = new Vector3f(tropism.x, tropism.y, tropism.z);
 		float elasticity = tropism.w;
+		// TODO I think this might be the angle not the fraction of the total angle (maybe rotate adj rads around HxT?)
 		float adjustment = elasticity * VectorUtils.cross(turtle.heading, tropismVector).length();
 		Quaternionf rotation = new Quaternionf().identity().slerp(
 				new Quaternionf().rotateTo(turtle.heading, tropismVector), adjustment);
@@ -132,10 +149,10 @@ public class TurtleInterpreter {
 
 	private void parseF(Module module) {
 		switch (module.getNumberOfParameters()) {
-			case 0 -> moveForwards(this.stepSize, true);
+			case 0 -> moveForwards(this.stepSize);
 			case 1 -> {
 				float step = getFirstValueFromParametricModule(module);
-				moveForwards(step, true);
+				moveForwards(step);
 			}
 			default -> throw new RuntimeException("Too many parameters in: " + module.toString());
 		}
@@ -172,8 +189,16 @@ public class TurtleInterpreter {
 		}
 	}
 
+	private void parseEx(Module module) {
+		if (module.getNumberOfParameters() == 1) {
+			float diameter = getFirstValueFromParametricModule(module);
+			scale(diameter / 2);
+		} else {
+			throw new RuntimeException("Too many parameters in: " + module.toString());
+		}
+	}
 	// TODO Leaves (Geometry/model reference injection)
-	// TODO cross section shape and size
+	// TODO cross section shape
 
 	public List<Vector3f> interpretInstructions(List<Module> instructions) {
 		init();
@@ -191,6 +216,7 @@ public class TurtleInterpreter {
 				case '/' -> parseRotation(module, turtle.heading);
 				case '[' -> states.push(this.turtle.copy());
 				case ']' -> turtle = states.pop();
+				case '!' -> parseEx(module);
 				default -> throw new RuntimeException("Unable to interpret module: " + module.toString() +
 						". Is it missing from TurtleInterpreter.ignored?");
 			}
@@ -209,6 +235,7 @@ public class TurtleInterpreter {
 		private Vector3f heading;
 		private Vector3f up;
 		private List<Vector3f> prevCross;
+		private float radius = 0.5f;
 
 		public Turtle copy() {
 			return new Turtle(
@@ -217,7 +244,8 @@ public class TurtleInterpreter {
 					new Vector3f(this.up),
 					this.prevCross.stream()
 							.map(Vector3f::new)
-							.collect(Collectors.toList()));
+							.collect(Collectors.toList()),
+					this.radius);
 		}
 	}
 }
