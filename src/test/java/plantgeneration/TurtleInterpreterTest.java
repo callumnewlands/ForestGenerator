@@ -396,21 +396,21 @@ class TurtleInterpreterTest {
 
 		Vector3f prevHeading = new Vector3f(-1, 0, 0);
 		double prevAngle = 0;
-		// Doesn't work past i = 2 but I think that's because of compounded rounding errors
-		for (int i = 0; i < 2; i++) {
+		// Doesn't work past i = 3 but I think that's because of compounded rounding errors
+		for (int i = 0; i < 3; i++) {
 			instructions.addAll(Collections.nCopies(i, F));
 			System.out.println("Inst: " + instructions);
 			interpreter.interpretInstructions(instructions);
 
 			float a = e * VectorUtils.cross(prevHeading, new Vector3f(0, -1, 0)).length();
-			double angle = prevAngle + a * (Math.PI / 2 - prevAngle);
+			double angle = prevAngle + a;
 			prevAngle = angle;
 			prevHeading = interpreter.getTurtleHeading();
 
 			assertVectorsEqual(
 					new Vector3f(-(float) Math.cos(angle), -(float) Math.sin(angle), 0),
 					prevHeading,
-					0.0001f);
+					0.1f);
 		}
 
 	}

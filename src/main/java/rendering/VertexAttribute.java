@@ -11,6 +11,7 @@ public class VertexAttribute {
 	private final int location;
 
 	public static final VertexAttribute POSITION = new VertexAttribute(0, "position", 3);
+	public static final VertexAttribute NORMAL = new VertexAttribute(1, "normal", 3);
 
 	public VertexAttribute(final int location, final String name, final int numberOfFloatComponents) {
 		this.location = location;

@@ -49,7 +49,7 @@ public class ShaderProgram {
 		int success = glGetShaderi(shaderHandle, GL_COMPILE_STATUS);
 		if (success == GL_FALSE) {
 			String infoLog = glGetShaderInfoLog(shaderHandle);
-			System.out.println("ERROR : SHADER : "
+			throw new RuntimeException("ERROR : SHADER : "
 					+ (type == GL_VERTEX_SHADER ? "VERTEX" : "FRAGMENT")
 					+ " - COMPILATION FAILED\n" + infoLog);
 		}

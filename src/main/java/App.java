@@ -1,7 +1,6 @@
 import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.IntStream;
 
 import static lsystems.modules.DefinedModules.LB;
 import static lsystems.modules.DefinedModules.RB;
@@ -49,8 +48,10 @@ import static org.lwjgl.glfw.GLFW.glfwWindowHint;
 import static org.lwjgl.glfw.GLFW.glfwWindowShouldClose;
 import static org.lwjgl.opengl.GL11.GL_COLOR_BUFFER_BIT;
 import static org.lwjgl.opengl.GL11.GL_DEPTH_BUFFER_BIT;
+import static org.lwjgl.opengl.GL11.GL_DEPTH_TEST;
 import static org.lwjgl.opengl.GL11.glClear;
 import static org.lwjgl.opengl.GL11.glClearColor;
+import static org.lwjgl.opengl.GL11.glEnable;
 import static org.lwjgl.opengl.GL11C.GL_VERSION;
 import static org.lwjgl.opengl.GL11C.glGetString;
 import static org.lwjgl.system.MemoryUtil.NULL;
@@ -72,7 +73,6 @@ import plantgeneration.TurtleInterpreter;
 import rendering.Camera;
 import rendering.ShaderProgram;
 import rendering.VertexArray;
-import rendering.VertexAttribute;
 import utils.VectorUtils;
 
 public class App {
@@ -125,6 +125,8 @@ public class App {
 
 		GL.createCapabilities();
 		System.out.println("Running OpenGL " + glGetString(GL_VERSION));
+
+		glEnable(GL_DEPTH_TEST);
 
 		initShaders();
 		initScene();
@@ -200,41 +202,16 @@ public class App {
 				-0.5f, -0.5f, 0.0f,
 				-0.5f, 0.5f, 0.0f
 		};
-		List<VertexAttribute> attributes = List.of(VertexAttribute.POSITION);
-		final int[] indices = {0, 1, 3, 1, 2, 3};
-		rectangleVertexArray = new VertexArray(vertices, 4, indices, attributes);
+//		List<VertexAttribute> attributes = List.of(VertexAttribute.POSITION);
+//		final int[] indices = {0, 1, 3, 1, 2, 3};
+//		rectangleVertexArray = new VertexArray(vertices, 4, indices, attributes);
 
 		//Create a tree
-		LSystem lSystem = fig2_8_System();
-		List<Module> instructions = lSystem.performDerivations(6);
+		List<Module> instructions = fig2_8_System().performDerivations(7);
 		TurtleInterpreter turtleInterpreter = new TurtleInterpreter();
 		turtleInterpreter.setIgnored(List.of('A'));
 		List<Vector3f> data = turtleInterpreter.interpretInstructions(instructions);
-		treeVertexArray = new VertexArray(
-				VectorUtils.getVertexData(data),
-				data.size(),
-				IntStream.range(0, (data.size() - 4) / 4).flatMap(
-						// For each 4 vertices (V_n), construct a cuboid (with V_n as the base and V_{n+1} as the top)
-						i -> List.of(
-								0, 1, 2,
-								2, 3, 0,
-								// right
-								1, 5, 6,
-								6, 2, 1,
-								// back
-								7, 6, 5,
-								5, 4, 7,
-								// left
-								4, 0, 3,
-								3, 7, 4,
-								// bottom
-								4, 5, 1,
-								1, 0, 4,
-								// top
-								3, 2, 6,
-								6, 7, 3).stream().mapToInt(n -> 4 * i + n))
-						.toArray(),
-				attributes);
+		treeVertexArray = VectorUtils.getVAOWithPosNorm(data);
 	}
 
 	private LSystem fig2_8_System() {
@@ -243,7 +220,7 @@ public class App {
 		float a = 0.1053f * (float) Math.PI;//18.95f;
 		float lr = 1.109f;
 		float vr = 1.732f;
-		float e = 0.022f;
+		float e = 0.052f;//0.22f
 
 		CharModule A = new CharModule('A');
 		ParametricParameterModule ExIn = new ParametricParameterModule('!', List.of("w"));
@@ -282,6 +259,19 @@ public class App {
 						)).build(),
 						new ProductionBuilder(List.of(FIn), List.of(FOut)).build(),
 						new ProductionBuilder(List.of(ExIn), List.of(ExOut)).build()
+				));
+	}
+
+	private LSystem cube() {
+
+		return new LSystem(
+				List.of(new ParametricValueModule('F', 1f)),
+				List.of(),
+				List.of(new ProductionBuilder(
+						List.of(new ParametricParameterModule('F', List.of("w"))),
+						List.of(new ParametricExpressionModule('F', List.of("w"), vars -> List.of(vars.get("w"))),
+								new ParametricExpressionModule('F', List.of("w"), vars -> List.of(vars.get("w")))))
+						.build()
 				));
 	}
 

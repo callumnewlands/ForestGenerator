@@ -113,10 +113,9 @@ public class TurtleInterpreter {
 		}
 		Vector3f tropismVector = new Vector3f(tropism.x, tropism.y, tropism.z);
 		float elasticity = tropism.w;
-		// TODO I think this might be the angle not the fraction of the total angle (maybe rotate adj rads around HxT?)
-		float adjustment = elasticity * VectorUtils.cross(turtle.heading, tropismVector).length();
+		float angle = elasticity * VectorUtils.cross(turtle.heading, tropismVector).length();
 		Quaternionf rotation = new Quaternionf().identity().slerp(
-				new Quaternionf().rotateTo(turtle.heading, tropismVector), adjustment);
+				new Quaternionf().rotateTo(turtle.heading, tropismVector), angle / turtle.heading.angle(tropismVector));
 
 		Matrix4f model = (new Matrix4f()).identity().rotateAround(rotation,
 				turtle.position.x,
