@@ -59,7 +59,7 @@ public class VertexBuffer {
 					stride,
 					offset);
 			glEnableVertexAttribArray(attribute.getLocation());
-			offset += attribute.getNumberOfFloatComponents();
+			offset += attribute.getNumberOfFloatComponents() * SIZE_OF_FLOAT_BYTES;
 		}
 
 		glBindBuffer(GL_ARRAY_BUFFER, 0);

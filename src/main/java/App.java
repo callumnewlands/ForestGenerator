@@ -73,6 +73,7 @@ import plantgeneration.TurtleInterpreter;
 import rendering.Camera;
 import rendering.ShaderProgram;
 import rendering.VertexArray;
+import rendering.VertexAttribute;
 import utils.VectorUtils;
 
 public class App {
@@ -197,16 +198,16 @@ public class App {
 		glClearColor(.529f, .808f, .922f, 0f);
 
 		float[] vertices = {
-				0.5f, 0.5f, 0.0f,
-				0.5f, -0.5f, 0.0f,
-				-0.5f, -0.5f, 0.0f,
-				-0.5f, 0.5f, 0.0f
+				0.5f, 0.5f, 0.0f, 0f, 0f, 1f,
+				0.5f, -0.5f, 0.0f, 0f, 1f, 0f,
+				-0.5f, -0.5f, 0.0f, 1f, 0f, 0f,
+				-0.5f, 0.5f, 0.0f, 1f, 1f, 0f
 		};
-//		List<VertexAttribute> attributes = List.of(VertexAttribute.POSITION);
-//		final int[] indices = {0, 1, 3, 1, 2, 3};
-//		rectangleVertexArray = new VertexArray(vertices, 4, indices, attributes);
+		List<VertexAttribute> attributes = List.of(VertexAttribute.POSITION, VertexAttribute.NORMAL);
+		final int[] indices = {0, 1, 3, 1, 2, 3};
+		rectangleVertexArray = new VertexArray(vertices, 4, indices, attributes);
 
-		//Create a tree
+//		Create a tree
 		List<Module> instructions = fig2_8_System().performDerivations(7);
 		TurtleInterpreter turtleInterpreter = new TurtleInterpreter();
 		turtleInterpreter.setIgnored(List.of('A'));
