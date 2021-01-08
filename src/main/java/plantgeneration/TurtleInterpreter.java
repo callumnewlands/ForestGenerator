@@ -34,7 +34,8 @@ public class TurtleInterpreter {
 	@Setter
 	private Vector4f tropism = null;
 	private Turtle turtle = new Turtle();
-	private List<Vector3f> vertices;
+	// List of lists so that discontinuities can be added to mesh
+	private List<List<Vector3f>> vertices;
 
 	// TODO Leaves (Geometry/model reference injection)
 
@@ -52,7 +53,7 @@ public class TurtleInterpreter {
 		turtle.position = new Vector3f(0, 0, 0);
 		turtle.heading = new Vector3f(0, 1, 0);
 		turtle.up = new Vector3f(0, 0, 1);
-		this.vertices = new ArrayList<>(getUnitCross());
+		this.vertices = new ArrayList<>(List.of(getUnitCross()));
 		turtle.prevCross = new ArrayList<>(getUnitCross());
 		// Sets prevCross elements to be different objects to unitCross()
 		updateCrossSection((new Matrix4f()).identity());
@@ -63,7 +64,7 @@ public class TurtleInterpreter {
 		vertices.add(new Vector3f(0, 0, 0)); // Centre
 		for (int i = 0; i < numEdges; i++) {
 			double theta = 2 * Math.PI * i / numEdges;
-			vertices.add(new Vector3f((float) Math.sin(theta), 0, (float) Math.cos(theta)));
+			vertices.add(new Vector3f((float) Math.sin(theta) / 2, 0, (float) Math.cos(theta) / 2));
 		}
 		return vertices;
 	}
@@ -82,12 +83,16 @@ public class TurtleInterpreter {
 		}
 	}
 
+	private void addCrossSection(List<Vector3f> crossSection) {
+		this.vertices.get(this.vertices.size() - 1).addAll(crossSection);
+	}
+
 	private void moveForwards(float distance) {
 		Matrix4f model = (new Matrix4f()).translation(VectorUtils.multiply(distance, turtle.heading));
 		turtle.position = model.transformPosition(turtle.position);
 		updateCrossSection(model);
 
-		this.vertices.addAll(turtle.prevCross);
+		addCrossSection(turtle.prevCross);
 	}
 
 	private void turn(float angle, Vector3f axis) {
@@ -100,7 +105,7 @@ public class TurtleInterpreter {
 		turtle.heading = model.transformDirection(turtle.heading);
 		updateCrossSection(model);
 
-		this.vertices.addAll(turtle.prevCross);
+		addCrossSection(turtle.prevCross);
 	}
 
 	private void scale(float radius) {
@@ -113,8 +118,9 @@ public class TurtleInterpreter {
 				turtle.position.z);
 		updateCrossSection(model);
 
+		// Add cross section only on first scale
 		if (oldRadius == 0.5f) {
-			this.vertices.addAll(getUnitCross().stream()
+			addCrossSection(getUnitCross().stream()
 					.map(Vector3f::new)
 					.map(model::transformPosition)
 					.collect(Collectors.toList()));
@@ -212,7 +218,7 @@ public class TurtleInterpreter {
 		}
 	}
 
-	public List<Vector3f> interpretInstructions(List<Module> instructions) {
+	public List<List<Vector3f>> interpretInstructions(List<Module> instructions) {
 		init();
 		for (Module module : instructions) {
 			char name = module.getName();
@@ -226,8 +232,13 @@ public class TurtleInterpreter {
 				case '-' -> turn(-this.rotationAngle, turtle.up);
 				case '&' -> parseRotation(module, VectorUtils.cross(turtle.up, turtle.heading).normalize());
 				case '/' -> parseRotation(module, turtle.heading);
-				case '[' -> states.push(this.turtle.copy());
-				case ']' -> turtle = states.pop();
+				case '[' -> {
+					states.push(this.turtle.copy());
+				}
+				case ']' -> {
+					turtle = states.pop();
+					this.vertices.add(new ArrayList<>());
+				}
 				case '!' -> parseEx(module);
 				default -> throw new RuntimeException("Unable to interpret module: " + module.toString() +
 						". Is it missing from TurtleInterpreter.ignored?");
@@ -246,33 +257,35 @@ public class TurtleInterpreter {
 			faces.add(List.of(i, j, j + numEdges + 1, i + numEdges + 1));
 		}
 
-		int numSegments = (vertices.size() - (numEdges + 1)) / (numEdges + 1);
-		float[] data = ArrayUtils.toPrimitive(IntStream.range(0, numSegments).boxed().flatMap(
-				// For each segment, construct a prism
-				i -> faces.stream()
-						.map(f -> f
-								.stream()
-								.map(n -> n + (numEdges + 1) * i)
-								.collect(Collectors.toList()))
-						// For each face, calculate the normals and extract the vertex data
-						.flatMap(f -> {
-							List<Float> faceData = new ArrayList<>(6 * numEdges);
-							int s = f.size();
-							// TODO the normal is the same for each corner of the face
-							// TODO smooth shading (add normals around vertex and normalise)
-							for (int n = 0; n < s; n++) {
-								int i0 = f.get(n);
-								Vector3f v = vertices.get(i0);
-								int i1 = f.get((n + 1) % s);
-								int i2 = f.get((n + (s - 1)) % s);
-								Vector3f a1 = VectorUtils.subtract(vertices.get(i1), v).normalize();
-								Vector3f a2 = VectorUtils.subtract(vertices.get(i2), v).normalize();
-								Vector3f norm = VectorUtils.cross(a2, a1).normalize();
-								faceData.addAll(List.of(v.x, v.y, v.z, norm.x, norm.y, norm.z));
-							}
-							return faceData.stream();
-						})
-		).toArray(Float[]::new));
+		int numSegments = (vertices.stream().mapToInt(List::size).sum() - (numEdges + 1)) / (numEdges + 1);
+		float[] data = ArrayUtils.toPrimitive(
+				IntStream.range(0, vertices.size()).boxed().flatMap(
+						vertIndex -> IntStream.range(0, (vertices.get(vertIndex).size() - (numEdges + 1)) / (numEdges + 1)).boxed().flatMap(
+								// For each segment, construct a prism
+								i -> faces.stream()
+										.map(f -> f
+												.stream()
+												.map(n -> n + (numEdges + 1) * i)
+												.collect(Collectors.toList()))
+										// For each face, calculate the normals and extract the vertex data
+										.flatMap(f -> {
+											List<Float> faceData = new ArrayList<>(6 * numEdges);
+											int s = f.size();
+											// TODO the normal is the same for each corner of the face
+											// TODO smooth shading (add normals around vertex and normalise)
+											for (int n = 0; n < s; n++) {
+												int i0 = f.get(n);
+												Vector3f v = vertices.get(vertIndex).get(i0);
+												int i1 = f.get((n + 1) % s);
+												int i2 = f.get((n + (s - 1)) % s);
+												Vector3f a1 = VectorUtils.subtract(vertices.get(vertIndex).get(i1), v).normalize();
+												Vector3f a2 = VectorUtils.subtract(vertices.get(vertIndex).get(i2), v).normalize();
+												Vector3f norm = VectorUtils.cross(a2, a1).normalize();
+												faceData.addAll(List.of(v.x, v.y, v.z, norm.x, norm.y, norm.z));
+											}
+											return faceData.stream();
+										}))
+				).toArray(Float[]::new));
 
 		List<Integer> prismIndices = new ArrayList<>();
 		// sides

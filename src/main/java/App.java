@@ -216,8 +216,6 @@ public class App {
 	}
 
 	private LSystem fig2_8_System() {
-		// TODO work out why there are random large spikes
-
 		float d1 = 1.6535f;//94.74f;
 		float d2 = 2.3148f; //132.63f;
 		float a = 0.1053f * (float) Math.PI;//18.95f;
