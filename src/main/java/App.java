@@ -74,7 +74,6 @@ import rendering.Camera;
 import rendering.ShaderProgram;
 import rendering.VertexArray;
 import rendering.VertexAttribute;
-import utils.VectorUtils;
 
 public class App {
 
@@ -198,10 +197,10 @@ public class App {
 		glClearColor(.529f, .808f, .922f, 0f);
 
 		float[] vertices = {
-				0.5f, 0.5f, 0.0f, 0f, 0f, 1f,
-				0.5f, -0.5f, 0.0f, 0f, 1f, 0f,
-				-0.5f, -0.5f, 0.0f, 1f, 0f, 0f,
-				-0.5f, 0.5f, 0.0f, 1f, 1f, 0f
+				0.5f, 0.5f, 0.0f, 0f, 0f, -1f,
+				0.5f, -0.5f, 0.0f, 0f, 0f, -1f,
+				-0.5f, -0.5f, 0.0f, 0f, 0f, -1f,
+				-0.5f, 0.5f, 0.0f, 0f, 0f, -1f
 		};
 		List<VertexAttribute> attributes = List.of(VertexAttribute.POSITION, VertexAttribute.NORMAL);
 		final int[] indices = {0, 1, 3, 1, 2, 3};
@@ -209,14 +208,16 @@ public class App {
 
 //		Create a tree
 		List<Module> instructions = fig2_8_System().performDerivations(7);
-		int numEdges = 20;
+		int numEdges = 16;
 		TurtleInterpreter turtleInterpreter = new TurtleInterpreter(numEdges);
 		turtleInterpreter.setIgnored(List.of('A'));
-		List<Vector3f> data = turtleInterpreter.interpretInstructions(instructions);
-		treeVertexArray = VectorUtils.getVAOWithPosNorm(data, numEdges);
+		turtleInterpreter.interpretInstructions(instructions);
+		treeVertexArray = turtleInterpreter.getVAO();
 	}
 
 	private LSystem fig2_8_System() {
+		// TODO work out why there are random large spikes
+
 		float d1 = 1.6535f;//94.74f;
 		float d2 = 2.3148f; //132.63f;
 		float a = 0.1053f * (float) Math.PI;//18.95f;
@@ -302,12 +303,20 @@ public class App {
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		shaderProgram.use();
 		shaderProgram.setUniform("view", camera.getViewMatrix());
+
+		// draw tree
 		shaderProgram.setUniform("model", (new Matrix4f())
 				.identity()
 				.scale(0.01f)
 				.rotate((float) (Math.PI * 2 * stepper), new Vector3f(0f, 1f, 0f)));
-//		rectangleVertexArray.draw();
 		treeVertexArray.draw();
+
+		// draw ground
+		shaderProgram.setUniform("model", (new Matrix4f())
+				.identity()
+				.scale(100f)
+				.rotate((float) (Math.PI / 2), new Vector3f(1f, 0f, 0f)));
+		rectangleVertexArray.draw();
 	}
 
 	// Not handled with a callback (instead polled each render cycle) to allow for holding down of keys

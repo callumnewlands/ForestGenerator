@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -15,6 +16,8 @@ import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 import org.joml.Vector4f;
+import rendering.VertexArray;
+import rendering.VertexAttribute;
 import utils.VectorUtils;
 
 public class TurtleInterpreter {
@@ -231,6 +234,58 @@ public class TurtleInterpreter {
 			}
 		}
 		return this.vertices;
+	}
+
+	// Call after interpretInstructions
+	public VertexArray getVAO() {
+		List<List<Integer>> faces = new ArrayList<>();
+
+		// Sides
+		for (int i = 1; i < numEdges + 1; i++) {
+			int j = (i % numEdges) + 1;
+			faces.add(List.of(i, j, j + numEdges + 1, i + numEdges + 1));
+		}
+
+		int numSegments = (vertices.size() - (numEdges + 1)) / (numEdges + 1);
+		float[] data = ArrayUtils.toPrimitive(IntStream.range(0, numSegments).boxed().flatMap(
+				// For each segment, construct a prism
+				i -> faces.stream()
+						.map(f -> f
+								.stream()
+								.map(n -> n + (numEdges + 1) * i)
+								.collect(Collectors.toList()))
+						// For each face, calculate the normals and extract the vertex data
+						.flatMap(f -> {
+							List<Float> faceData = new ArrayList<>(6 * numEdges);
+							int s = f.size();
+							// TODO the normal is the same for each corner of the face
+							// TODO smooth shading (add normals around vertex and normalise)
+							for (int n = 0; n < s; n++) {
+								int i0 = f.get(n);
+								Vector3f v = vertices.get(i0);
+								int i1 = f.get((n + 1) % s);
+								int i2 = f.get((n + (s - 1)) % s);
+								Vector3f a1 = VectorUtils.subtract(vertices.get(i1), v).normalize();
+								Vector3f a2 = VectorUtils.subtract(vertices.get(i2), v).normalize();
+								Vector3f norm = VectorUtils.cross(a2, a1).normalize();
+								faceData.addAll(List.of(v.x, v.y, v.z, norm.x, norm.y, norm.z));
+							}
+							return faceData.stream();
+						})
+		).toArray(Float[]::new));
+
+		List<Integer> prismIndices = new ArrayList<>();
+		// sides
+		for (int i = 0; i < numEdges; i++) {
+			int finalI = i;
+			prismIndices.addAll(List.of(0, 1, 2, 2, 3, 0).stream().map(n -> n + 4 * finalI).collect(Collectors.toList()));
+		}
+
+		int[] indices = IntStream.range(0, numSegments).boxed().flatMapToInt(
+				i -> prismIndices.stream().mapToInt(n -> n + (4 * numEdges) * i)
+		).toArray();
+
+		return new VertexArray(data, data.length / 6, indices, List.of(VertexAttribute.POSITION, VertexAttribute.NORMAL));
 	}
 
 	public Vector3f getTurtleHeading() {
