@@ -1,6 +1,7 @@
 package plantgeneration;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Stack;
 import java.util.stream.Collectors;
@@ -12,6 +13,7 @@ import lombok.Setter;
 import lsystems.modules.Module;
 import lsystems.modules.ParametricValueModule;
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.tuple.MutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.joml.AxisAngle4f;
 import org.joml.Matrix4f;
@@ -265,6 +267,7 @@ public class TurtleInterpreter {
 		}
 
 		List<Pair<Vector3f, Vector3f>> vertexData = new ArrayList<>();
+		HashMap<Vector3f, Vector3f> normalSum = new HashMap<>();
 
 		for (List<Vector3f> verts : vertices) {
 			for (int i = 0; i < (verts.size() - (numEdges + 1)) / (numEdges + 1); i++) {
@@ -282,13 +285,19 @@ public class TurtleInterpreter {
 						Vector3f a1 = VectorUtils.subtract(verts.get(i1), v).normalize();
 						Vector3f a2 = VectorUtils.subtract(verts.get(i2), v).normalize();
 						Vector3f norm = VectorUtils.cross(a2, a1).normalize();
-						vertexData.add(Pair.of(new Vector3f(v.x, v.y, v.z), new Vector3f(norm.x, norm.y, norm.z)));
+						normalSum.putIfAbsent(v, norm);
+						normalSum.computeIfPresent(v, (key, val) -> VectorUtils.add(val, norm));
+						vertexData.add(new MutablePair<>(new Vector3f(v.x, v.y, v.z), new Vector3f(norm.x, norm.y, norm.z)));
 					}
 				}
 			}
 		}
 
-		// TODO smooth shading (add normals around vertex)
+		// TODO fix smooth shading
+		// 		The issue is to do with rotations causing a perpendicular normal
+		for (Pair<Vector3f, Vector3f> vertData : vertexData) {
+			vertData.setValue(normalSum.get(vertData.getKey()).normalize());
+		}
 
 		float[] data = ArrayUtils.toPrimitive(vertexData.stream().flatMap(vd -> {
 			Vector3f v = vd.getLeft();
