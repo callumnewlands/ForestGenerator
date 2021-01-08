@@ -366,7 +366,7 @@ class TurtleInterpreterTest {
 
 		List<Vector3f> result = interpreter.interpretInstructions(instructions).stream().flatMap(Collection::stream).collect(Collectors.toList());
 
-		long expectedSize = 5 * (instructions.stream().filter(m -> !m.equals(LB) && !m.equals(RB)).count() + 1);
+		long expectedSize = 5 * (instructions.stream().filter(m -> !m.equals(LB)).count() + 1);
 
 		assertEquals(expectedSize, result.size());
 	}

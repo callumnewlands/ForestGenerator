@@ -1,4 +1,5 @@
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -64,6 +65,7 @@ import lsystems.modules.ParametricExpressionModule;
 import lsystems.modules.ParametricParameterModule;
 import lsystems.modules.ParametricValueModule;
 import org.joml.Matrix4f;
+import org.joml.Vector2f;
 import org.joml.Vector3f;
 import org.lwjgl.Version;
 import org.lwjgl.glfw.GLFWErrorCallback;
@@ -87,7 +89,9 @@ public class App {
 
 	private ShaderProgram shaderProgram;
 	private VertexArray rectangleVertexArray;
-	private VertexArray treeVertexArray;
+	private final int NUMBER_TREES = 4;
+	private List<VertexArray> trees = new ArrayList<>();
+	private List<Vector2f> treePositions = List.of(new Vector2f(-3, 18), new Vector2f(5, 3), new Vector2f(-2, -10), new Vector2f(20, -4));
 	private Camera camera;
 
 	private double lastFrame = 0.0;
@@ -207,12 +211,14 @@ public class App {
 		rectangleVertexArray = new VertexArray(vertices, 4, indices, attributes);
 
 //		Create a tree
-		List<Module> instructions = fig2_8_System().performDerivations(7);
-		int numEdges = 16;
-		TurtleInterpreter turtleInterpreter = new TurtleInterpreter(numEdges);
-		turtleInterpreter.setIgnored(List.of('A'));
-		turtleInterpreter.interpretInstructions(instructions);
-		treeVertexArray = turtleInterpreter.getVAO();
+		for (int i = 0; i < NUMBER_TREES; i++) {
+			List<Module> instructions = fig2_8_System().performDerivations(7);
+			int numEdges = 16;
+			TurtleInterpreter turtleInterpreter = new TurtleInterpreter(numEdges);
+			turtleInterpreter.setIgnored(List.of('A'));
+			turtleInterpreter.interpretInstructions(instructions);
+			trees.add(turtleInterpreter.getVAO());
+		}
 	}
 
 	private LSystem fig2_8_System() {
@@ -257,7 +263,20 @@ public class App {
 								new ParametricValueModule('&', a),
 								new ParametricValueModule('F', 50f),
 								A
-						)).build(),
+						)).withProbability(0.7f).build(),
+						new ProductionBuilder(List.of(A), List.of(
+								new ParametricValueModule('!', vr),
+								new ParametricValueModule('F', 50f),
+								LB,
+								new ParametricValueModule('&', a),
+								new ParametricValueModule('F', 50f),
+								A,
+								RB,
+								new ParametricValueModule('/', (float) Math.PI),
+								new ParametricValueModule('&', a),
+								new ParametricValueModule('F', 50f),
+								A
+						)).withProbability(0.3f).build(),
 						new ProductionBuilder(List.of(FIn), List.of(FOut)).build(),
 						new ProductionBuilder(List.of(ExIn), List.of(ExOut)).build()
 				));
@@ -302,12 +321,16 @@ public class App {
 		shaderProgram.use();
 		shaderProgram.setUniform("view", camera.getViewMatrix());
 
-		// draw tree
-		shaderProgram.setUniform("model", (new Matrix4f())
-				.identity()
-				.scale(0.01f)
-				.rotate((float) (Math.PI * 2 * stepper), new Vector3f(0f, 1f, 0f)));
-		treeVertexArray.draw();
+		// draw trees
+		for (int i = 0; i < NUMBER_TREES; i++) {
+			Vector2f pos = treePositions.get(i);
+			shaderProgram.setUniform("model", (new Matrix4f())
+					.identity()
+					.translate(new Vector3f(pos.x, 0, pos.y))
+					.scale(0.01f));
+//					.rotate((float) (Math.PI * 2 * stepper), new Vector3f(0f, 1f, 0f)));
+			trees.get(i).draw();
+		}
 
 		// draw ground
 		shaderProgram.setUniform("model", (new Matrix4f())

@@ -83,8 +83,13 @@ public class TurtleInterpreter {
 		}
 	}
 
-	private void addCrossSection(List<Vector3f> crossSection) {
+	private void addCrossSectionVertices(List<Vector3f> crossSection) {
 		this.vertices.get(this.vertices.size() - 1).addAll(crossSection);
+	}
+
+	private void startNewVerticesSubList() {
+		this.vertices.add(new ArrayList<>());
+		addCrossSectionVertices(turtle.prevCross);
 	}
 
 	private void moveForwards(float distance) {
@@ -92,7 +97,7 @@ public class TurtleInterpreter {
 		turtle.position = model.transformPosition(turtle.position);
 		updateCrossSection(model);
 
-		addCrossSection(turtle.prevCross);
+		addCrossSectionVertices(turtle.prevCross);
 	}
 
 	private void turn(float angle, Vector3f axis) {
@@ -105,7 +110,7 @@ public class TurtleInterpreter {
 		turtle.heading = model.transformDirection(turtle.heading);
 		updateCrossSection(model);
 
-		addCrossSection(turtle.prevCross);
+		addCrossSectionVertices(turtle.prevCross);
 	}
 
 	private void scale(float radius) {
@@ -120,7 +125,7 @@ public class TurtleInterpreter {
 
 		// Add cross section only on first scale
 		if (oldRadius == 0.5f) {
-			addCrossSection(getUnitCross().stream()
+			addCrossSectionVertices(getUnitCross().stream()
 					.map(Vector3f::new)
 					.map(model::transformPosition)
 					.collect(Collectors.toList()));
@@ -237,7 +242,7 @@ public class TurtleInterpreter {
 				}
 				case ']' -> {
 					turtle = states.pop();
-					this.vertices.add(new ArrayList<>());
+					startNewVerticesSubList();
 				}
 				case '!' -> parseEx(module);
 				default -> throw new RuntimeException("Unable to interpret module: " + module.toString() +
