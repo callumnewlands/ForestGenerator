@@ -212,8 +212,8 @@ public class App {
 
 //		Create a tree
 		for (int i = 0; i < NUMBER_TREES; i++) {
-			List<Module> instructions = fig2_8_System().performDerivations(7);
-			int numEdges = 16;
+			List<Module> instructions = treeSystem().performDerivations(7);
+			int numEdges = 10;
 			TurtleInterpreter turtleInterpreter = new TurtleInterpreter(numEdges);
 			turtleInterpreter.setIgnored(List.of('A'));
 			turtleInterpreter.interpretInstructions(instructions);
@@ -221,7 +221,7 @@ public class App {
 		}
 	}
 
-	private LSystem fig2_8_System() {
+	private LSystem treeSystem() {
 		float d1 = 1.6535f;//94.74f;
 		float d2 = 2.3148f; //132.63f;
 		float a = 0.1053f * (float) Math.PI;//18.95f;
@@ -240,7 +240,7 @@ public class App {
 						new ParametricValueModule('T', List.of(0f, -1f, 0f, e)),
 						new ParametricValueModule('!', 1f),
 						new ParametricValueModule('F', 200f),
-						new ParametricValueModule('/', (float) Math.PI / 4),
+//						new ParametricValueModule('/', (float) Math.PI / 4),
 						A
 				),
 				List.of(),
@@ -263,7 +263,7 @@ public class App {
 								new ParametricValueModule('&', a),
 								new ParametricValueModule('F', 50f),
 								A
-						)).withProbability(0.7f).build(),
+						)).withProbability(0.7f).build(), //0.7
 						new ProductionBuilder(List.of(A), List.of(
 								new ParametricValueModule('!', vr),
 								new ParametricValueModule('F', 50f),
@@ -276,13 +276,14 @@ public class App {
 								new ParametricValueModule('&', a),
 								new ParametricValueModule('F', 50f),
 								A
-						)).withProbability(0.3f).build(),
+						)).withProbability(0.3f).build(), // 0.3
+
 						new ProductionBuilder(List.of(FIn), List.of(FOut)).build(),
 						new ProductionBuilder(List.of(ExIn), List.of(ExOut)).build()
 				));
 	}
 
-	private LSystem cube() {
+	private LSystem cubeSystem() {
 
 		return new LSystem(
 				List.of(new ParametricValueModule('F', 1f)),

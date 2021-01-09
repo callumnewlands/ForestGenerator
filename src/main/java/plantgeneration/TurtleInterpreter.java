@@ -42,6 +42,7 @@ public class TurtleInterpreter {
 	private List<List<Vector3f>> vertices;
 
 	// TODO Leaves (Geometry/model reference injection)
+	//		Needs a separate VAO for leaves
 
 	public TurtleInterpreter(int numEdges) {
 		this.numEdges = numEdges;
@@ -57,7 +58,8 @@ public class TurtleInterpreter {
 		turtle.position = new Vector3f(0, 0, 0);
 		turtle.heading = new Vector3f(0, 1, 0);
 		turtle.up = new Vector3f(0, 0, 1);
-		this.vertices = new ArrayList<>(List.of(getUnitCross()));
+		this.vertices = new ArrayList<>();
+		vertices.add(new ArrayList<>());
 		turtle.prevCross = new ArrayList<>(getUnitCross());
 		// Sets prevCross elements to be different objects to unitCross()
 		updateCrossSection((new Matrix4f()).identity());
@@ -93,7 +95,7 @@ public class TurtleInterpreter {
 
 	private void startNewVerticesSubList() {
 		this.vertices.add(new ArrayList<>());
-		addCrossSectionVertices(turtle.prevCross);
+//		addCrossSectionVertices(turtle.prevCross);
 	}
 
 	private void moveForwards(float distance) {
@@ -105,6 +107,11 @@ public class TurtleInterpreter {
 	}
 
 	private void turn(float angle, Vector3f axis) {
+		if (angle > Math.PI) {
+			angle = -(float) (2 * Math.PI - angle);
+		} else if (angle < -Math.PI) {
+			angle = (float) (2 * Math.PI + angle);
+		}
 		Quaternionf rotation = new Quaternionf(new AxisAngle4f(angle, axis));
 		Matrix4f model = (new Matrix4f()).identity().rotateAround(rotation,
 				turtle.position.x,
@@ -114,7 +121,10 @@ public class TurtleInterpreter {
 		turtle.heading = model.transformDirection(turtle.heading);
 		updateCrossSection(model);
 
-		addCrossSectionVertices(turtle.prevCross);
+		// Not sure this is the right approach, but seems to be working
+		if (axis.equals(turtle.heading)) {
+			addCrossSectionVertices(turtle.prevCross);
+		}
 	}
 
 	private void scale(float radius) {
