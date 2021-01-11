@@ -2,6 +2,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Random;
+import java.util.stream.Collectors;
 
 import static lsystems.modules.DefinedModules.LB;
 import static lsystems.modules.DefinedModules.RB;
@@ -71,11 +73,14 @@ import org.lwjgl.Version;
 import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.glfw.GLFWVidMode;
 import org.lwjgl.opengl.GL;
+import plantgeneration.Mesh;
 import plantgeneration.TurtleInterpreter;
+import plantgeneration.Vertex;
 import rendering.Camera;
 import rendering.ShaderProgram;
 import rendering.VertexArray;
 import rendering.VertexAttribute;
+import utils.MeshUtils;
 
 public class App {
 
@@ -83,14 +88,15 @@ public class App {
 	private static final int MINOR_VERSION = 6;
 	private static final int WINDOW_WIDTH = 1200;
 	private static final int WINDOW_HEIGHT = 800;
+	public static final float TREE_SCALE = 0.01f;
 	private static final String VERTEX_SHADER_PATH = "/shader.vert";
 	private static final String FRAGMENT_SHADER_PATH = "/shader.frag";
+	private final int NUMBER_TREES = 4;
 	private long window;
-
 	private ShaderProgram shaderProgram;
 	private VertexArray rectangleVertexArray;
-	private final int NUMBER_TREES = 4;
 	private List<VertexArray> trees = new ArrayList<>();
+	private List<VertexArray> leaves = new ArrayList<>();
 	private List<Vector2f> treePositions = List.of(new Vector2f(-3, 18), new Vector2f(5, 3), new Vector2f(-2, -10), new Vector2f(20, -4));
 	private Camera camera;
 
@@ -208,18 +214,43 @@ public class App {
 		};
 		List<VertexAttribute> attributes = List.of(VertexAttribute.POSITION, VertexAttribute.NORMAL);
 		final int[] indices = {0, 1, 3, 1, 2, 3};
-		rectangleVertexArray = new VertexArray(vertices, 4, indices, attributes);
+		Vector3f up = new Vector3f(0f, 0f, -1f);
+		Mesh rectangle = new Mesh(List.of(
+				new Vertex(new Vector3f(0.5f, 0.5f, 0.0f), up),
+				new Vertex(new Vector3f(0.5f, -0.5f, 0.0f), up),
+				new Vertex(new Vector3f(-0.5f, -0.5f, 0.0f), up),
+				new Vertex(new Vector3f(-0.5f, 0.5f, 0.0f), up)
+		), indices, attributes);
+		rectangleVertexArray = rectangle.getVAO();
 
 //		Create a tree
 		for (int i = 0; i < NUMBER_TREES; i++) {
-			List<Module> instructions = treeSystem().performDerivations(7);
+			List<Module> instructions = treeSystem().performDerivations(new Random().nextInt(2) + 6);
 			int numEdges = 10;
 			TurtleInterpreter turtleInterpreter = new TurtleInterpreter(numEdges);
+			turtleInterpreter.setSubModels(List.of(MeshUtils.transform(rectangle, new Matrix4f().scale(1 / TREE_SCALE))));
 			turtleInterpreter.setIgnored(List.of('A'));
-			turtleInterpreter.interpretInstructions(instructions);
-			trees.add(turtleInterpreter.getVAO());
+			turtleInterpreter.interpretInstructions(instructions
+					.stream()
+					.map(m -> m.getName() == 'A' ? new ParametricValueModule('~', 0f) : m)
+					.collect(Collectors.toList()));
+			trees.add(turtleInterpreter.getMesh().getVAO());
+			leaves.add(turtleInterpreter.getCombinedSubModelMeshes().get(0).getVAO());
 		}
+
+//		leaf = leaf().getVAO();
 	}
+
+	private Mesh leaf() {
+		TurtleInterpreter interpreter = new TurtleInterpreter(4);
+		interpreter.interpretInstructions(List.of(
+				new ParametricValueModule('!', 1f),
+				new ParametricValueModule('!', 0.0f)));
+		return MeshUtils.transform(
+				interpreter.getMesh(),
+				new Matrix4f().scale(1 / TREE_SCALE));
+	}
+
 
 	private LSystem treeSystem() {
 		float d1 = 1.6535f;//94.74f;
@@ -328,9 +359,12 @@ public class App {
 			shaderProgram.setUniform("model", (new Matrix4f())
 					.identity()
 					.translate(new Vector3f(pos.x, 0, pos.y))
-					.scale(0.01f));
+					.scale(TREE_SCALE));
 //					.rotate((float) (Math.PI * 2 * stepper), new Vector3f(0f, 1f, 0f)));
+			shaderProgram.setUniform("modelColour", new Vector3f(0.34f, 0.17f, 0.07f));
 			trees.get(i).draw();
+			shaderProgram.setUniform("modelColour", new Vector3f(0.1f, 0.3f, 0.1f));
+			leaves.get(i).draw();
 		}
 
 		// draw ground
@@ -338,7 +372,10 @@ public class App {
 				.identity()
 				.scale(100f)
 				.rotate((float) (Math.PI / 2), new Vector3f(1f, 0f, 0f)));
+		shaderProgram.setUniform("modelColour", new Vector3f(0.1f, 0.3f, 0.1f));
 		rectangleVertexArray.draw();
+
+
 	}
 
 	// Not handled with a callback (instead polled each render cycle) to allow for holding down of keys

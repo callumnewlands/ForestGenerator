@@ -1,27 +1,25 @@
 package plantgeneration;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Stack;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import java.util.stream.Stream;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lsystems.modules.Module;
 import lsystems.modules.ParametricValueModule;
 import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.tuple.MutablePair;
-import org.apache.commons.lang3.tuple.Pair;
 import org.joml.AxisAngle4f;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 import org.joml.Vector4f;
-import rendering.VertexArray;
 import rendering.VertexAttribute;
+import utils.MeshUtils;
 import utils.VectorUtils;
 
 public class TurtleInterpreter {
@@ -35,8 +33,11 @@ public class TurtleInterpreter {
 	private float stepSize;
 	@Setter
 	private List<Character> ignored = new ArrayList<>();
-	@Setter
 	private Vector4f tropism = null;
+	@Setter
+	private List<Mesh> subModels = new ArrayList<>();
+	private List<ModelReference> injectedModels = new ArrayList<>();
+
 	private Turtle turtle = new Turtle();
 	// List of lists so that discontinuities can be added to mesh
 	private List<List<Vector3f>> vertices;
@@ -119,12 +120,14 @@ public class TurtleInterpreter {
 				turtle.position.z);
 		turtle.up = model.transformDirection(turtle.up);
 		turtle.heading = model.transformDirection(turtle.heading);
-		updateCrossSection(model);
 
 		// Not sure this is the right approach, but seems to be working
-		if (axis.equals(turtle.heading)) {
+		if (!axis.equals(turtle.heading)) {
+			updateCrossSection(model);
+		} else {
 			addCrossSectionVertices(turtle.prevCross);
 		}
+
 	}
 
 	private void scale(float radius) {
@@ -233,7 +236,19 @@ public class TurtleInterpreter {
 			float diameter = getFirstValueFromParametricModule(module);
 			scale(diameter / 2);
 		} else {
-			throw new RuntimeException("Too many parameters in: " + module.toString());
+			throw new RuntimeException("Incorrect number of parameters in: " + module.toString());
+		}
+	}
+
+	private void parseTilde(Module module) {
+		if (module.getNumberOfParameters() == 1) {
+			int index = (int) getFirstValueFromParametricModule(module);
+			if (index >= subModels.size()) {
+				throw new RuntimeException("Referenced model ID: " + index + " is not in subModels list");
+			}
+			injectedModels.add(new ModelReference(index, turtle));
+		} else {
+			throw new RuntimeException("Incorrect number of parameters in: " + module.toString());
 		}
 	}
 
@@ -259,6 +274,7 @@ public class TurtleInterpreter {
 					startNewVerticesSubList();
 				}
 				case '!' -> parseEx(module);
+				case '~' -> parseTilde(module);
 				default -> throw new RuntimeException("Unable to interpret module: " + module.toString() +
 						". Is it missing from TurtleInterpreter.ignored?");
 			}
@@ -267,7 +283,7 @@ public class TurtleInterpreter {
 	}
 
 	// Call after interpretInstructions
-	public VertexArray getVAO() {
+	public Mesh getMesh() {
 		List<List<Integer>> faces = new ArrayList<>();
 
 		// Sides
@@ -276,7 +292,7 @@ public class TurtleInterpreter {
 			faces.add(List.of(i, j, j + numEdges + 1, i + numEdges + 1));
 		}
 
-		List<Pair<Vector3f, Vector3f>> vertexData = new ArrayList<>();
+		List<Vertex> vertexData = new ArrayList<>();
 		HashMap<Vector3f, Vector3f> normalSum = new HashMap<>();
 
 		for (List<Vector3f> verts : vertices) {
@@ -297,7 +313,7 @@ public class TurtleInterpreter {
 						Vector3f norm = VectorUtils.cross(a2, a1).normalize();
 						normalSum.putIfAbsent(v, norm);
 						normalSum.computeIfPresent(v, (key, val) -> VectorUtils.add(val, norm));
-						vertexData.add(new MutablePair<>(new Vector3f(v.x, v.y, v.z), new Vector3f(norm.x, norm.y, norm.z)));
+						vertexData.add(new Vertex(new Vector3f(v.x, v.y, v.z), new Vector3f(norm.x, norm.y, norm.z)));
 					}
 				}
 			}
@@ -305,15 +321,10 @@ public class TurtleInterpreter {
 
 		// TODO fix smooth shading
 		// 		The issue is to do with rotations causing a perpendicular normal
-		for (Pair<Vector3f, Vector3f> vertData : vertexData) {
-			vertData.setValue(normalSum.get(vertData.getKey()).normalize());
+		for (Vertex vertex : vertexData) {
+			vertex.setNormal(normalSum.get(vertex.getPosition()).normalize());
 		}
 
-		float[] data = ArrayUtils.toPrimitive(vertexData.stream().flatMap(vd -> {
-			Vector3f v = vd.getLeft();
-			Vector3f n = vd.getRight();
-			return Stream.of(v.x, v.y, v.z, n.x, n.y, n.z);
-		}).toArray(Float[]::new));
 
 		List<Integer> prismIndices = new ArrayList<>();
 		// sides
@@ -327,7 +338,49 @@ public class TurtleInterpreter {
 				i -> prismIndices.stream().mapToInt(n -> n + (4 * numEdges) * i)
 		).toArray();
 
-		return new VertexArray(data, data.length / 6, indices, List.of(VertexAttribute.POSITION, VertexAttribute.NORMAL));
+		return new Mesh(vertexData, indices, List.of(VertexAttribute.POSITION, VertexAttribute.NORMAL));
+	}
+
+	// TODO check no accidental reference overwriting
+	// Call after interpretInstructions
+	public List<Mesh> getCombinedSubModelMeshes() {
+
+		List<Mesh> meshes = new ArrayList<>();
+
+		for (int i = 0; i < subModels.size(); i++) {
+			int finalI = i;
+			final Mesh model = subModels.get(finalI);
+			final List<ModelReference> refs = injectedModels.stream()
+					.filter(r -> r.index == finalI).collect(Collectors.toList());
+			final List<Vertex> vertices = model.getVertices();
+			final int[] indices = model.getIndices();
+			final int numIndices = indices.length;
+
+			List<Vertex> combinedVertices = new ArrayList<>();
+			List<Integer> combinedIndices = new ArrayList<>();
+			for (int j = 0; j < refs.size(); j++) {
+				int finalJ = j;
+				ModelReference ref = refs.get(j);
+				// TODO (check) heading and up rotation - it was rushed
+				// TODO fix the triangular leaves
+				List<Vertex> transformedVertices = MeshUtils.transform(
+						vertices,
+						new Matrix4f()
+								.translate(ref.position)
+								.rotate(new Quaternionf()
+										.rotateTo(new Vector3f(1, 0, 0), ref.heading)
+										.rotateTo(new Vector3f(0, 1, 0), ref.up)));
+				combinedVertices.addAll(transformedVertices);
+				combinedIndices.addAll(Arrays.stream(indices)
+						.map(n -> n + finalJ * numIndices).boxed().collect(Collectors.toList()));
+			}
+			int[] combinedIndicesArray = ArrayUtils.toPrimitive(combinedIndices.toArray(new Integer[0]));
+			meshes.add(new Mesh(
+					combinedVertices,
+					combinedIndicesArray,
+					model.getVertexAttributes()));
+		}
+		return meshes;
 	}
 
 	public Vector3f getTurtleHeading() {
@@ -352,6 +405,20 @@ public class TurtleInterpreter {
 							.map(Vector3f::new)
 							.collect(Collectors.toList()),
 					this.radius);
+		}
+	}
+
+	private static class ModelReference {
+		private Vector3f position;
+		private Vector3f heading;
+		private Vector3f up;
+		private int index;
+
+		public ModelReference(int index, Turtle turtle) {
+			this.index = index;
+			this.position = new Vector3f(turtle.position);
+			this.heading = new Vector3f(turtle.heading);
+			this.up = new Vector3f(turtle.up);
 		}
 	}
 }

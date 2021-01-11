@@ -21,10 +21,12 @@ import static org.lwjgl.opengl.GL20C.glGetShaderi;
 import static org.lwjgl.opengl.GL20C.glGetUniformLocation;
 import static org.lwjgl.opengl.GL20C.glLinkProgram;
 import static org.lwjgl.opengl.GL20C.glShaderSource;
+import static org.lwjgl.opengl.GL20C.glUniform3f;
 import static org.lwjgl.opengl.GL20C.glUniformMatrix4fv;
 import static org.lwjgl.opengl.GL20C.glUseProgram;
 
 import org.joml.Matrix4f;
+import org.joml.Vector3f;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.system.NativeType;
 
@@ -74,6 +76,12 @@ public class ShaderProgram {
 
 	public void use() {
 		glUseProgram(this.handle);
+	}
+
+	public void setUniform(final String name, final Vector3f value) {
+		this.use();
+		int location = glGetUniformLocation(this.handle, name);
+		glUniform3f(location, value.x, value.y, value.z);
 	}
 
 	public void setUniform(final String name, final Matrix4f value) {

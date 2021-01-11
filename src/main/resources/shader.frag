@@ -3,6 +3,8 @@ in vec3 position;
 in vec3 worldPos;
 in vec3 normal;
 
+uniform vec3 modelColour;
+
 out vec4 fragColour;
 
 void main()
@@ -21,7 +23,7 @@ void main()
     float diff = max(dot(norm, lightDir), 0.0f);
     vec3 diffuse = diff * lightCol;
 
-    vec3 vertexCol = worldPos.y < 0.01 ? vec3(0.1f, 0.3f, 0.1f) : vec3(0.34f, 0.17f, 0.07f);
+    vec3 vertexCol = modelColour;
     vec3 result = (ambient + diffuse) * vertexCol;
     fragColour = vec4(result, 1.0);
 }
