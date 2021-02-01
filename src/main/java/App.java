@@ -237,28 +237,16 @@ public class App {
 			trees.add(turtleInterpreter.getMesh().getVAO());
 			leaves.add(turtleInterpreter.getCombinedSubModelMeshes().get(0).getVAO());
 		}
-
-//		leaf = leaf().getVAO();
-	}
-
-	private Mesh leaf() {
-		TurtleInterpreter interpreter = new TurtleInterpreter(4);
-		interpreter.interpretInstructions(List.of(
-				new ParametricValueModule('!', 1f),
-				new ParametricValueModule('!', 0.0f)));
-		return MeshUtils.transform(
-				interpreter.getMesh(),
-				new Matrix4f().scale(1 / TREE_SCALE));
 	}
 
 
 	private LSystem treeSystem() {
-		float d1 = 1.6535f;//94.74f;
+		float d1 = 1.6535f; //94.74f;
 		float d2 = 2.3148f; //132.63f;
-		float a = 0.1053f * (float) Math.PI;//18.95f;
+		float a = 0.1053f * (float) Math.PI; //18.95f;
 		float lr = 1.109f;
-		float vr = 1.732f;
-		float e = 0.052f;//0.22f
+		float vr = 1.732f; //1.832f
+		float e = 0.052f; //0.22f
 
 		CharModule A = new CharModule('A');
 		ParametricParameterModule ExIn = new ParametricParameterModule('!', List.of("w"));

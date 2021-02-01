@@ -42,9 +42,6 @@ public class TurtleInterpreter {
 	// List of lists so that discontinuities can be added to mesh
 	private List<List<Vector3f>> vertices;
 
-	// TODO Leaves (Geometry/model reference injection)
-	//		Needs a separate VAO for leaves
-
 	public TurtleInterpreter(int numEdges) {
 		this.numEdges = numEdges;
 		this.stepSize = 1f;
@@ -319,12 +316,9 @@ public class TurtleInterpreter {
 			}
 		}
 
-		// TODO fix smooth shading
-		// 		The issue is to do with rotations causing a perpendicular normal
 		for (Vertex vertex : vertexData) {
 			vertex.setNormal(normalSum.get(vertex.getPosition()).normalize());
 		}
-
 
 		List<Integer> prismIndices = new ArrayList<>();
 		// sides
@@ -341,7 +335,6 @@ public class TurtleInterpreter {
 		return new Mesh(vertexData, indices, List.of(VertexAttribute.POSITION, VertexAttribute.NORMAL));
 	}
 
-	// TODO check no accidental reference overwriting
 	// Call after interpretInstructions
 	public List<Mesh> getCombinedSubModelMeshes() {
 
@@ -354,7 +347,7 @@ public class TurtleInterpreter {
 					.filter(r -> r.index == finalI).collect(Collectors.toList());
 			final List<Vertex> vertices = model.getVertices();
 			final int[] indices = model.getIndices();
-			final int numIndices = indices.length;
+			int numVertices = vertices.size();
 
 			List<Vertex> combinedVertices = new ArrayList<>();
 			List<Integer> combinedIndices = new ArrayList<>();
@@ -362,7 +355,6 @@ public class TurtleInterpreter {
 				int finalJ = j;
 				ModelReference ref = refs.get(j);
 				// TODO (check) heading and up rotation - it was rushed
-				// TODO fix the triangular leaves
 				List<Vertex> transformedVertices = MeshUtils.transform(
 						vertices,
 						new Matrix4f()
@@ -372,7 +364,9 @@ public class TurtleInterpreter {
 										.rotateTo(new Vector3f(0, 1, 0), ref.up)));
 				combinedVertices.addAll(transformedVertices);
 				combinedIndices.addAll(Arrays.stream(indices)
-						.map(n -> n + finalJ * numIndices).boxed().collect(Collectors.toList()));
+						.map(n -> n + finalJ * numVertices)
+						.boxed()
+						.collect(Collectors.toList()));
 			}
 			int[] combinedIndicesArray = ArrayUtils.toPrimitive(combinedIndices.toArray(new Integer[0]));
 			meshes.add(new Mesh(
