@@ -25,6 +25,7 @@ import static org.lwjgl.glfw.GLFW.GLFW_OPENGL_PROFILE;
 import static org.lwjgl.glfw.GLFW.GLFW_PRESS;
 import static org.lwjgl.glfw.GLFW.GLFW_RELEASE;
 import static org.lwjgl.glfw.GLFW.GLFW_RESIZABLE;
+import static org.lwjgl.glfw.GLFW.GLFW_SAMPLES;
 import static org.lwjgl.glfw.GLFW.GLFW_VISIBLE;
 import static org.lwjgl.glfw.GLFW.glfwCreateWindow;
 import static org.lwjgl.glfw.GLFW.glfwDefaultWindowHints;
@@ -57,6 +58,8 @@ import static org.lwjgl.opengl.GL11.glClearColor;
 import static org.lwjgl.opengl.GL11.glEnable;
 import static org.lwjgl.opengl.GL11C.GL_VERSION;
 import static org.lwjgl.opengl.GL11C.glGetString;
+import static org.lwjgl.opengl.GL13C.GL_MULTISAMPLE;
+import static org.lwjgl.opengl.GL13C.GL_TEXTURE0;
 import static org.lwjgl.system.MemoryUtil.NULL;
 
 import lsystems.LSystem;
@@ -74,6 +77,7 @@ import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.glfw.GLFWVidMode;
 import org.lwjgl.opengl.GL;
 import plantgeneration.Mesh;
+import plantgeneration.Texture;
 import plantgeneration.TurtleInterpreter;
 import plantgeneration.Vertex;
 import rendering.Camera;
@@ -84,19 +88,21 @@ import utils.MeshUtils;
 
 public class App {
 
+	public static final float TREE_SCALE = 0.01f;
 	private static final int MAJOR_VERSION = 4;
 	private static final int MINOR_VERSION = 6;
 	private static final int WINDOW_WIDTH = 1200;
 	private static final int WINDOW_HEIGHT = 800;
-	public static final float TREE_SCALE = 0.01f;
 	private static final String VERTEX_SHADER_PATH = "/shader.vert";
 	private static final String FRAGMENT_SHADER_PATH = "/shader.frag";
 	private final int NUMBER_TREES = 4;
 	private long window;
 	private ShaderProgram shaderProgram;
+	private ShaderProgram leafShaderProgram;
 	private VertexArray rectangleVertexArray;
 	private List<VertexArray> trees = new ArrayList<>();
 	private List<VertexArray> leaves = new ArrayList<>();
+	private Texture leafTexture;
 	private List<Vector2f> treePositions = List.of(new Vector2f(-3, 18), new Vector2f(5, 3), new Vector2f(-2, -10), new Vector2f(20, -4));
 	private Camera camera;
 
@@ -137,6 +143,7 @@ public class App {
 		System.out.println("Running OpenGL " + glGetString(GL_VERSION));
 
 		glEnable(GL_DEPTH_TEST);
+		glEnable(GL_MULTISAMPLE);
 
 		initShaders();
 		initScene();
@@ -149,6 +156,7 @@ public class App {
 		glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 		glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
 		glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+		glfwWindowHint(GLFW_SAMPLES, 4);
 
 		long window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Hello World!", NULL, NULL);
 		if (window == NULL) {
@@ -173,7 +181,7 @@ public class App {
 
 	private void initShaders() throws IOException {
 		shaderProgram = new ShaderProgram(VERTEX_SHADER_PATH, FRAGMENT_SHADER_PATH);
-
+		leafShaderProgram = new ShaderProgram("/leafShader.vert", "/leafShader.frag");
 		final Vector3f cameraPosition = new Vector3f(0.62f, 4.30f, 26.8f);
 		final float cameraYaw = -90.0f;
 		final float cameraPitch = 0.0f;
@@ -201,6 +209,7 @@ public class App {
 		Matrix4f projection = new Matrix4f()
 				.perspective(perspectiveAngle, (float) WINDOW_WIDTH / WINDOW_HEIGHT, nearPlane, farPlane);
 		shaderProgram.setUniform("projection", projection);
+		leafShaderProgram.setUniform("projection", projection);
 	}
 
 	private void initScene() {
@@ -223,12 +232,25 @@ public class App {
 		), indices, attributes);
 		rectangleVertexArray = rectangle.getVAO();
 
+		attributes = List.of(VertexAttribute.POSITION, VertexAttribute.NORMAL, VertexAttribute.TEXTURE);
+		Mesh leaf = new Mesh(List.of(
+				new Vertex(new Vector3f(0f, 0f, -0.5f), up, new Vector2f(0, 0)),
+				new Vertex(new Vector3f(1f, 0f, -0.5f), up, new Vector2f(0, 1)),
+				new Vertex(new Vector3f(1f, 0f, 0.5f), up, new Vector2f(1, 1)),
+				new Vertex(new Vector3f(0f, 0f, 0.5f), up, new Vector2f(1, 0))
+		), indices, attributes);
+
+		leafTexture = new Texture(
+				ShaderProgram.RESOURCES_PATH + "/Leaf1_front.tga",
+				new Vector3f(0.1f, 0.3f, 0.1f),
+				GL_TEXTURE0);
+
 //		Create a tree
 		for (int i = 0; i < NUMBER_TREES; i++) {
 			List<Module> instructions = treeSystem().performDerivations(new Random().nextInt(2) + 6);
 			int numEdges = 10;
 			TurtleInterpreter turtleInterpreter = new TurtleInterpreter(numEdges);
-			turtleInterpreter.setSubModels(List.of(MeshUtils.transform(rectangle, new Matrix4f().scale(1 / TREE_SCALE))));
+			turtleInterpreter.setSubModels(List.of(MeshUtils.transform(leaf, new Matrix4f().scale(1 / TREE_SCALE))));
 			turtleInterpreter.setIgnored(List.of('A'));
 			turtleInterpreter.interpretInstructions(instructions
 					.stream()
@@ -338,11 +360,11 @@ public class App {
 
 	private void renderScene() {
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		shaderProgram.use();
-		shaderProgram.setUniform("view", camera.getViewMatrix());
 
 		// draw trees
 		for (int i = 0; i < NUMBER_TREES; i++) {
+			shaderProgram.use();
+			shaderProgram.setUniform("view", camera.getViewMatrix());
 			Vector2f pos = treePositions.get(i);
 			shaderProgram.setUniform("model", (new Matrix4f())
 					.identity()
@@ -351,10 +373,22 @@ public class App {
 //					.rotate((float) (Math.PI * 2 * stepper), new Vector3f(0f, 1f, 0f)));
 			shaderProgram.setUniform("modelColour", new Vector3f(0.34f, 0.17f, 0.07f));
 			trees.get(i).draw();
-			shaderProgram.setUniform("modelColour", new Vector3f(0.1f, 0.3f, 0.1f));
+
+			leafShaderProgram.use();
+			leafShaderProgram.setUniform("view", camera.getViewMatrix());
+			leafShaderProgram.setUniform("model", (new Matrix4f())
+					.identity()
+					.translate(new Vector3f(pos.x, 0, pos.y))
+					.scale(TREE_SCALE));
+			leafShaderProgram.setUniform("modelColour", new Vector3f(0.1f, 0.3f, 0.1f));
+			leafTexture.bind();
+//			shaderProgram.setUniform("modelColour", new Vector3f(0.1f, 0.3f, 0.1f));
 			leaves.get(i).draw();
+			leafTexture.unbind();
 		}
 
+		shaderProgram.use();
+		shaderProgram.setUniform("view", camera.getViewMatrix());
 		// draw ground
 		shaderProgram.setUniform("model", (new Matrix4f())
 				.identity()

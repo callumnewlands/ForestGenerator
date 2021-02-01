@@ -24,7 +24,6 @@ import utils.VectorUtils;
 
 public class TurtleInterpreter {
 
-	private final float HALF = 0.5f;
 	private final Stack<Turtle> states = new Stack<>();
 	private final int numEdges;
 	@Setter
@@ -263,9 +262,7 @@ public class TurtleInterpreter {
 				case '-' -> turn(-this.rotationAngle, turtle.up);
 				case '&' -> parseRotation(module, VectorUtils.cross(turtle.up, turtle.heading).normalize());
 				case '/' -> parseRotation(module, turtle.heading);
-				case '[' -> {
-					states.push(this.turtle.copy());
-				}
+				case '[' -> states.push(this.turtle.copy());
 				case ']' -> {
 					turtle = states.pop();
 					startNewVerticesSubList();
@@ -403,10 +400,10 @@ public class TurtleInterpreter {
 	}
 
 	private static class ModelReference {
-		private Vector3f position;
-		private Vector3f heading;
-		private Vector3f up;
-		private int index;
+		private final Vector3f position;
+		private final Vector3f heading;
+		private final Vector3f up;
+		private final int index;
 
 		public ModelReference(int index, Turtle turtle) {
 			this.index = index;

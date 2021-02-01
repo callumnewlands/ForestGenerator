@@ -32,7 +32,7 @@ import org.lwjgl.system.NativeType;
 
 public class ShaderProgram {
 
-	private static final String RESOURCES_PATH = "src/main/resources";
+	public static final String RESOURCES_PATH = "src/main/resources";
 	private int handle;
 
 	public ShaderProgram(final String vertexShaderPath, final String fragmentShaderPath) throws IOException {
