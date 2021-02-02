@@ -60,6 +60,7 @@ import static org.lwjgl.opengl.GL11C.GL_VERSION;
 import static org.lwjgl.opengl.GL11C.glGetString;
 import static org.lwjgl.opengl.GL13C.GL_MULTISAMPLE;
 import static org.lwjgl.opengl.GL13C.GL_TEXTURE0;
+import static org.lwjgl.opengl.GL13C.GL_TEXTURE1;
 import static org.lwjgl.system.MemoryUtil.NULL;
 
 import lsystems.LSystem;
@@ -88,7 +89,7 @@ import utils.MeshUtils;
 
 public class App {
 
-	public static final float TREE_SCALE = 0.01f;
+	public static final float TREE_SCALE = 0.01f; // 0.01f
 	private static final int MAJOR_VERSION = 4;
 	private static final int MINOR_VERSION = 6;
 	private static final int WINDOW_WIDTH = 1200;
@@ -98,11 +99,12 @@ public class App {
 	private final int NUMBER_TREES = 4;
 	private long window;
 	private ShaderProgram shaderProgram;
-	private ShaderProgram leafShaderProgram;
+	private ShaderProgram textureShaderProgram;
 	private VertexArray rectangleVertexArray;
 	private List<VertexArray> trees = new ArrayList<>();
 	private List<VertexArray> leaves = new ArrayList<>();
 	private Texture leafTexture;
+	private Texture barkTexture;
 	private List<Vector2f> treePositions = List.of(new Vector2f(-3, 18), new Vector2f(5, 3), new Vector2f(-2, -10), new Vector2f(20, -4));
 	private Camera camera;
 
@@ -181,7 +183,7 @@ public class App {
 
 	private void initShaders() throws IOException {
 		shaderProgram = new ShaderProgram(VERTEX_SHADER_PATH, FRAGMENT_SHADER_PATH);
-		leafShaderProgram = new ShaderProgram("/leafShader.vert", "/leafShader.frag");
+		textureShaderProgram = new ShaderProgram("/textureShader.vert", "/textureShader.frag");
 		final Vector3f cameraPosition = new Vector3f(0.62f, 4.30f, 26.8f);
 		final float cameraYaw = -90.0f;
 		final float cameraPitch = 0.0f;
@@ -209,7 +211,7 @@ public class App {
 		Matrix4f projection = new Matrix4f()
 				.perspective(perspectiveAngle, (float) WINDOW_WIDTH / WINDOW_HEIGHT, nearPlane, farPlane);
 		shaderProgram.setUniform("projection", projection);
-		leafShaderProgram.setUniform("projection", projection);
+		textureShaderProgram.setUniform("projection", projection);
 	}
 
 	private void initScene() {
@@ -244,6 +246,11 @@ public class App {
 				ShaderProgram.RESOURCES_PATH + "/Leaf1_front.tga",
 				new Vector3f(0.1f, 0.3f, 0.1f),
 				GL_TEXTURE0);
+
+		barkTexture = new Texture(
+				ShaderProgram.RESOURCES_PATH + "/bark1.jpg",
+				new Vector3f(0.34f, 0.17f, 0.07f),
+				GL_TEXTURE1);
 
 //		Create a tree
 		for (int i = 0; i < NUMBER_TREES; i++) {
@@ -363,26 +370,40 @@ public class App {
 
 		// draw trees
 		for (int i = 0; i < NUMBER_TREES; i++) {
-			shaderProgram.use();
-			shaderProgram.setUniform("view", camera.getViewMatrix());
+
 			Vector2f pos = treePositions.get(i);
-			shaderProgram.setUniform("model", (new Matrix4f())
+
+			textureShaderProgram.use();
+			textureShaderProgram.setUniform("view", camera.getViewMatrix());
+			textureShaderProgram.setUniform("model", (new Matrix4f())
 					.identity()
 					.translate(new Vector3f(pos.x, 0, pos.y))
 					.scale(TREE_SCALE));
-//					.rotate((float) (Math.PI * 2 * stepper), new Vector3f(0f, 1f, 0f)));
-			shaderProgram.setUniform("modelColour", new Vector3f(0.34f, 0.17f, 0.07f));
+			textureShaderProgram.setUniform("modelColour", new Vector3f(0.34f, 0.17f, 0.07f));
+			textureShaderProgram.setUniform("diffuseTexture", 1);
+			barkTexture.bind();
+
+
+//			shaderProgram.use();
+//			shaderProgram.setUniform("view", camera.getViewMatrix());
+//			shaderProgram.setUniform("model", (new Matrix4f())
+//					.identity()
+//					.translate(new Vector3f(pos.x, 0, pos.y))
+//					.scale(TREE_SCALE));
+//			shaderProgram.setUniform("modelColour", new Vector3f(0.34f, 0.17f, 0.07f));
 			trees.get(i).draw();
 
-			leafShaderProgram.use();
-			leafShaderProgram.setUniform("view", camera.getViewMatrix());
-			leafShaderProgram.setUniform("model", (new Matrix4f())
+			barkTexture.unbind();
+
+			textureShaderProgram.use();
+			textureShaderProgram.setUniform("view", camera.getViewMatrix());
+			textureShaderProgram.setUniform("model", (new Matrix4f())
 					.identity()
 					.translate(new Vector3f(pos.x, 0, pos.y))
 					.scale(TREE_SCALE));
-			leafShaderProgram.setUniform("modelColour", new Vector3f(0.1f, 0.3f, 0.1f));
+			textureShaderProgram.setUniform("modelColour", new Vector3f(0.1f, 0.3f, 0.1f));
+			textureShaderProgram.setUniform("diffuseTexture", 0);
 			leafTexture.bind();
-//			shaderProgram.setUniform("modelColour", new Vector3f(0.1f, 0.3f, 0.1f));
 			leaves.get(i).draw();
 			leafTexture.unbind();
 		}

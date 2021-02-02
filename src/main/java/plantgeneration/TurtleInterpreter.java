@@ -16,6 +16,7 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.joml.AxisAngle4f;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
+import org.joml.Vector2f;
 import org.joml.Vector3f;
 import org.joml.Vector4f;
 import rendering.VertexAttribute;
@@ -295,6 +296,17 @@ public class TurtleInterpreter {
 					int finalI = i;
 					List<Integer> f = face.stream().map(n -> n + (numEdges + 1) * finalI).collect(Collectors.toList());
 
+					int bottomRight = face.get(0);
+
+					// TODO some way of scaling the texture - mapping it across n (or 1/nth of) segments not stretching/squashing it to fit one?
+
+					List<Vector2f> textureCoords = List.of(
+							new Vector2f((float) (bottomRight - 1) / numEdges, 0),
+							new Vector2f((float) bottomRight / numEdges, 0),
+							new Vector2f((float) bottomRight / numEdges, 1),
+							new Vector2f((float) (bottomRight - 1) / numEdges, 1)
+					);
+
 					// Calculate normals
 					int s = face.size();
 					for (int n = 0; n < s; n++) {
@@ -307,7 +319,10 @@ public class TurtleInterpreter {
 						Vector3f norm = VectorUtils.cross(a2, a1).normalize();
 						normalSum.putIfAbsent(v, norm);
 						normalSum.computeIfPresent(v, (key, val) -> VectorUtils.add(val, norm));
-						vertexData.add(new Vertex(new Vector3f(v.x, v.y, v.z), new Vector3f(norm.x, norm.y, norm.z)));
+						vertexData.add(new Vertex(
+								new Vector3f(v.x, v.y, v.z),
+								new Vector3f(norm.x, norm.y, norm.z),
+								textureCoords.get(n)));
 					}
 				}
 			}
@@ -329,7 +344,7 @@ public class TurtleInterpreter {
 				i -> prismIndices.stream().mapToInt(n -> n + (4 * numEdges) * i)
 		).toArray();
 
-		return new Mesh(vertexData, indices, List.of(VertexAttribute.POSITION, VertexAttribute.NORMAL));
+		return new Mesh(vertexData, indices, List.of(VertexAttribute.POSITION, VertexAttribute.NORMAL, VertexAttribute.TEXTURE));
 	}
 
 	// Call after interpretInstructions
