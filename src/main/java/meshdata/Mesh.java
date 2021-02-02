@@ -1,4 +1,4 @@
-package plantgeneration;
+package meshdata;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -8,8 +8,6 @@ import lombok.Setter;
 import org.apache.commons.lang3.ArrayUtils;
 import org.joml.Vector2f;
 import org.joml.Vector3f;
-import rendering.VertexArray;
-import rendering.VertexAttribute;
 
 @AllArgsConstructor
 @Getter

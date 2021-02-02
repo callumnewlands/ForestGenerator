@@ -1,4 +1,4 @@
-package plantgeneration;
+package meshdata;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

@@ -63,6 +63,7 @@ import static org.lwjgl.opengl.GL13C.GL_TEXTURE0;
 import static org.lwjgl.opengl.GL13C.GL_TEXTURE1;
 import static org.lwjgl.system.MemoryUtil.NULL;
 
+import generation.TurtleInterpreter;
 import lsystems.LSystem;
 import lsystems.ProductionBuilder;
 import lsystems.modules.CharModule;
@@ -70,6 +71,11 @@ import lsystems.modules.Module;
 import lsystems.modules.ParametricExpressionModule;
 import lsystems.modules.ParametricParameterModule;
 import lsystems.modules.ParametricValueModule;
+import meshdata.Mesh;
+import meshdata.Texture;
+import meshdata.Vertex;
+import meshdata.VertexArray;
+import meshdata.VertexAttribute;
 import org.joml.Matrix4f;
 import org.joml.Vector2f;
 import org.joml.Vector3f;
@@ -77,14 +83,8 @@ import org.lwjgl.Version;
 import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.glfw.GLFWVidMode;
 import org.lwjgl.opengl.GL;
-import plantgeneration.Mesh;
-import plantgeneration.Texture;
-import plantgeneration.TurtleInterpreter;
-import plantgeneration.Vertex;
 import rendering.Camera;
 import rendering.ShaderProgram;
-import rendering.VertexArray;
-import rendering.VertexAttribute;
 import utils.MeshUtils;
 
 public class App {

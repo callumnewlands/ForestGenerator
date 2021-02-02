@@ -1,4 +1,4 @@
-package plantgeneration;
+package generation;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -12,6 +12,9 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lsystems.modules.Module;
 import lsystems.modules.ParametricValueModule;
+import meshdata.Mesh;
+import meshdata.Vertex;
+import meshdata.VertexAttribute;
 import org.apache.commons.lang3.ArrayUtils;
 import org.joml.AxisAngle4f;
 import org.joml.Matrix4f;
@@ -19,7 +22,6 @@ import org.joml.Quaternionf;
 import org.joml.Vector2f;
 import org.joml.Vector3f;
 import org.joml.Vector4f;
-import rendering.VertexAttribute;
 import utils.MeshUtils;
 import utils.VectorUtils;
 

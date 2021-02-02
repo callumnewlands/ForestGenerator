@@ -1,4 +1,4 @@
-package rendering;
+package meshdata;
 
 import java.nio.FloatBuffer;
 import java.util.List;

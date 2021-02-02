@@ -2,10 +2,10 @@ package utils;
 
 import java.util.List;
 import java.util.stream.Collectors;
+import meshdata.Mesh;
+import meshdata.Vertex;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
-import plantgeneration.Mesh;
-import plantgeneration.Vertex;
 
 public final class MeshUtils {
 	private MeshUtils() {

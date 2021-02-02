@@ -1,4 +1,4 @@
-package plantgeneration;
+package generation;
 
 import java.util.ArrayList;
 import java.util.Collection;
