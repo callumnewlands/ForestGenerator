@@ -63,6 +63,7 @@ import static org.lwjgl.opengl.GL13C.GL_TEXTURE0;
 import static org.lwjgl.opengl.GL13C.GL_TEXTURE1;
 import static org.lwjgl.system.MemoryUtil.NULL;
 
+import generation.PerlinNoiseGenerator;
 import generation.TurtleInterpreter;
 import lsystems.LSystem;
 import lsystems.ProductionBuilder;
@@ -100,7 +101,7 @@ public class App {
 	private long window;
 	private ShaderProgram shaderProgram;
 	private ShaderProgram textureShaderProgram;
-	private VertexArray rectangleVertexArray;
+	private VertexArray ground;
 	private List<VertexArray> trees = new ArrayList<>();
 	private List<VertexArray> leaves = new ArrayList<>();
 	private Texture leafTexture;
@@ -217,24 +218,28 @@ public class App {
 	private void initScene() {
 		glClearColor(.529f, .808f, .922f, 0f);
 
-		float[] vertices = {
-				0.5f, 0.5f, 0.0f, 0f, 0f, -1f,
-				0.5f, -0.5f, 0.0f, 0f, 0f, -1f,
-				-0.5f, -0.5f, 0.0f, 0f, 0f, -1f,
-				-0.5f, 0.5f, 0.0f, 0f, 0f, -1f
-		};
-		List<VertexAttribute> attributes = List.of(VertexAttribute.POSITION, VertexAttribute.NORMAL);
-		final int[] indices = {0, 1, 3, 1, 2, 3};
-		Vector3f up = new Vector3f(0f, 0f, -1f);
-		Mesh rectangle = new Mesh(List.of(
-				new Vertex(new Vector3f(0.5f, 0.5f, 0.0f), up),
-				new Vertex(new Vector3f(0.5f, -0.5f, 0.0f), up),
-				new Vertex(new Vector3f(-0.5f, -0.5f, 0.0f), up),
-				new Vertex(new Vector3f(-0.5f, 0.5f, 0.0f), up)
-		), indices, attributes);
-		rectangleVertexArray = rectangle.getVAO();
+//		float[] vertices = {
+//				0.5f, 0.5f, 0.0f, 0f, 0f, -1f,
+//				0.5f, -0.5f, 0.0f, 0f, 0f, -1f,
+//				-0.5f, -0.5f, 0.0f, 0f, 0f, -1f,
+//				-0.5f, 0.5f, 0.0f, 0f, 0f, -1f
+//		};
+//		List<VertexAttribute> attributes = List.of(VertexAttribute.POSITION, VertexAttribute.NORMAL);
+//		final int[] indices = {0, 1, 3, 1, 2, 3};
+//
+//		Mesh rectangle = new Mesh(List.of(
+//				new Vertex(new Vector3f(0.5f, 0.5f, 0.0f), up),
+//				new Vertex(new Vector3f(0.5f, -0.5f, 0.0f), up),
+//				new Vertex(new Vector3f(-0.5f, -0.5f, 0.0f), up),
+//				new Vertex(new Vector3f(-0.5f, 0.5f, 0.0f), up)
+//		), indices, attributes);
+//		ground = rectangle.getVAO();
 
-		attributes = List.of(VertexAttribute.POSITION, VertexAttribute.NORMAL, VertexAttribute.TEXTURE);
+		ground = (new PerlinNoiseGenerator()).getGroundTile(new Vector2f(0, 0), 100, 500).getVAO();
+
+		Vector3f up = new Vector3f(0f, 0f, -1f);
+		final int[] indices = {0, 1, 3, 1, 2, 3};
+		List<VertexAttribute> attributes = List.of(VertexAttribute.POSITION, VertexAttribute.NORMAL, VertexAttribute.TEXTURE);
 		Mesh leaf = new Mesh(List.of(
 				new Vertex(new Vector3f(0f, 0f, -0.5f), up, new Vector2f(0, 0)),
 				new Vertex(new Vector3f(1f, 0f, -0.5f), up, new Vector2f(0, 1)),
@@ -412,11 +417,9 @@ public class App {
 		shaderProgram.setUniform("view", camera.getViewMatrix());
 		// draw ground
 		shaderProgram.setUniform("model", (new Matrix4f())
-				.identity()
-				.scale(100f)
-				.rotate((float) (Math.PI / 2), new Vector3f(1f, 0f, 0f)));
+				.identity());
 		shaderProgram.setUniform("modelColour", new Vector3f(0.1f, 0.3f, 0.1f));
-		rectangleVertexArray.draw();
+		ground.draw();
 
 
 	}
