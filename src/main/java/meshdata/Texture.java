@@ -32,6 +32,7 @@ import static org.lwjgl.stb.STBImage.stbi_set_flip_vertically_on_load;
 import static org.lwjgl.system.MemoryStack.stackPush;
 
 import org.joml.Vector3f;
+import org.lwjgl.BufferUtils;
 import org.lwjgl.system.MemoryStack;
 
 public class Texture {
@@ -65,6 +66,52 @@ public class Texture {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+	}
+
+	public Texture(final float[][] greyscaleValues, final int width, final int height, final int textureUnit) {
+		this.colour = new Vector3f(0.3f);
+		this.handle = glGenTextures();
+		this.unit = textureUnit;
+		this.bind();
+
+
+		// set texture wrapping to GL_REPEAT in both directions (default wrapping method)
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+		// set texture filtering parameters
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+		ByteBuffer image = BufferUtils.createByteBuffer(width * height * 3);
+
+		for (int y = 0; y < height; y++) {
+			for (int x = 0; x < width; x++) {
+				int col = (int) ((greyscaleValues[x][y] + 1) / 2 * 255);
+				for (int component = 0; component < 3; component++) {
+					image.put((byte) col);
+				}
+			}
+		}
+		image.flip();
+
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
+
+		glGenerateMipmap(GL_TEXTURE_2D);
+	}
+
+	private static ByteBuffer readFileToByteBuffer(final String path) throws IOException {
+		ByteBuffer buffer;
+		File file = new File(Paths.get(path).toAbsolutePath().toString());
+		if (file.exists() && file.isFile()) {
+			FileInputStream fis = new FileInputStream(file);
+			FileChannel fc = fis.getChannel();
+			buffer = fc.map(FileChannel.MapMode.READ_ONLY, 0, fc.size());
+			fc.close();
+			fis.close();
+		} else {
+			throw new IOException("Resource: " + path + " is not a file.");
+		}
+		return buffer;
 	}
 
 	private void loadTextureFromFile(final String path) throws IOException {
@@ -108,21 +155,6 @@ public class Texture {
 		glGenerateMipmap(GL_TEXTURE_2D);
 
 
-	}
-
-	private static ByteBuffer readFileToByteBuffer(final String path) throws IOException {
-		ByteBuffer buffer;
-		File file = new File(Paths.get(path).toAbsolutePath().toString());
-		if (file.exists() && file.isFile()) {
-			FileInputStream fis = new FileInputStream(file);
-			FileChannel fc = fis.getChannel();
-			buffer = fc.map(FileChannel.MapMode.READ_ONLY, 0, fc.size());
-			fc.close();
-			fis.close();
-		} else {
-			throw new IOException("Resource: " + path + " is not a file.");
-		}
-		return buffer;
 	}
 
 	public void bind() {

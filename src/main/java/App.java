@@ -63,7 +63,7 @@ import static org.lwjgl.opengl.GL13C.GL_TEXTURE0;
 import static org.lwjgl.opengl.GL13C.GL_TEXTURE1;
 import static org.lwjgl.system.MemoryUtil.NULL;
 
-import generation.PerlinNoiseGenerator;
+import generation.TerrainGenerator;
 import generation.TurtleInterpreter;
 import lsystems.LSystem;
 import lsystems.ProductionBuilder;
@@ -106,6 +106,7 @@ public class App {
 	private List<VertexArray> leaves = new ArrayList<>();
 	private Texture leafTexture;
 	private Texture barkTexture;
+	private Texture heightmap;
 	private List<Vector2f> treePositions = List.of(new Vector2f(-3, 18), new Vector2f(5, 3), new Vector2f(-2, -10), new Vector2f(20, -4));
 	private Camera camera;
 
@@ -235,7 +236,9 @@ public class App {
 //		), indices, attributes);
 //		ground = rectangle.getVAO();
 
-		ground = (new PerlinNoiseGenerator()).getGroundTile(new Vector2f(0, 0), 100, 500).getVAO();
+		TerrainGenerator terrainGenerator = new TerrainGenerator();
+		ground = terrainGenerator.getGroundTile(new Vector2f(0, 0), 100, 500).getVAO();
+		heightmap = terrainGenerator.heightmap;
 
 		Vector3f up = new Vector3f(0f, 0f, -1f);
 		final int[] indices = {0, 1, 3, 1, 2, 3};
@@ -413,13 +416,16 @@ public class App {
 			leafTexture.unbind();
 		}
 
-		shaderProgram.use();
-		shaderProgram.setUniform("view", camera.getViewMatrix());
+		textureShaderProgram.use();
+		textureShaderProgram.setUniform("view", camera.getViewMatrix());
 		// draw ground
-		shaderProgram.setUniform("model", (new Matrix4f())
+		textureShaderProgram.setUniform("model", (new Matrix4f())
 				.identity());
-		shaderProgram.setUniform("modelColour", new Vector3f(0.1f, 0.3f, 0.1f));
+		textureShaderProgram.setUniform("modelColour", new Vector3f(0.1f, 0.3f, 0.1f));
+		textureShaderProgram.setUniform("diffuseTexture", 2);
+		heightmap.bind();
 		ground.draw();
+		heightmap.unbind();
 
 
 	}
