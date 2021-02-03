@@ -5,6 +5,7 @@ in vec3 normal;
 in vec2 textureCoord;
 
 uniform vec3 modelColour;
+uniform vec3 lightPos;
 uniform sampler2D diffuseTexture;
 
 out vec4 fragColour;
@@ -12,7 +13,6 @@ out vec4 fragColour;
 void main()
 {
     // light properties
-    vec3 lightPos = vec3(5.0f, 50.0f, 2.0f);
     vec3 lightCol = vec3(1.0f);
 
     // ambient

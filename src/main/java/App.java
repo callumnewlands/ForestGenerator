@@ -219,30 +219,14 @@ public class App {
 	private void initScene() {
 		glClearColor(.529f, .808f, .922f, 0f);
 
-//		float[] vertices = {
-//				0.5f, 0.5f, 0.0f, 0f, 0f, -1f,
-//				0.5f, -0.5f, 0.0f, 0f, 0f, -1f,
-//				-0.5f, -0.5f, 0.0f, 0f, 0f, -1f,
-//				-0.5f, 0.5f, 0.0f, 0f, 0f, -1f
-//		};
-//		List<VertexAttribute> attributes = List.of(VertexAttribute.POSITION, VertexAttribute.NORMAL);
-//		final int[] indices = {0, 1, 3, 1, 2, 3};
-//
-//		Mesh rectangle = new Mesh(List.of(
-//				new Vertex(new Vector3f(0.5f, 0.5f, 0.0f), up),
-//				new Vertex(new Vector3f(0.5f, -0.5f, 0.0f), up),
-//				new Vertex(new Vector3f(-0.5f, -0.5f, 0.0f), up),
-//				new Vertex(new Vector3f(-0.5f, 0.5f, 0.0f), up)
-//		), indices, attributes);
-//		ground = rectangle.getVAO();
-
 		TerrainGenerator terrainGenerator = new TerrainGenerator();
 		ground = terrainGenerator.getGroundTile(new Vector2f(0, 0), 100, 500).getVAO();
 		heightmap = terrainGenerator.heightmap;
 
 		Vector3f up = new Vector3f(0f, 0f, -1f);
 		final int[] indices = {0, 1, 3, 1, 2, 3};
-		List<VertexAttribute> attributes = List.of(VertexAttribute.POSITION, VertexAttribute.NORMAL, VertexAttribute.TEXTURE);
+		List<VertexAttribute> attributes = List.of(
+				VertexAttribute.POSITION, VertexAttribute.NORMAL, VertexAttribute.TEXTURE);
 		Mesh leaf = new Mesh(List.of(
 				new Vertex(new Vector3f(0f, 0f, -0.5f), up, new Vector2f(0, 0)),
 				new Vertex(new Vector3f(1f, 0f, -0.5f), up, new Vector2f(0, 1)),
@@ -260,7 +244,7 @@ public class App {
 				new Vector3f(0.34f, 0.17f, 0.07f),
 				GL_TEXTURE1);
 
-//		Create a tree
+//		Create trees
 		for (int i = 0; i < NUMBER_TREES; i++) {
 			List<Module> instructions = treeSystem().performDerivations(new Random().nextInt(2) + 6);
 			int numEdges = 10;
@@ -319,7 +303,7 @@ public class App {
 								new ParametricValueModule('&', a),
 								new ParametricValueModule('F', 50f),
 								A
-						)).withProbability(0.7f).build(), //0.7
+						)).withProbability(0.7f).build(),
 						new ProductionBuilder(List.of(A), List.of(
 								new ParametricValueModule('!', vr),
 								new ParametricValueModule('F', 50f),
@@ -332,7 +316,7 @@ public class App {
 								new ParametricValueModule('&', a),
 								new ParametricValueModule('F', 50f),
 								A
-						)).withProbability(0.3f).build(), // 0.3
+						)).withProbability(0.3f).build(),
 
 						new ProductionBuilder(List.of(FIn), List.of(FOut)).build(),
 						new ProductionBuilder(List.of(ExIn), List.of(ExOut)).build()
@@ -376,6 +360,8 @@ public class App {
 	private void renderScene() {
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+		Vector3f lightPos = new Vector3f(5f, 100f, -20f);
+
 		// draw trees
 		for (int i = 0; i < NUMBER_TREES; i++) {
 
@@ -388,17 +374,10 @@ public class App {
 					.translate(new Vector3f(pos.x, 0, pos.y))
 					.scale(TREE_SCALE));
 			textureShaderProgram.setUniform("modelColour", new Vector3f(0.34f, 0.17f, 0.07f));
+			textureShaderProgram.setUniform("lightPos", lightPos);
 			textureShaderProgram.setUniform("diffuseTexture", 1);
 			barkTexture.bind();
 
-
-//			shaderProgram.use();
-//			shaderProgram.setUniform("view", camera.getViewMatrix());
-//			shaderProgram.setUniform("model", (new Matrix4f())
-//					.identity()
-//					.translate(new Vector3f(pos.x, 0, pos.y))
-//					.scale(TREE_SCALE));
-//			shaderProgram.setUniform("modelColour", new Vector3f(0.34f, 0.17f, 0.07f));
 			trees.get(i).draw();
 
 			barkTexture.unbind();
@@ -410,22 +389,20 @@ public class App {
 					.translate(new Vector3f(pos.x, 0, pos.y))
 					.scale(TREE_SCALE));
 			textureShaderProgram.setUniform("modelColour", new Vector3f(0.1f, 0.3f, 0.1f));
+			textureShaderProgram.setUniform("lightPos", lightPos);
 			textureShaderProgram.setUniform("diffuseTexture", 0);
 			leafTexture.bind();
 			leaves.get(i).draw();
 			leafTexture.unbind();
 		}
 
-		textureShaderProgram.use();
-		textureShaderProgram.setUniform("view", camera.getViewMatrix());
-		// draw ground
-		textureShaderProgram.setUniform("model", (new Matrix4f())
+		shaderProgram.use();
+		shaderProgram.setUniform("view", camera.getViewMatrix());
+		shaderProgram.setUniform("model", (new Matrix4f())
 				.identity());
-		textureShaderProgram.setUniform("modelColour", new Vector3f(0.1f, 0.3f, 0.1f));
-		textureShaderProgram.setUniform("diffuseTexture", 2);
-		heightmap.bind();
+		shaderProgram.setUniform("modelColour", new Vector3f(0.1f, 0.3f, 0.1f));
+		shaderProgram.setUniform("lightPos", lightPos);
 		ground.draw();
-		heightmap.unbind();
 
 
 	}

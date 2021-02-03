@@ -74,7 +74,6 @@ public class Texture {
 		this.unit = textureUnit;
 		this.bind();
 
-
 		// set texture wrapping to GL_REPEAT in both directions (default wrapping method)
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);

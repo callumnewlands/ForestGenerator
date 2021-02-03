@@ -4,13 +4,13 @@ in vec3 worldPos;
 in vec3 normal;
 
 uniform vec3 modelColour;
+uniform vec3 lightPos;
 
 out vec4 fragColour;
 
 void main()
 {
     // light properties
-    vec3 lightPos = vec3(5.0f, 50.0f, 2.0f);
     vec3 lightCol = vec3(1.0f);
 
     // ambient
@@ -25,5 +25,6 @@ void main()
 
     vec3 vertexCol = modelColour;
     vec3 result = (ambient + diffuse) * vertexCol;
-    fragColour = vec4(result, 1.0);
+    //    fragColour = vec4(result, 1.0);
+    fragColour = vec4(diffuse, 1.0);
 }
