@@ -11,7 +11,7 @@ out vec4 fragColour;
 void main()
 {
     // light properties
-    vec3 lightCol = vec3(1.0f);
+    vec3 lightCol = vec3(1.2f);
 
     // ambient
     float ambientStrength = 0.5f;
@@ -25,6 +25,6 @@ void main()
 
     vec3 vertexCol = modelColour;
     vec3 result = (ambient + diffuse) * vertexCol;
-    //    fragColour = vec4(result, 1.0);
-    fragColour = vec4(diffuse, 1.0);
+    fragColour = vec4(result, 1.0);
+    //    fragColour = vec4(diffuse, 1.0);
 }

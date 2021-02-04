@@ -13,6 +13,7 @@ uniform mat4 projection;
 void main()
 {
     worldPos = vec3(model * vec4(pos, 1.0));
+    // TODO which normal is correct?
     //    normal = mat3(transpose(inverse(model))) * norm;
     normal = norm;
     gl_Position = projection * view * vec4(worldPos, 1.0f);

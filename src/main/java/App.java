@@ -101,12 +101,11 @@ public class App {
 	private long window;
 	private ShaderProgram shaderProgram;
 	private ShaderProgram textureShaderProgram;
-	private VertexArray ground;
+	private List<VertexArray> groundTiles = new ArrayList<>();
 	private List<VertexArray> trees = new ArrayList<>();
 	private List<VertexArray> leaves = new ArrayList<>();
 	private Texture leafTexture;
 	private Texture barkTexture;
-	private Texture heightmap;
 	private List<Vector2f> treePositions = List.of(new Vector2f(-3, 18), new Vector2f(5, 3), new Vector2f(-2, -10), new Vector2f(20, -4));
 	private Camera camera;
 
@@ -220,8 +219,20 @@ public class App {
 		glClearColor(.529f, .808f, .922f, 0f);
 
 		TerrainGenerator terrainGenerator = new TerrainGenerator();
-		ground = terrainGenerator.getGroundTile(new Vector2f(0, 0), 100, 500).getVAO();
-		heightmap = terrainGenerator.heightmap;
+		float totalWidth = 200f;
+		int tilesPerSide = 10;
+		float tileWidth = totalWidth / tilesPerSide;
+		float halfTileWidth = tileWidth / 2;
+		for (int yi = 0; yi < tilesPerSide; yi++) {
+			float centreY = yi * tileWidth + halfTileWidth - totalWidth / 2;
+			for (int xi = 0; xi < tilesPerSide; xi++) {
+				float centreX = xi * tileWidth + halfTileWidth - totalWidth / 2;
+				groundTiles.add(terrainGenerator.getGroundTile(
+						new Vector2f(centreX, centreY),
+						tileWidth,
+						(int) tileWidth * 5).getVAO());
+			}
+		}
 
 		Vector3f up = new Vector3f(0f, 0f, -1f);
 		final int[] indices = {0, 1, 3, 1, 2, 3};
@@ -402,7 +413,10 @@ public class App {
 				.identity());
 		shaderProgram.setUniform("modelColour", new Vector3f(0.1f, 0.3f, 0.1f));
 		shaderProgram.setUniform("lightPos", lightPos);
-		ground.draw();
+
+		for (VertexArray groundTile : groundTiles) {
+			groundTile.draw();
+		}
 
 
 	}

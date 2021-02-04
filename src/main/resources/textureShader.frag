@@ -13,7 +13,7 @@ out vec4 fragColour;
 void main()
 {
     // light properties
-    vec3 lightCol = vec3(1.0f);
+    vec3 lightCol = vec3(1.2f);
 
     // ambient
     float ambientStrength = 0.5f;
