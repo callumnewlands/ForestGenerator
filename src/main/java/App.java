@@ -13,6 +13,7 @@ import static org.lwjgl.glfw.GLFW.GLFW_CONTEXT_VERSION_MINOR;
 import static org.lwjgl.glfw.GLFW.GLFW_CURSOR;
 import static org.lwjgl.glfw.GLFW.GLFW_CURSOR_DISABLED;
 import static org.lwjgl.glfw.GLFW.GLFW_FALSE;
+import static org.lwjgl.glfw.GLFW.GLFW_KEY_1;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_A;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_D;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE;
@@ -53,17 +54,21 @@ import static org.lwjgl.glfw.GLFW.glfwWindowShouldClose;
 import static org.lwjgl.opengl.GL11.GL_COLOR_BUFFER_BIT;
 import static org.lwjgl.opengl.GL11.GL_DEPTH_BUFFER_BIT;
 import static org.lwjgl.opengl.GL11.GL_DEPTH_TEST;
+import static org.lwjgl.opengl.GL11.GL_FILL;
 import static org.lwjgl.opengl.GL11.glClear;
 import static org.lwjgl.opengl.GL11.glClearColor;
 import static org.lwjgl.opengl.GL11.glEnable;
+import static org.lwjgl.opengl.GL11C.GL_FRONT_AND_BACK;
+import static org.lwjgl.opengl.GL11C.GL_LINE;
 import static org.lwjgl.opengl.GL11C.GL_VERSION;
 import static org.lwjgl.opengl.GL11C.glGetString;
+import static org.lwjgl.opengl.GL11C.glPolygonMode;
 import static org.lwjgl.opengl.GL13C.GL_MULTISAMPLE;
 import static org.lwjgl.opengl.GL13C.GL_TEXTURE0;
 import static org.lwjgl.opengl.GL13C.GL_TEXTURE1;
 import static org.lwjgl.system.MemoryUtil.NULL;
 
-import generation.TerrainGenerator;
+import generation.TerrainQuadtree;
 import generation.TurtleInterpreter;
 import lsystems.LSystem;
 import lsystems.ProductionBuilder;
@@ -102,6 +107,7 @@ public class App {
 	private ShaderProgram shaderProgram;
 	private ShaderProgram textureShaderProgram;
 	private List<VertexArray> groundTiles = new ArrayList<>();
+	private TerrainQuadtree quadtree;
 	private List<VertexArray> trees = new ArrayList<>();
 	private List<VertexArray> leaves = new ArrayList<>();
 	private Texture leafTexture;
@@ -147,6 +153,7 @@ public class App {
 
 		glEnable(GL_DEPTH_TEST);
 		glEnable(GL_MULTISAMPLE);
+
 
 		initShaders();
 		initScene();
@@ -208,7 +215,7 @@ public class App {
 
 		final float perspectiveAngle = (float) Math.toRadians(45.0f);
 		final float nearPlane = 0.1f;
-		final float farPlane = 100.0f;
+		final float farPlane = 300.0f;
 		Matrix4f projection = new Matrix4f()
 				.perspective(perspectiveAngle, (float) WINDOW_WIDTH / WINDOW_HEIGHT, nearPlane, farPlane);
 		shaderProgram.setUniform("projection", projection);
@@ -218,21 +225,16 @@ public class App {
 	private void initScene() {
 		glClearColor(.529f, .808f, .922f, 0f);
 
-		TerrainGenerator terrainGenerator = new TerrainGenerator();
-		float totalWidth = 200f;
-		int tilesPerSide = 10;
-		float tileWidth = totalWidth / tilesPerSide;
-		float halfTileWidth = tileWidth / 2;
-		for (int yi = 0; yi < tilesPerSide; yi++) {
-			float centreY = yi * tileWidth + halfTileWidth - totalWidth / 2;
-			for (int xi = 0; xi < tilesPerSide; xi++) {
-				float centreX = xi * tileWidth + halfTileWidth - totalWidth / 2;
-				groundTiles.add(terrainGenerator.getGroundTile(
-						new Vector2f(centreX, centreY),
-						tileWidth,
-						(int) tileWidth * 5).getVAO());
-			}
-		}
+		float totalWidth = 300f;
+
+		quadtree = new TerrainQuadtree(
+				new Vector2f(0, 0),
+				totalWidth,
+				5,
+				100
+		);
+		quadtree.setSeedPoint(new Vector2f(camera.getPosition().x, camera.getPosition().z));
+		groundTiles = quadtree.getGroundTiles().stream().map(Mesh::getVAO).collect(Collectors.toList());
 
 		Vector3f up = new Vector3f(0f, 0f, -1f);
 		final int[] indices = {0, 1, 3, 1, 2, 3};
@@ -409,11 +411,10 @@ public class App {
 
 		shaderProgram.use();
 		shaderProgram.setUniform("view", camera.getViewMatrix());
-		shaderProgram.setUniform("model", (new Matrix4f())
-				.identity());
 		shaderProgram.setUniform("modelColour", new Vector3f(0.1f, 0.3f, 0.1f));
 		shaderProgram.setUniform("lightPos", lightPos);
-
+		shaderProgram.setUniform("model", (new Matrix4f())
+				.identity());
 		for (VertexArray groundTile : groundTiles) {
 			groundTile.draw();
 		}
@@ -425,21 +426,35 @@ public class App {
 	private void pollKeys() {
 		if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
 			camera.move(Camera.MovementDirection.FORWARD, (float) deltaTime);
+//			quadtree.setSeedPoint(new Vector2f(camera.getPosition().x, camera.getPosition().z));
+//			groundTiles = quadtree.getGroundTiles().stream().map(Mesh::getVAO).collect(Collectors.toList());
 		}
 		if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
 			camera.move(Camera.MovementDirection.LEFT, (float) deltaTime);
+//			quadtree.setSeedPoint(new Vector2f(camera.getPosition().x, camera.getPosition().z));
+//			groundTiles = quadtree.getGroundTiles().stream().map(Mesh::getVAO).collect(Collectors.toList());
 		}
 		if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
 			camera.move(Camera.MovementDirection.BACKWARD, (float) deltaTime);
+//			quadtree.setSeedPoint(new Vector2f(camera.getPosition().x, camera.getPosition().z));
+//			groundTiles = quadtree.getGroundTiles().stream().map(Mesh::getVAO).collect(Collectors.toList());
 		}
 		if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
 			camera.move(Camera.MovementDirection.RIGHT, (float) deltaTime);
+//			quadtree.setSeedPoint(new Vector2f(camera.getPosition().x, camera.getPosition().z));
+//			groundTiles = quadtree.getGroundTiles().stream().map(Mesh::getVAO).collect(Collectors.toList());
 		}
 		if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
 			camera.move(Camera.MovementDirection.UP, (float) deltaTime);
 		}
 		if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) {
 			camera.move(Camera.MovementDirection.DOWN, (float) deltaTime);
+		}
+		if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS) {
+			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+		}
+		if (glfwGetKey(window, GLFW_KEY_1) == GLFW_RELEASE) {
+			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		}
 	}
 
