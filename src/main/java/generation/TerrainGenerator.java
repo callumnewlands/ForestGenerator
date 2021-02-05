@@ -3,11 +3,7 @@ package generation;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.IntStream;
-
-import static org.lwjgl.opengl.GL13C.GL_TEXTURE2;
-
 import meshdata.Mesh;
-import meshdata.Texture;
 import meshdata.Vertex;
 import meshdata.VertexAttribute;
 import org.j3d.texture.procedural.PerlinNoiseGenerator;
@@ -15,9 +11,6 @@ import org.joml.Vector2f;
 import org.joml.Vector3f;
 
 public class TerrainGenerator {
-
-	// TODO remove
-	public Texture heightmap;
 
 	private final PerlinNoiseGenerator noiseGenerator;
 
@@ -68,18 +61,19 @@ public class TerrainGenerator {
 		return heights;
 	}
 
-	public Mesh getGroundTile(Vector2f centre, float width, int verticesPerSide) {
+	public Mesh getGroundTile(Vector2f centre, float width, int verticesPerSide, float textureWidth) {
 
 		float minX = centre.x - width / 2;
 		float maxX = centre.x + width / 2;
 		float minY = centre.y - width / 2;
 		float maxY = centre.y + width / 2;
 
+		float textureTilesPerGroundTile = width / textureWidth;
+
 		List<Vertex> vertices = new ArrayList<>();
 
 		// Generate heightmap which is 1 vertex outside of the tile
 		float[][] heights = getHeightmap(centre, width * (1 + (float) 2 / verticesPerSide), verticesPerSide + 2);
-		float[][] vertexHeights = new float[verticesPerSide][verticesPerSide];
 
 		for (int yi = 0; yi < verticesPerSide; yi++) {
 			float y = lerp(minY, maxY, (float) yi / (verticesPerSide - 1));
@@ -89,22 +83,23 @@ public class TerrainGenerator {
 				int hx = xi + 1;
 				int hy = yi + 1;
 				float h = heights[hx][hy];
-				vertexHeights[xi][yi] = h;
 				float u = heights[hx][hy + 1];
 				float d = heights[hx][hy - 1];
 				float l = heights[hx - 1][hy];
 				float r = heights[hx + 1][hy];
 				Vector3f norm = new Vector3f(2 * (r - l), 2 * (d - u), -4).normalize();
 
+				float texX = (xi * textureTilesPerGroundTile) / verticesPerSide;
+				float texY = (yi * textureTilesPerGroundTile) / verticesPerSide;
+
 				vertices.add(new Vertex(
 						new Vector3f(x, h, y),
 						norm,
-						new Vector2f((float) xi / verticesPerSide, (float) yi / verticesPerSide)
+						new Vector2f(texX, texY)
 				));
 			}
 		}
 
-		heightmap = new Texture(vertexHeights, verticesPerSide, verticesPerSide, GL_TEXTURE2);
 		int numVertices = vertices.size();
 		int[] indices = IntStream.range(0, (numVertices - verticesPerSide)).boxed().flatMapToInt(
 				i -> {

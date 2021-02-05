@@ -11,12 +11,14 @@ public class TerrainQuadtree {
 	private Quad quad;
 	private int maxDepth;
 	private int verticesPerTile;
+	private float textureWidth;
 	private Vector2f seedPoint = new Vector2f(0, 0);
 	private TerrainGenerator terrainGenerator = new TerrainGenerator();
 
 	public TerrainQuadtree(Vector2f centre, float width, int maxDepth, int verticesPerTile) {
 		this.maxDepth = maxDepth;
 		this.verticesPerTile = verticesPerTile;
+		this.textureWidth = width / (float) (Math.pow(2, maxDepth));
 		this.quad = new Quad(centre, width, 0);
 		this.quad.updateChildren();
 	}
@@ -36,13 +38,14 @@ public class TerrainQuadtree {
 		private int depth;
 		private Mesh mesh;
 
+
 		private List<Quad> children = null;
 
 		Quad(Vector2f centre, float width, int depth) {
 			this.centre = centre;
 			this.width = width;
 			this.depth = depth;
-			this.mesh = terrainGenerator.getGroundTile(centre, width, verticesPerTile);
+			this.mesh = terrainGenerator.getGroundTile(centre, width, verticesPerTile, textureWidth);
 		}
 
 		boolean containsSeedPoint() {

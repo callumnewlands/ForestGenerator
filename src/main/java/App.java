@@ -66,6 +66,7 @@ import static org.lwjgl.opengl.GL11C.glPolygonMode;
 import static org.lwjgl.opengl.GL13C.GL_MULTISAMPLE;
 import static org.lwjgl.opengl.GL13C.GL_TEXTURE0;
 import static org.lwjgl.opengl.GL13C.GL_TEXTURE1;
+import static org.lwjgl.opengl.GL13C.GL_TEXTURE2;
 import static org.lwjgl.system.MemoryUtil.NULL;
 
 import generation.TerrainQuadtree;
@@ -112,6 +113,7 @@ public class App {
 	private List<VertexArray> leaves = new ArrayList<>();
 	private Texture leafTexture;
 	private Texture barkTexture;
+	private Texture floorTexture;
 	private List<Vector2f> treePositions = List.of(new Vector2f(-3, 18), new Vector2f(5, 3), new Vector2f(-2, -10), new Vector2f(20, -4));
 	private Camera camera;
 
@@ -257,6 +259,11 @@ public class App {
 				new Vector3f(0.34f, 0.17f, 0.07f),
 				GL_TEXTURE1);
 
+		floorTexture = new Texture(
+				ShaderProgram.RESOURCES_PATH + "/floor2.png",
+				new Vector3f(0.34f, 0.17f, 0.07f),
+				GL_TEXTURE2);
+
 //		Create trees
 		for (int i = 0; i < NUMBER_TREES; i++) {
 			List<Module> instructions = treeSystem().performDerivations(new Random().nextInt(2) + 6);
@@ -395,29 +402,25 @@ public class App {
 
 			barkTexture.unbind();
 
-			textureShaderProgram.use();
-			textureShaderProgram.setUniform("view", camera.getViewMatrix());
 			textureShaderProgram.setUniform("model", (new Matrix4f())
 					.identity()
 					.translate(new Vector3f(pos.x, 0, pos.y))
 					.scale(TREE_SCALE));
 			textureShaderProgram.setUniform("modelColour", new Vector3f(0.1f, 0.3f, 0.1f));
-			textureShaderProgram.setUniform("lightPos", lightPos);
 			textureShaderProgram.setUniform("diffuseTexture", 0);
 			leafTexture.bind();
 			leaves.get(i).draw();
 			leafTexture.unbind();
 		}
 
-		shaderProgram.use();
-		shaderProgram.setUniform("view", camera.getViewMatrix());
-		shaderProgram.setUniform("modelColour", new Vector3f(0.1f, 0.3f, 0.1f));
-		shaderProgram.setUniform("lightPos", lightPos);
-		shaderProgram.setUniform("model", (new Matrix4f())
-				.identity());
+		textureShaderProgram.setUniform("modelColour", new Vector3f(0.1f, 0.3f, 0.1f));
+		textureShaderProgram.setUniform("diffuseTexture", 2);
+		textureShaderProgram.setUniform("model", (new Matrix4f()).identity());
+		floorTexture.bind();
 		for (VertexArray groundTile : groundTiles) {
 			groundTile.draw();
 		}
+		floorTexture.unbind();
 
 
 	}
