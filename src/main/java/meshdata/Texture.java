@@ -46,12 +46,14 @@ public class Texture {
 	private int height;
 	private int numberOfComponents;
 	private int unit;
+	private int unitId;
 	private Vector3f colour;
 
 	public Texture(final String path, final Vector3f colour, final int textureUnit) {
 		this.colour = colour;
 		this.handle = glGenTextures();
-		this.unit = textureUnit;
+		this.unitId = textureUnit;
+		this.unit = GL_TEXTURE0 + textureUnit;
 		this.bind();
 
 		// set texture wrapping to GL_REPEAT in both directions (default wrapping method)
@@ -165,12 +167,13 @@ public class Texture {
 		glBindTexture(GL_TEXTURE_2D, 0);
 	}
 
-	public int getUnit() {
+	public int getUnitID() {
 		return this.unit - GL_TEXTURE0;
 	}
 
 	public Vector3f getColour() {
 		return colour;
 	}
+
 }
 

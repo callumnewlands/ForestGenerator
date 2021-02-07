@@ -64,9 +64,6 @@ import static org.lwjgl.opengl.GL11C.GL_VERSION;
 import static org.lwjgl.opengl.GL11C.glGetString;
 import static org.lwjgl.opengl.GL11C.glPolygonMode;
 import static org.lwjgl.opengl.GL13C.GL_MULTISAMPLE;
-import static org.lwjgl.opengl.GL13C.GL_TEXTURE0;
-import static org.lwjgl.opengl.GL13C.GL_TEXTURE1;
-import static org.lwjgl.opengl.GL13C.GL_TEXTURE2;
 import static org.lwjgl.system.MemoryUtil.NULL;
 
 import generation.TerrainQuadtree;
@@ -81,7 +78,6 @@ import lsystems.modules.ParametricValueModule;
 import meshdata.Mesh;
 import meshdata.Texture;
 import meshdata.Vertex;
-import meshdata.VertexArray;
 import meshdata.VertexAttribute;
 import org.joml.Matrix4f;
 import org.joml.Vector2f;
@@ -103,18 +99,19 @@ public class App {
 	private static final int WINDOW_HEIGHT = 800;
 	private static final String VERTEX_SHADER_PATH = "/shader.vert";
 	private static final String FRAGMENT_SHADER_PATH = "/shader.frag";
-	private final int NUMBER_TREES = 4;
+	private static final int NUMBER_TREES = 4;
+	private static final List<Vector2f> treePositions = List.of(new Vector2f(-3, 18), new Vector2f(5, 3), new Vector2f(-2, -10), new Vector2f(20, -4));
+
 	private long window;
 	private ShaderProgram shaderProgram;
 	private ShaderProgram textureShaderProgram;
-	private List<VertexArray> groundTiles = new ArrayList<>();
+
 	private TerrainQuadtree quadtree;
-	private List<VertexArray> trees = new ArrayList<>();
-	private List<VertexArray> leaves = new ArrayList<>();
-	private Texture leafTexture;
-	private Texture barkTexture;
-	private Texture floorTexture;
-	private List<Vector2f> treePositions = List.of(new Vector2f(-3, 18), new Vector2f(5, 3), new Vector2f(-2, -10), new Vector2f(20, -4));
+
+	private List<Mesh> groundTiles = new ArrayList<>();
+	private final List<Mesh> trees = new ArrayList<>();
+	private final List<Mesh> leaves = new ArrayList<>();
+
 	private Camera camera;
 
 	private double lastFrame = 0.0;
@@ -170,7 +167,7 @@ public class App {
 		glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 		glfwWindowHint(GLFW_SAMPLES, 4);
 
-		long window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Hello World!", NULL, NULL);
+		long window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Forest Simulator 2021", NULL, NULL);
 		if (window == NULL) {
 			throw new RuntimeException("Failed to create the GLFW window");
 		}
@@ -236,7 +233,16 @@ public class App {
 				100
 		);
 		quadtree.setSeedPoint(new Vector2f(camera.getPosition().x, camera.getPosition().z));
-		groundTiles = quadtree.getGroundTiles().stream().map(Mesh::getVAO).collect(Collectors.toList());
+		groundTiles = quadtree.getGroundTiles();
+
+		Texture floorTexture = new Texture(
+				ShaderProgram.RESOURCES_PATH + "/floor2.png",
+				new Vector3f(0.34f, 0.17f, 0.07f),
+				2);
+
+		for (Mesh tile : groundTiles) {
+			tile.setTexture(floorTexture);
+		}
 
 		Vector3f up = new Vector3f(0f, 0f, -1f);
 		final int[] indices = {0, 1, 3, 1, 2, 3};
@@ -249,20 +255,15 @@ public class App {
 				new Vertex(new Vector3f(0f, 0f, 0.5f), up, new Vector2f(1, 0))
 		), indices, attributes);
 
-		leafTexture = new Texture(
+		Texture leafTexture = new Texture(
 				ShaderProgram.RESOURCES_PATH + "/Leaf1_front.tga",
 				new Vector3f(0.1f, 0.3f, 0.1f),
-				GL_TEXTURE0);
+				0);
 
-		barkTexture = new Texture(
+		Texture barkTexture = new Texture(
 				ShaderProgram.RESOURCES_PATH + "/bark1.jpg",
 				new Vector3f(0.34f, 0.17f, 0.07f),
-				GL_TEXTURE1);
-
-		floorTexture = new Texture(
-				ShaderProgram.RESOURCES_PATH + "/floor2.png",
-				new Vector3f(0.34f, 0.17f, 0.07f),
-				GL_TEXTURE2);
+				1);
 
 //		Create trees
 		for (int i = 0; i < NUMBER_TREES; i++) {
@@ -275,11 +276,26 @@ public class App {
 					.stream()
 					.map(m -> m.getName() == 'A' ? new ParametricValueModule('~', 0f) : m)
 					.collect(Collectors.toList()));
-			trees.add(turtleInterpreter.getMesh().getVAO());
-			leaves.add(turtleInterpreter.getCombinedSubModelMeshes().get(0).getVAO());
+			trees.add(turtleInterpreter.getMesh());
+			leaves.add(turtleInterpreter.getCombinedSubModelMeshes().get(0));
+		}
+
+		for (int i = 0; i < NUMBER_TREES; i++) {
+			Vector2f pos = treePositions.get(i);
+
+			trees.get(i).setModel((new Matrix4f())
+					.identity()
+					.translate(new Vector3f(pos.x, 0, pos.y))
+					.scale(TREE_SCALE));
+			trees.get(i).setTexture(barkTexture);
+
+			leaves.get(i).setTexture(leafTexture);
+			leaves.get(i).setModel((new Matrix4f())
+					.identity()
+					.translate(new Vector3f(pos.x, 0, pos.y))
+					.scale(TREE_SCALE));
 		}
 	}
-
 
 	private LSystem treeSystem() {
 		float d1 = 1.6535f; //94.74f;
@@ -343,19 +359,6 @@ public class App {
 				));
 	}
 
-	private LSystem cubeSystem() {
-
-		return new LSystem(
-				List.of(new ParametricValueModule('F', 1f)),
-				List.of(),
-				List.of(new ProductionBuilder(
-						List.of(new ParametricParameterModule('F', List.of("w"))),
-						List.of(new ParametricExpressionModule('F', List.of("w"), vars -> List.of(vars.get("w"))),
-								new ParametricExpressionModule('F', List.of("w"), vars -> List.of(vars.get("w")))))
-						.build()
-				));
-	}
-
 	private void loop() {
 		while (!glfwWindowShouldClose(window)) {
 			updateDeltaTime();
@@ -368,6 +371,26 @@ public class App {
 		}
 	}
 
+	private void renderScene() {
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		textureShaderProgram.use();
+		textureShaderProgram.setUniform("view", camera.getViewMatrix());
+		Vector3f lightPos = new Vector3f(5f, 100f, -20f);
+		textureShaderProgram.setUniform("lightPos", lightPos);
+
+		// draw trees
+		for (int i = 0; i < NUMBER_TREES; i++) {
+			trees.get(i).render(textureShaderProgram);
+			leaves.get(i).render(textureShaderProgram);
+		}
+
+		for (Mesh groundTile : groundTiles) {
+			groundTile.render(textureShaderProgram);
+		}
+
+	}
+
 	private void updateDeltaTime() {
 		// On first frame
 		if (lastFrame == 0.0) {
@@ -377,75 +400,19 @@ public class App {
 		lastFrame = glfwGetTime();
 	}
 
-	private void renderScene() {
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-		Vector3f lightPos = new Vector3f(5f, 100f, -20f);
-
-		// draw trees
-		for (int i = 0; i < NUMBER_TREES; i++) {
-
-			Vector2f pos = treePositions.get(i);
-
-			textureShaderProgram.use();
-			textureShaderProgram.setUniform("view", camera.getViewMatrix());
-			textureShaderProgram.setUniform("model", (new Matrix4f())
-					.identity()
-					.translate(new Vector3f(pos.x, 0, pos.y))
-					.scale(TREE_SCALE));
-			textureShaderProgram.setUniform("modelColour", new Vector3f(0.34f, 0.17f, 0.07f));
-			textureShaderProgram.setUniform("lightPos", lightPos);
-			textureShaderProgram.setUniform("diffuseTexture", 1);
-			barkTexture.bind();
-
-			trees.get(i).draw();
-
-			barkTexture.unbind();
-
-			textureShaderProgram.setUniform("model", (new Matrix4f())
-					.identity()
-					.translate(new Vector3f(pos.x, 0, pos.y))
-					.scale(TREE_SCALE));
-			textureShaderProgram.setUniform("modelColour", new Vector3f(0.1f, 0.3f, 0.1f));
-			textureShaderProgram.setUniform("diffuseTexture", 0);
-			leafTexture.bind();
-			leaves.get(i).draw();
-			leafTexture.unbind();
-		}
-
-		textureShaderProgram.setUniform("modelColour", new Vector3f(0.1f, 0.3f, 0.1f));
-		textureShaderProgram.setUniform("diffuseTexture", 2);
-		textureShaderProgram.setUniform("model", (new Matrix4f()).identity());
-		floorTexture.bind();
-		for (VertexArray groundTile : groundTiles) {
-			groundTile.draw();
-		}
-		floorTexture.unbind();
-
-
-	}
-
 	// Not handled with a callback (instead polled each render cycle) to allow for holding down of keys
 	private void pollKeys() {
 		if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
 			camera.move(Camera.MovementDirection.FORWARD, (float) deltaTime);
-//			quadtree.setSeedPoint(new Vector2f(camera.getPosition().x, camera.getPosition().z));
-//			groundTiles = quadtree.getGroundTiles().stream().map(Mesh::getVAO).collect(Collectors.toList());
 		}
 		if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
 			camera.move(Camera.MovementDirection.LEFT, (float) deltaTime);
-//			quadtree.setSeedPoint(new Vector2f(camera.getPosition().x, camera.getPosition().z));
-//			groundTiles = quadtree.getGroundTiles().stream().map(Mesh::getVAO).collect(Collectors.toList());
 		}
 		if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
 			camera.move(Camera.MovementDirection.BACKWARD, (float) deltaTime);
-//			quadtree.setSeedPoint(new Vector2f(camera.getPosition().x, camera.getPosition().z));
-//			groundTiles = quadtree.getGroundTiles().stream().map(Mesh::getVAO).collect(Collectors.toList());
 		}
 		if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
 			camera.move(Camera.MovementDirection.RIGHT, (float) deltaTime);
-//			quadtree.setSeedPoint(new Vector2f(camera.getPosition().x, camera.getPosition().z));
-//			groundTiles = quadtree.getGroundTiles().stream().map(Mesh::getVAO).collect(Collectors.toList());
 		}
 		if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
 			camera.move(Camera.MovementDirection.UP, (float) deltaTime);
@@ -464,6 +431,5 @@ public class App {
 	private void exit() {
 		glfwSetWindowShouldClose(window, true);
 	}
-
 
 }

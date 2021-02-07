@@ -17,7 +17,7 @@ public class TerrainGenerator {
 	private static final int NO_OF_OCTAVES = 8; //4
 	private static final float PERSISTANCE = 0.5f;
 	private static final float LACUNARITY = 2.0f;
-	private static final float NOISE_SCALE = 10.0f; //4
+	private static final float NOISE_SCALE = 10.0f;
 
 	public TerrainGenerator() {
 		noiseGenerator = new PerlinNoiseGenerator(0);
