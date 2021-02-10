@@ -291,6 +291,7 @@ public class TurtleInterpreter {
 
 		List<Vertex> vertexData = new ArrayList<>();
 		HashMap<Vector3f, Vector3f> normalSum = new HashMap<>();
+		HashMap<Vector3f, Vector3f> tangentSum = new HashMap<>();
 
 		for (List<Vector3f> verts : vertices) {
 			for (int i = 0; i < (verts.size() - (numEdges + 1)) / (numEdges + 1); i++) {
@@ -300,7 +301,7 @@ public class TurtleInterpreter {
 
 					int bottomRight = face.get(0);
 
-					// TODO some way of scaling the texture - mapping it across n (or 1/nth of) segments not stretching/squashing it to fit one?
+					// TODO some way of mapping the texture across n (or 1/nth of) segments not stretching/squashing it to fit one?
 
 					final float texXScale = 2;
 					final float texYScale = 2;
@@ -325,9 +326,10 @@ public class TurtleInterpreter {
 						Vector3f norm = VectorUtils.cross(a2, a1).normalize();
 						normalSum.putIfAbsent(v, norm);
 						normalSum.computeIfPresent(v, (key, val) -> VectorUtils.add(val, norm));
-						// TODO smooth tangents
 						// Only works for rectangular faces
 						Vector3f tang = a1;
+						tangentSum.putIfAbsent(v, tang);
+						tangentSum.computeIfPresent(v, (key, val) -> VectorUtils.add(val, tang));
 						vertexData.add(new Vertex(
 								new Vector3f(v.x, v.y, v.z),
 								new Vector3f(norm.x, norm.y, norm.z),
@@ -340,6 +342,7 @@ public class TurtleInterpreter {
 
 		for (Vertex vertex : vertexData) {
 			vertex.setNormal(normalSum.get(vertex.getPosition()).normalize());
+			vertex.setTangent(tangentSum.get(vertex.getPosition()).normalize());
 		}
 
 		List<Integer> prismIndices = new ArrayList<>();

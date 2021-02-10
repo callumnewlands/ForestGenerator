@@ -34,6 +34,6 @@ void main()
         discard;
     }
     fragColour = vec4(ambient + diffuse, 1.0) * vertexCol;
-    //    fragColour = vec4(norm, 1.0);
+//        fragColour = vec4(norm, 1.0);
 
 }
