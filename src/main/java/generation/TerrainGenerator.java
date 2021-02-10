@@ -76,6 +76,7 @@ public class TerrainGenerator {
 		// Generate heightmap which is 1 vertex outside of the tile
 		float[][] heights = getHeightmap(centre, width * (1 + (float) 2 / verticesPerSide), verticesPerSide + 2);
 
+		float gridSize = width / verticesPerSide;
 		for (int yi = 0; yi < verticesPerSide; yi++) {
 			float y = lerp(minY, maxY, (float) yi / (verticesPerSide - 1));
 			for (int xi = 0; xi < verticesPerSide; xi++) {
@@ -88,7 +89,7 @@ public class TerrainGenerator {
 				float d = heights[hx][hy - 1];
 				float l = heights[hx - 1][hy];
 				float r = heights[hx + 1][hy];
-				Vector3f norm = new Vector3f(2 * (r - l), 2 * (d - u), -4).normalize();
+				Vector3f norm = new Vector3f((r - l) / (2 * gridSize), (d - u) / (2 * gridSize), -1).normalize();
 
 				float texX = (xi * textureTilesPerGroundTile) / verticesPerSide;
 				float texY = (yi * textureTilesPerGroundTile) / verticesPerSide;

@@ -302,11 +302,14 @@ public class TurtleInterpreter {
 
 					// TODO some way of scaling the texture - mapping it across n (or 1/nth of) segments not stretching/squashing it to fit one?
 
+					final float texXScale = 2;
+					final float texYScale = 2;
+
 					List<Vector2f> textureCoords = List.of(
-							new Vector2f((float) (bottomRight - 1) / numEdges, 0),
-							new Vector2f((float) bottomRight / numEdges, 0),
-							new Vector2f((float) bottomRight / numEdges, 1),
-							new Vector2f((float) (bottomRight - 1) / numEdges, 1)
+							new Vector2f((float) (bottomRight - 1) / numEdges * texXScale, 0),
+							new Vector2f((float) bottomRight / numEdges * texXScale, 0),
+							new Vector2f((float) bottomRight / numEdges * texXScale, texYScale),
+							new Vector2f((float) (bottomRight - 1) / numEdges * texXScale, texYScale)
 					);
 
 					// Calculate normals
@@ -316,6 +319,8 @@ public class TurtleInterpreter {
 						Vector3f v = verts.get(i0);
 						int i1 = f.get((n + 1) % s);
 						int i2 = f.get((n + (s - 1)) % s);
+						// TODO this normal is in model space not tangent space - hence why transforming these normals was wrong
+						//		should normals be defined relative to the model or to the vertex (plane)?
 						Vector3f a1 = VectorUtils.subtract(verts.get(i1), v).normalize();
 						Vector3f a2 = VectorUtils.subtract(verts.get(i2), v).normalize();
 						Vector3f norm = VectorUtils.cross(a2, a1).normalize();
