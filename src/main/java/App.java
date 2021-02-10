@@ -14,6 +14,7 @@ import static org.lwjgl.glfw.GLFW.GLFW_CURSOR;
 import static org.lwjgl.glfw.GLFW.GLFW_CURSOR_DISABLED;
 import static org.lwjgl.glfw.GLFW.GLFW_FALSE;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_1;
+import static org.lwjgl.glfw.GLFW.GLFW_KEY_2;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_A;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_D;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE;
@@ -108,6 +109,7 @@ public class App {
 	private long window;
 	private ShaderProgram shaderProgram;
 	private ShaderProgram textureShaderProgram;
+	private ShaderProgram normalTextureShaderProgram;
 	private ShaderProgram instancedTextureShaderProgram;
 	private TerrainQuadtree quadtree;
 	private List<Mesh> groundTiles = new ArrayList<>();
@@ -115,6 +117,7 @@ public class App {
 	private Mesh instancedLeaves;
 	private int numOfInstancedTrees = 5; // 600;
 	private Camera camera;
+	private Boolean useNormalMapping = true;
 
 	private double lastFrame = 0.0;
 	private double deltaTime = 0.0;
@@ -194,6 +197,7 @@ public class App {
 		shaderProgram = new ShaderProgram(VERTEX_SHADER_PATH, FRAGMENT_SHADER_PATH);
 		textureShaderProgram = new ShaderProgram("/textureShader.vert", "/textureShader.frag");
 		instancedTextureShaderProgram = new ShaderProgram("/instTextureShader.vert", "/instTextureShader.frag");
+		normalTextureShaderProgram = new ShaderProgram("/textureShader.vert", "/normTextureShader.frag");
 		final Vector3f cameraPosition = new Vector3f(0, 4.30f, 0);
 		final float cameraYaw = -90.0f;
 		final float cameraPitch = 0.0f;
@@ -223,6 +227,7 @@ public class App {
 		shaderProgram.setUniform("projection", projection);
 		textureShaderProgram.setUniform("projection", projection);
 		instancedTextureShaderProgram.setUniform("projection", projection);
+		normalTextureShaderProgram.setUniform("projection", projection);
 	}
 
 	private void initScene() {
@@ -243,7 +248,7 @@ public class App {
 				2);
 
 		for (Mesh tile : groundTiles) {
-			tile.setTexture(floorTexture);
+			tile.addTexture("diffuseTexture", floorTexture);
 		}
 
 		Vector3f up = new Vector3f(0f, 0f, -1f);
@@ -263,9 +268,19 @@ public class App {
 				0);
 
 		Texture barkTexture = new Texture(
-				ShaderProgram.RESOURCES_PATH + "/bark1.jpg",
+				ShaderProgram.RESOURCES_PATH + "/Bark_Pine_baseColor.jpg",
 				new Vector3f(0.34f, 0.17f, 0.07f),
 				1);
+
+		Texture normalBarkTexture = new Texture(
+				ShaderProgram.RESOURCES_PATH + "/Bark_Pine_normal.jpg",
+				new Vector3f(0.34f, 0.17f, 0.07f),
+				3);
+
+		Texture normalLeafTexture = new Texture(
+				ShaderProgram.RESOURCES_PATH + "/Leaf1_normals_front.tga",
+				new Vector3f(0.34f, 0.17f, 0.07f),
+				4);
 
 //		Create trees
 		for (int i = 0; i < NUMBER_TREES; i++) {
@@ -289,13 +304,15 @@ public class App {
 					.identity()
 					.translate(new Vector3f(pos.x, 0, pos.y))
 					.scale(TREE_SCALE));
-			trees.get(i).setTexture(barkTexture);
+			trees.get(i).addTexture("diffuseTexture", barkTexture);
+			trees.get(i).addTexture("normalTexture", normalBarkTexture);
 
-			leaves.get(i).setTexture(leafTexture);
 			leaves.get(i).setModel((new Matrix4f())
 					.identity()
 					.translate(new Vector3f(pos.x, 0, pos.y))
 					.scale(TREE_SCALE));
+			leaves.get(i).addTexture("diffuseTexture", leafTexture);
+			leaves.get(i).addTexture("normalTexture", normalLeafTexture);
 		}
 
 		// Instancing test
@@ -309,9 +326,11 @@ public class App {
 				.map(m -> m.getName() == 'A' ? new ParametricValueModule('~', 0f) : m)
 				.collect(Collectors.toList()));
 		instancedTree = turtleInterpreter.getMesh();
+		instancedTree.addTexture("diffuseTexture", barkTexture);
+		instancedTree.addTexture("normalTexture", normalBarkTexture);
 		instancedLeaves = turtleInterpreter.getCombinedSubModelMeshes().get(0);
-		instancedTree.setTexture(barkTexture);
-		instancedLeaves.setTexture(leafTexture);
+		instancedLeaves.addTexture("diffuseTexture", leafTexture);
+		instancedLeaves.addTexture("normalTexture", normalLeafTexture);
 
 		float[] instancedModels = new float[numOfInstancedTrees * 16];
 
@@ -435,16 +454,26 @@ public class App {
 	private void renderScene() {
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		textureShaderProgram.use();
-		textureShaderProgram.setUniform("view", camera.getViewMatrix());
 		Vector3f lightPos = new Vector3f(5f, 100f, -20f);
-		textureShaderProgram.setUniform("lightPos", lightPos);
+		if (useNormalMapping) {
+			normalTextureShaderProgram.use();
+			normalTextureShaderProgram.setUniform("view", camera.getViewMatrix());
+			normalTextureShaderProgram.setUniform("lightPos", lightPos);
+		} else {
+			textureShaderProgram.use();
+			textureShaderProgram.setUniform("view", camera.getViewMatrix());
+			textureShaderProgram.setUniform("lightPos", lightPos);
+		}
 
 		// draw trees
 		for (int i = 0; i < NUMBER_TREES; i++) {
-			trees.get(i).render(textureShaderProgram);
-			leaves.get(i).render(textureShaderProgram);
+			trees.get(i).render(useNormalMapping ? normalTextureShaderProgram : textureShaderProgram);
+			leaves.get(i).render(useNormalMapping ? normalTextureShaderProgram : textureShaderProgram);
 		}
+
+		textureShaderProgram.use();
+		textureShaderProgram.setUniform("view", camera.getViewMatrix());
+		textureShaderProgram.setUniform("lightPos", lightPos);
 
 		for (Mesh groundTile : groundTiles) {
 			groundTile.render(textureShaderProgram);
@@ -496,6 +525,12 @@ public class App {
 		}
 		if (glfwGetKey(window, GLFW_KEY_1) == GLFW_RELEASE) {
 			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		}
+		if (glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS) {
+			useNormalMapping = false;
+		}
+		if (glfwGetKey(window, GLFW_KEY_2) == GLFW_RELEASE) {
+			useNormalMapping = true;
 		}
 	}
 

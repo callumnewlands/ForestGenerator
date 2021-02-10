@@ -15,9 +15,10 @@ uniform mat4 projection;
 void main()
 {
     worldPos = vec3(model * vec4(pos, 1.0));
-    // TODO which normal is correct?
-    //    normal = mat3(transpose(inverse(model))) * norm;
-    normal = norm;
+    // TODO which normal is correct? Depends on whether the normals are in object-space or tangent-space I think
+    //    normal = mat3(transpose(inverse(view * model))) * norm;
+    normal = mat3(transpose(inverse(model))) * norm;
+    //    normal = norm;
     gl_Position = projection * view * vec4(worldPos, 1.0f);
     textureCoord = texCoord;
 }

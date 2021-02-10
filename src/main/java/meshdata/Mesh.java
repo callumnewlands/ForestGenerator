@@ -1,7 +1,9 @@
 package meshdata;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import lombok.Getter;
 import lombok.Setter;
 import org.apache.commons.lang3.ArrayUtils;
@@ -18,7 +20,7 @@ public class Mesh {
 	private int[] indices;
 	private List<VertexAttribute> vertexAttributes;
 	private Matrix4f model = new Matrix4f().identity();
-	private Texture texture;
+	private Map<String, Texture> textures = new HashMap<>();
 	private VertexArray vertexArray;
 
 	public Mesh(List<Vertex> vertices, int[] indices, List<VertexAttribute> vertexAttributes) {
@@ -26,6 +28,10 @@ public class Mesh {
 		this.indices = indices;
 		this.vertexAttributes = vertexAttributes;
 		this.vertexArray = createVAO();
+	}
+
+	public void addTexture(String uniform, Texture texture) {
+		textures.put(uniform, texture);
 	}
 
 	private VertexArray createVAO() {
@@ -57,26 +63,30 @@ public class Mesh {
 
 	public void render(ShaderProgram shaderProgram) {
 		shaderProgram.setUniform("model", model);
-		if (texture != null) {
-			shaderProgram.setUniform("modelColour", texture.getColour());
-			shaderProgram.setUniform("diffuseTexture", texture.getUnitID());
-			texture.bind();
+		for (Map.Entry<String, Texture> texture : textures.entrySet()) {
+			if (texture.getKey().equals("diffuseTexture")) {
+				shaderProgram.setUniform("modelColour", texture.getValue().getColour());
+			}
+			shaderProgram.setUniform(texture.getKey(), texture.getValue().getUnitID());
+			texture.getValue().bind();
 		}
 		vertexArray.draw();
-		if (texture != null) {
+		for (Texture texture : textures.values()) {
 			texture.unbind();
 		}
 	}
 
 	public void render(ShaderProgram shaderProgram, int numberOfInstances) {
 		shaderProgram.setUniform("model", model);
-		if (texture != null) {
-			shaderProgram.setUniform("modelColour", texture.getColour());
-			shaderProgram.setUniform("diffuseTexture", texture.getUnitID());
-			texture.bind();
+		for (Map.Entry<String, Texture> texture : textures.entrySet()) {
+			if (texture.getKey().equals("diffuseTexture")) {
+				shaderProgram.setUniform("modelColour", texture.getValue().getColour());
+			}
+			shaderProgram.setUniform(texture.getKey(), texture.getValue().getUnitID());
+			texture.getValue().bind();
 		}
 		vertexArray.draw(numberOfInstances);
-		if (texture != null) {
+		for (Texture texture : textures.values()) {
 			texture.unbind();
 		}
 	}
