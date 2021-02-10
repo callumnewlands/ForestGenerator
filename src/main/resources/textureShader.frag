@@ -2,7 +2,6 @@
 in vec3 position;
 in vec3 worldPos;
 in vec3 normal;
-in vec3 tangent;
 in mat3 TBN;
 in vec2 textureCoord;
 

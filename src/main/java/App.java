@@ -99,7 +99,7 @@ public class App {
 	private static final int MINOR_VERSION = 6;
 	private static final int WINDOW_WIDTH = 1200;
 	private static final int WINDOW_HEIGHT = 800;
-	private static final float GROUND_WIDTH = 200f;
+	private static final float GROUND_WIDTH = 100f; //200f
 	private static final String VERTEX_SHADER_PATH = "/shader.vert";
 	private static final String FRAGMENT_SHADER_PATH = "/shader.frag";
 	private static final int NUMBER_TREES = 4;
@@ -111,11 +111,12 @@ public class App {
 	private ShaderProgram textureShaderProgram;
 	private ShaderProgram normalTextureShaderProgram;
 	private ShaderProgram instancedTextureShaderProgram;
+	private ShaderProgram instancedNormalTextureShaderProgram;
 	private TerrainQuadtree quadtree;
 	private List<Mesh> groundTiles = new ArrayList<>();
 	private Mesh instancedTree;
 	private Mesh instancedLeaves;
-	private int numOfInstancedTrees = 5; // 600;
+	private int numOfInstancedTrees = 150;
 	private Camera camera;
 	private Boolean useNormalMapping = true;
 
@@ -196,8 +197,9 @@ public class App {
 	private void initShaders() throws IOException {
 		shaderProgram = new ShaderProgram(VERTEX_SHADER_PATH, FRAGMENT_SHADER_PATH);
 		textureShaderProgram = new ShaderProgram("/textureShader.vert", "/textureShader.frag");
-		instancedTextureShaderProgram = new ShaderProgram("/instTextureShader.vert", "/instTextureShader.frag");
+		instancedTextureShaderProgram = new ShaderProgram("/instTextureShader.vert", "/textureShader.frag");
 		normalTextureShaderProgram = new ShaderProgram("/textureShader.vert", "/normTextureShader.frag");
+		instancedNormalTextureShaderProgram = new ShaderProgram("/instTextureShader.vert", "/normTextureShader.frag");
 		final Vector3f cameraPosition = new Vector3f(0, 4.30f, 0);
 		final float cameraYaw = -90.0f;
 		final float cameraPitch = 0.0f;
@@ -228,6 +230,7 @@ public class App {
 		textureShaderProgram.setUniform("projection", projection);
 		instancedTextureShaderProgram.setUniform("projection", projection);
 		normalTextureShaderProgram.setUniform("projection", projection);
+		instancedNormalTextureShaderProgram.setUniform("projection", projection);
 	}
 
 	private void initScene() {
@@ -483,11 +486,17 @@ public class App {
 			groundTile.render(textureShaderProgram);
 		}
 
-		instancedTextureShaderProgram.use();
-		instancedTextureShaderProgram.setUniform("view", camera.getViewMatrix());
-		instancedTextureShaderProgram.setUniform("lightPos", lightPos);
-		instancedTree.render(instancedTextureShaderProgram, numOfInstancedTrees);
-		instancedLeaves.render(instancedTextureShaderProgram, numOfInstancedTrees);
+		if (useNormalMapping) {
+			instancedNormalTextureShaderProgram.use();
+			instancedNormalTextureShaderProgram.setUniform("view", camera.getViewMatrix());
+			instancedNormalTextureShaderProgram.setUniform("lightPos", lightPos);
+		} else {
+			instancedTextureShaderProgram.use();
+			instancedTextureShaderProgram.setUniform("view", camera.getViewMatrix());
+			instancedTextureShaderProgram.setUniform("lightPos", lightPos);
+		}
+		instancedTree.render(useNormalMapping ? instancedNormalTextureShaderProgram : instancedTextureShaderProgram, numOfInstancedTrees);
+		instancedLeaves.render(useNormalMapping ? instancedNormalTextureShaderProgram : instancedTextureShaderProgram, numOfInstancedTrees);
 
 //		for (int i = 0; i < numOfInstancedTrees; i++) {
 //			instancedTree.render(textureShaderProgram);
