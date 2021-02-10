@@ -12,6 +12,15 @@ public final class MeshUtils {
 	}
 
 	public static List<Vertex> transform(List<Vertex> vertices, Matrix4f model) {
+		if (vertices.get(0).getTangent() != null) {
+			return vertices.stream()
+					.map(v -> new Vertex(
+							model.transformPosition(new Vector3f(v.getPosition())),
+							model.transformDirection(new Vector3f(v.getNormal())),
+							model.transformDirection(new Vector3f(v.getTangent())),
+							v.getTexCoord()))
+					.collect(Collectors.toList());
+		}
 		return vertices.stream()
 				.map(v -> new Vertex(
 						model.transformPosition(new Vector3f(v.getPosition())),

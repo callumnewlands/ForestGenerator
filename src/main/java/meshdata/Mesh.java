@@ -47,6 +47,10 @@ public class Mesh {
 						Vector3f n = vd.getNormal();
 						vertexData.addAll(List.of(n.x, n.y, n.z));
 					}
+					case "tangent" -> {
+						Vector3f t = vd.getTangent();
+						vertexData.addAll(List.of(t.x, t.y, t.z));
+					}
 					case "texCoord" -> {
 						Vector2f t = vd.getTexCoord();
 						vertexData.addAll(List.of(t.x, t.y));

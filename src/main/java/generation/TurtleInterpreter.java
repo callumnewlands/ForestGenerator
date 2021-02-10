@@ -305,6 +305,7 @@ public class TurtleInterpreter {
 					final float texXScale = 2;
 					final float texYScale = 2;
 
+					// Only works for rectangular faces
 					List<Vector2f> textureCoords = List.of(
 							new Vector2f((float) (bottomRight - 1) / numEdges * texXScale, 0),
 							new Vector2f((float) bottomRight / numEdges * texXScale, 0),
@@ -319,16 +320,18 @@ public class TurtleInterpreter {
 						Vector3f v = verts.get(i0);
 						int i1 = f.get((n + 1) % s);
 						int i2 = f.get((n + (s - 1)) % s);
-						// TODO this normal is in model space not tangent space - hence why transforming these normals was wrong
-						//		should normals be defined relative to the model or to the vertex (plane)?
 						Vector3f a1 = VectorUtils.subtract(verts.get(i1), v).normalize();
 						Vector3f a2 = VectorUtils.subtract(verts.get(i2), v).normalize();
 						Vector3f norm = VectorUtils.cross(a2, a1).normalize();
 						normalSum.putIfAbsent(v, norm);
 						normalSum.computeIfPresent(v, (key, val) -> VectorUtils.add(val, norm));
+						// TODO smooth tangents
+						// Only works for rectangular faces
+						Vector3f tang = a1;
 						vertexData.add(new Vertex(
 								new Vector3f(v.x, v.y, v.z),
 								new Vector3f(norm.x, norm.y, norm.z),
+								new Vector3f(tang.x, tang.y, tang.z),
 								textureCoords.get(n)));
 					}
 				}
@@ -351,7 +354,7 @@ public class TurtleInterpreter {
 				i -> prismIndices.stream().mapToInt(n -> n + (4 * numEdges) * i)
 		).toArray();
 
-		return new Mesh(vertexData, indices, List.of(VertexAttribute.POSITION, VertexAttribute.NORMAL, VertexAttribute.TEXTURE));
+		return new Mesh(vertexData, indices, List.of(VertexAttribute.POSITION, VertexAttribute.NORMAL, VertexAttribute.TANGENT, VertexAttribute.TEXTURE));
 	}
 
 	// Call after interpretInstructions

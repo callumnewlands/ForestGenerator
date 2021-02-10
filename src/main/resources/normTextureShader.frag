@@ -2,6 +2,8 @@
 in vec3 position;
 in vec3 worldPos;
 in vec3 normal;
+in vec3 tangent;
+in mat3 TBN;
 in vec2 textureCoord;
 
 uniform vec3 modelColour;
@@ -21,8 +23,8 @@ void main()
     vec3 ambient = ambientStrength * lightCol;
 
     // diffuse
-    vec3 mapNormal = normalize(texture(normalTexture, textureCoord).rgb * 2.0 - 1.0);
-    vec3 norm = normalize(mapNormal);
+    vec3 mapNormal = (texture(normalTexture, textureCoord).rgb * 2.0 - 1.0);
+    vec3 norm = normalize(TBN * mapNormal);// TBN maps from tangent space to world space
     vec3 lightDir = normalize(lightPos - worldPos);
     float diff = max(dot(norm, lightDir), 0.0f);
     vec3 diffuse = diff * lightCol;
@@ -33,6 +35,5 @@ void main()
     }
     fragColour = vec4(ambient + diffuse, 1.0) * vertexCol;
     //    fragColour = vec4(norm, 1.0);
-    //        fragColour = vec4(textureCoord.x, textureCoord.y, textureCoord.x + textureCoord.y, 1.0f);
 
 }

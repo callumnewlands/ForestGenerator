@@ -251,21 +251,30 @@ public class App {
 			tile.addTexture("diffuseTexture", floorTexture);
 		}
 
-		Vector3f up = new Vector3f(0f, 0f, -1f);
+		Vector3f up = new Vector3f(0f, 1f, 0f);
+		Vector3f out = new Vector3f(0f, 0f, 1f);
 		final int[] indices = {0, 1, 3, 1, 2, 3};
-		List<VertexAttribute> attributes = List.of(
-				VertexAttribute.POSITION, VertexAttribute.NORMAL, VertexAttribute.TEXTURE);
 		Mesh leaf = new Mesh(List.of(
-				new Vertex(new Vector3f(0f, 0f, -0.5f), up, new Vector2f(0, 0)),
-				new Vertex(new Vector3f(1f, 0f, -0.5f), up, new Vector2f(0, 1)),
-				new Vertex(new Vector3f(1f, 0f, 0.5f), up, new Vector2f(1, 1)),
-				new Vertex(new Vector3f(0f, 0f, 0.5f), up, new Vector2f(1, 0))
-		), indices, attributes);
+				new Vertex(new Vector3f(0f, 0f, -0.5f), up, out, new Vector2f(0, 0)),
+				new Vertex(new Vector3f(1f, 0f, -0.5f), up, out, new Vector2f(0, 1)),
+				new Vertex(new Vector3f(1f, 0f, 0.5f), up, out, new Vector2f(1, 1)),
+				new Vertex(new Vector3f(0f, 0f, 0.5f), up, out, new Vector2f(1, 0))
+		), indices, List.of(
+				VertexAttribute.POSITION,
+				VertexAttribute.NORMAL,
+				VertexAttribute.TANGENT,
+				VertexAttribute.TEXTURE)
+		);
 
 		Texture leafTexture = new Texture(
 				ShaderProgram.RESOURCES_PATH + "/Leaf1_front.tga",
 				new Vector3f(0.1f, 0.3f, 0.1f),
 				0);
+
+		Texture normalLeafTexture = new Texture(
+				ShaderProgram.RESOURCES_PATH + "/Leaf1_normals_front.tga",
+				new Vector3f(0.34f, 0.17f, 0.07f),
+				4);
 
 		Texture barkTexture = new Texture(
 				ShaderProgram.RESOURCES_PATH + "/Bark_Pine_baseColor.jpg",
@@ -276,11 +285,6 @@ public class App {
 				ShaderProgram.RESOURCES_PATH + "/Bark_Pine_normal.jpg",
 				new Vector3f(0.34f, 0.17f, 0.07f),
 				3);
-
-		Texture normalLeafTexture = new Texture(
-				ShaderProgram.RESOURCES_PATH + "/Leaf1_normals_front.tga",
-				new Vector3f(0.34f, 0.17f, 0.07f),
-				4);
 
 //		Create trees
 		for (int i = 0; i < NUMBER_TREES; i++) {

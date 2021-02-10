@@ -23,6 +23,7 @@ public class VertexAttribute {
 			new VertexAttribute(5, "instanceModel", 4, 1),
 			new VertexAttribute(6, "instanceModel", 4, 1)
 	);
+	public static final VertexAttribute TANGENT = new VertexAttribute(7, "tangent", 3);
 
 	public VertexAttribute(final int location, final String name, final int numberOfFloatComponents) {
 		this(location, name, numberOfFloatComponents, 0);
