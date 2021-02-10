@@ -21,7 +21,8 @@ void main()
     mat3 normalMatrix = transpose(inverse(mat3(model)));
     vec3 T = normalize(normalMatrix * tang);
     vec3 N = normalize(normalMatrix * norm);
-    T = normalize(T - dot(T, N) * N);// Not sure what this line does
+    // re-orthogonalize T with respect to N
+    T = normalize(T - dot(T, N) * N);
     vec3 B = cross(N, T);
     TBN = mat3(T, B, N);
     normal = N;

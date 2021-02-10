@@ -94,7 +94,7 @@ import utils.MeshUtils;
 
 public class App {
 
-	public static final float TREE_SCALE = 0.01f; // 0.01f
+	public static final float TREE_SCALE = 0.01f;
 	private static final int MAJOR_VERSION = 4;
 	private static final int MINOR_VERSION = 6;
 	private static final int WINDOW_WIDTH = 1200;
@@ -246,7 +246,7 @@ public class App {
 		groundTiles = quadtree.getGroundTiles();
 
 		Texture floorTexture = new Texture(
-				ShaderProgram.RESOURCES_PATH + "/floor2.png",
+				ShaderProgram.RESOURCES_PATH + "/textures/floor2.png",
 				new Vector3f(0.34f, 0.17f, 0.07f),
 				2);
 //		Texture normalFloorTexture = new Texture(
@@ -275,22 +275,22 @@ public class App {
 		);
 
 		Texture leafTexture = new Texture(
-				ShaderProgram.RESOURCES_PATH + "/Leaf1_front.tga",
+				ShaderProgram.RESOURCES_PATH + "/textures/Leaf1_front.tga",
 				new Vector3f(0.1f, 0.3f, 0.1f),
 				0);
 
 		Texture normalLeafTexture = new Texture(
-				ShaderProgram.RESOURCES_PATH + "/Leaf1_normals_front.tga",
+				ShaderProgram.RESOURCES_PATH + "/textures/Leaf1_normals_front.tga",
 				new Vector3f(0.34f, 0.17f, 0.07f),
 				4);
 
 		Texture barkTexture = new Texture(
-				ShaderProgram.RESOURCES_PATH + "/Bark_Pine_baseColor.jpg",
+				ShaderProgram.RESOURCES_PATH + "/textures/Bark_Pine_baseColor.jpg",
 				new Vector3f(0.34f, 0.17f, 0.07f),
 				1);
 
 		Texture normalBarkTexture = new Texture(
-				ShaderProgram.RESOURCES_PATH + "/Bark_Pine_normal.jpg",
+				ShaderProgram.RESOURCES_PATH + "/textures/Bark_Pine_normal.jpg",
 				new Vector3f(0.34f, 0.17f, 0.07f),
 				3);
 
