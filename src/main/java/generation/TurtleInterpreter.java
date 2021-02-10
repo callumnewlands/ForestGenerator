@@ -368,14 +368,15 @@ public class TurtleInterpreter {
 			for (int j = 0; j < refs.size(); j++) {
 				int finalJ = j;
 				ModelReference ref = refs.get(j);
-				// TODO (check) heading and up rotation - it was rushed
+				Vector3f X = new Vector3f(1, 0, 0);
 				List<Vertex> transformedVertices = MeshUtils.transform(
 						vertices,
 						new Matrix4f()
 								.translate(ref.position)
 								.rotate(new Quaternionf()
-										.rotateTo(new Vector3f(1, 0, 0), ref.heading)
-										.rotateTo(new Vector3f(0, 1, 0), ref.up)));
+										.rotateTo(X, ref.heading)
+										.rotateAxis((new Vector3f(0, 1, 0).angleSigned(ref.up, X)), X)
+								));
 				combinedVertices.addAll(transformedVertices);
 				combinedIndices.addAll(Arrays.stream(indices)
 						.map(n -> n + finalJ * numVertices)
