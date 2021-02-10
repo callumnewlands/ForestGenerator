@@ -9,6 +9,7 @@ import meshdata.VertexAttribute;
 import org.j3d.texture.procedural.PerlinNoiseGenerator;
 import org.joml.Vector2f;
 import org.joml.Vector3f;
+import utils.VectorUtils;
 
 public class TerrainGenerator {
 
@@ -94,9 +95,14 @@ public class TerrainGenerator {
 				float texX = (xi * textureTilesPerGroundTile) / verticesPerSide;
 				float texY = (yi * textureTilesPerGroundTile) / verticesPerSide;
 
+				Vector3f pos = new Vector3f(x, h, y);
+				Vector3f right = new Vector3f(lerp(minX, maxX, (float) hx / (verticesPerSide - 1)), h, y);
+				Vector3f tang = VectorUtils.subtract(right, pos);
+
 				vertices.add(new Vertex(
-						new Vector3f(x, h, y),
+						pos,
 						norm,
+						tang,
 						new Vector2f(texX, texY)
 				));
 			}
@@ -113,7 +119,7 @@ public class TerrainGenerator {
 				}
 		).toArray();
 
-		return new Mesh(vertices, indices, List.of(VertexAttribute.POSITION, VertexAttribute.NORMAL, VertexAttribute.TEXTURE));
+		return new Mesh(vertices, indices, List.of(VertexAttribute.POSITION, VertexAttribute.NORMAL, VertexAttribute.TANGENT, VertexAttribute.TEXTURE));
 	}
 
 }

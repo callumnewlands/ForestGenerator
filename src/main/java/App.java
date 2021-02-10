@@ -249,9 +249,14 @@ public class App {
 				ShaderProgram.RESOURCES_PATH + "/floor2.png",
 				new Vector3f(0.34f, 0.17f, 0.07f),
 				2);
+//		Texture normalFloorTexture = new Texture(
+//				ShaderProgram.RESOURCES_PATH + "/Ground_Forest_002_normal.jpg",
+//				new Vector3f(0.34f, 0.17f, 0.07f),
+//				5);
 
 		for (Mesh tile : groundTiles) {
 			tile.addTexture("diffuseTexture", floorTexture);
+//			tile.addTexture("normalTexture", normalFloorTexture);
 		}
 
 		Vector3f up = new Vector3f(0f, 1f, 0f);
