@@ -79,6 +79,7 @@ import meshdata.Mesh;
 import meshdata.Texture;
 import meshdata.Vertex;
 import meshdata.VertexAttribute;
+import meshdata.VertexBuffer;
 import org.joml.Matrix4f;
 import org.joml.Vector2f;
 import org.joml.Vector3f;
@@ -97,21 +98,22 @@ public class App {
 	private static final int MINOR_VERSION = 6;
 	private static final int WINDOW_WIDTH = 1200;
 	private static final int WINDOW_HEIGHT = 800;
+	private static final float GROUND_WIDTH = 200f;
 	private static final String VERTEX_SHADER_PATH = "/shader.vert";
 	private static final String FRAGMENT_SHADER_PATH = "/shader.frag";
 	private static final int NUMBER_TREES = 4;
 	private static final List<Vector2f> treePositions = List.of(new Vector2f(-3, 18), new Vector2f(5, 3), new Vector2f(-2, -10), new Vector2f(20, -4));
-
+	private final List<Mesh> trees = new ArrayList<>();
+	private final List<Mesh> leaves = new ArrayList<>();
 	private long window;
 	private ShaderProgram shaderProgram;
 	private ShaderProgram textureShaderProgram;
-
+	private ShaderProgram instancedTextureShaderProgram;
 	private TerrainQuadtree quadtree;
-
 	private List<Mesh> groundTiles = new ArrayList<>();
-	private final List<Mesh> trees = new ArrayList<>();
-	private final List<Mesh> leaves = new ArrayList<>();
-
+	private Mesh instancedTree;
+	private Mesh instancedLeaves;
+	private int numOfInstancedTrees = 5; // 600;
 	private Camera camera;
 
 	private double lastFrame = 0.0;
@@ -191,7 +193,8 @@ public class App {
 	private void initShaders() throws IOException {
 		shaderProgram = new ShaderProgram(VERTEX_SHADER_PATH, FRAGMENT_SHADER_PATH);
 		textureShaderProgram = new ShaderProgram("/textureShader.vert", "/textureShader.frag");
-		final Vector3f cameraPosition = new Vector3f(0.62f, 4.30f, 26.8f);
+		instancedTextureShaderProgram = new ShaderProgram("/instTextureShader.vert", "/instTextureShader.frag");
+		final Vector3f cameraPosition = new Vector3f(0, 4.30f, 0);
 		final float cameraYaw = -90.0f;
 		final float cameraPitch = 0.0f;
 		camera = new Camera(cameraPosition, cameraYaw, cameraPitch);
@@ -219,16 +222,15 @@ public class App {
 				.perspective(perspectiveAngle, (float) WINDOW_WIDTH / WINDOW_HEIGHT, nearPlane, farPlane);
 		shaderProgram.setUniform("projection", projection);
 		textureShaderProgram.setUniform("projection", projection);
+		instancedTextureShaderProgram.setUniform("projection", projection);
 	}
 
 	private void initScene() {
 		glClearColor(.529f, .808f, .922f, 0f);
 
-		float totalWidth = 300f;
-
 		quadtree = new TerrainQuadtree(
 				new Vector2f(0, 0),
-				totalWidth,
+				GROUND_WIDTH,
 				5,
 				100
 		);
@@ -267,11 +269,11 @@ public class App {
 
 //		Create trees
 		for (int i = 0; i < NUMBER_TREES; i++) {
-			List<Module> instructions = treeSystem().performDerivations(new Random().nextInt(2) + 6);
 			int numEdges = 10;
 			TurtleInterpreter turtleInterpreter = new TurtleInterpreter(numEdges);
 			turtleInterpreter.setSubModels(List.of(MeshUtils.transform(leaf, new Matrix4f().scale(1 / TREE_SCALE))));
 			turtleInterpreter.setIgnored(List.of('A'));
+			List<Module> instructions = treeSystem().performDerivations(new Random().nextInt(2) + 7);
 			turtleInterpreter.interpretInstructions(instructions
 					.stream()
 					.map(m -> m.getName() == 'A' ? new ParametricValueModule('~', 0f) : m)
@@ -295,6 +297,49 @@ public class App {
 					.translate(new Vector3f(pos.x, 0, pos.y))
 					.scale(TREE_SCALE));
 		}
+
+		// Instancing test
+		int numEdges = 10;
+		TurtleInterpreter turtleInterpreter = new TurtleInterpreter(numEdges);
+		turtleInterpreter.setSubModels(List.of(MeshUtils.transform(leaf, new Matrix4f().scale(1 / TREE_SCALE))));
+		turtleInterpreter.setIgnored(List.of('A'));
+		List<Module> instructions = treeSystem().performDerivations(new Random().nextInt(2) + 7);
+		turtleInterpreter.interpretInstructions(instructions
+				.stream()
+				.map(m -> m.getName() == 'A' ? new ParametricValueModule('~', 0f) : m)
+				.collect(Collectors.toList()));
+		instancedTree = turtleInterpreter.getMesh();
+		instancedLeaves = turtleInterpreter.getCombinedSubModelMeshes().get(0);
+		instancedTree.setTexture(barkTexture);
+		instancedLeaves.setTexture(leafTexture);
+
+		float[] instancedModels = new float[numOfInstancedTrees * 16];
+
+		Random r = new Random();
+		for (int i = 0; i < numOfInstancedTrees; i++) {
+			Matrix4f model = new Matrix4f().identity()
+					.translate((r.nextFloat() - 0.5f) * GROUND_WIDTH,
+							0,
+							(r.nextFloat() - 0.5f) * GROUND_WIDTH)
+					.scale(r.nextFloat() + 0.5f)
+					.scale(TREE_SCALE);
+			for (int j = 0; j < 16; j++) {
+				float[] mat = new float[16];
+				model.get(mat);
+				instancedModels[i * 16 + j] = mat[j];
+			}
+		}
+
+
+		VertexBuffer instanceModel = new VertexBuffer(numOfInstancedTrees, VertexAttribute.INSTANCE_MODEL);
+		instanceModel.setVertexData(instancedModels);
+		instancedTree.getVertexArray().bindVertexBuffer(instanceModel);
+		instancedTree.getVertexArray().setInstanced(true);
+
+		instanceModel = new VertexBuffer(numOfInstancedTrees, VertexAttribute.INSTANCE_MODEL);
+		instanceModel.setVertexData(instancedModels);
+		instancedLeaves.getVertexArray().bindVertexBuffer(instanceModel);
+		instancedLeaves.getVertexArray().setInstanced(true);
 	}
 
 	private LSystem treeSystem() {
@@ -302,7 +347,7 @@ public class App {
 		float d2 = 2.3148f; //132.63f;
 		float a = 0.1053f * (float) Math.PI; //18.95f;
 		float lr = 1.109f;
-		float vr = 1.732f; //1.832f
+		float vr = 1.832f; //1.732f
 		float e = 0.052f; //0.22f
 
 		CharModule A = new CharModule('A');
@@ -359,6 +404,22 @@ public class App {
 				));
 	}
 
+	private LSystem pyramidSystem() {
+
+		return new LSystem(
+				List.of(new ParametricValueModule('!', 1f),
+						new ParametricValueModule('F', 1f),
+						new ParametricValueModule('!', 0.1f),
+						new ParametricValueModule('F', 1f)),
+				List.of(),
+				List.of(new ProductionBuilder(
+						List.of(new ParametricParameterModule('F', List.of("w"))),
+						List.of(new ParametricExpressionModule('F', List.of("w"), vars -> List.of(vars.get("w"))),
+								new ParametricExpressionModule('F', List.of("w"), vars -> List.of(vars.get("w")))))
+						.build()
+				));
+	}
+
 	private void loop() {
 		while (!glfwWindowShouldClose(window)) {
 			updateDeltaTime();
@@ -389,6 +450,16 @@ public class App {
 			groundTile.render(textureShaderProgram);
 		}
 
+		instancedTextureShaderProgram.use();
+		instancedTextureShaderProgram.setUniform("view", camera.getViewMatrix());
+		instancedTextureShaderProgram.setUniform("lightPos", lightPos);
+		instancedTree.render(instancedTextureShaderProgram, numOfInstancedTrees);
+		instancedLeaves.render(instancedTextureShaderProgram, numOfInstancedTrees);
+
+//		for (int i = 0; i < numOfInstancedTrees; i++) {
+//			instancedTree.render(textureShaderProgram);
+//			instancedLeaves.render(textureShaderProgram);
+//		}
 	}
 
 	private void updateDeltaTime() {

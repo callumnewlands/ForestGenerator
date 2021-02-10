@@ -41,18 +41,16 @@ public class Texture {
 	private static final int RGB_NO_OF_COMPONENTS = 3;
 	private static final int SINGLE_COMPONENT = 1;
 
-	private int handle;
+	private final int handle;
 	private int width;
 	private int height;
 	private int numberOfComponents;
-	private int unit;
-	private int unitId;
-	private Vector3f colour;
+	private final int unit;
+	private final Vector3f colour;
 
 	public Texture(final String path, final Vector3f colour, final int textureUnit) {
 		this.colour = colour;
 		this.handle = glGenTextures();
-		this.unitId = textureUnit;
 		this.unit = GL_TEXTURE0 + textureUnit;
 		this.bind();
 

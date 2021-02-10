@@ -68,4 +68,17 @@ public class Mesh {
 		}
 	}
 
+	public void render(ShaderProgram shaderProgram, int numberOfInstances) {
+		shaderProgram.setUniform("model", model);
+		if (texture != null) {
+			shaderProgram.setUniform("modelColour", texture.getColour());
+			shaderProgram.setUniform("diffuseTexture", texture.getUnitID());
+			texture.bind();
+		}
+		vertexArray.draw(numberOfInstances);
+		if (texture != null) {
+			texture.unbind();
+		}
+	}
+
 }

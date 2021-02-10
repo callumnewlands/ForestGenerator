@@ -11,6 +11,7 @@ import static org.lwjgl.opengl.GL15.glBufferData;
 import static org.lwjgl.opengl.GL15.glGenBuffers;
 import static org.lwjgl.opengl.GL20C.glEnableVertexAttribArray;
 import static org.lwjgl.opengl.GL20C.glVertexAttribPointer;
+import static org.lwjgl.opengl.GL33.glVertexAttribDivisor;
 
 import org.lwjgl.system.MemoryUtil;
 
@@ -59,6 +60,9 @@ public class VertexBuffer {
 					stride,
 					offset);
 			glEnableVertexAttribArray(attribute.getLocation());
+			glVertexAttribDivisor(
+					attribute.getLocation(),
+					attribute.getDivisor());
 			offset += attribute.getNumberOfFloatComponents() * SIZE_OF_FLOAT_BYTES;
 		}
 
