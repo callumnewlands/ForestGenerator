@@ -1,4 +1,4 @@
-package meshdata;
+package models.meshdata;
 
 import java.nio.FloatBuffer;
 import java.util.List;

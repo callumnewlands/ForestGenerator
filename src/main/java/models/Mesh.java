@@ -1,4 +1,4 @@
-package meshdata;
+package models;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -6,6 +6,10 @@ import java.util.List;
 import java.util.Map;
 import lombok.Getter;
 import lombok.Setter;
+import models.meshdata.Texture;
+import models.meshdata.Vertex;
+import models.meshdata.VertexArray;
+import models.meshdata.VertexAttribute;
 import org.apache.commons.lang3.ArrayUtils;
 import org.joml.Matrix4f;
 import org.joml.Vector2f;
@@ -20,13 +24,20 @@ public class Mesh {
 	private int[] indices;
 	private List<VertexAttribute> vertexAttributes;
 	private Matrix4f model = new Matrix4f().identity();
-	private Map<String, Texture> textures = new HashMap<>();
-	private VertexArray vertexArray;
+	protected Map<String, Texture> textures = new HashMap<>();
+	protected VertexArray vertexArray;
 
 	public Mesh(List<Vertex> vertices, int[] indices, List<VertexAttribute> vertexAttributes) {
 		this.vertices = vertices;
 		this.indices = indices;
 		this.vertexAttributes = vertexAttributes;
+		this.vertexArray = createVAO();
+	}
+
+	public Mesh(Mesh mesh) {
+		this.vertices = mesh.vertices;
+		this.indices = mesh.indices;
+		this.vertexAttributes = mesh.vertexAttributes;
 		this.vertexArray = createVAO();
 	}
 
@@ -66,7 +77,9 @@ public class Mesh {
 	}
 
 	public void render(ShaderProgram shaderProgram) {
-		shaderProgram.setUniform("model", model);
+		if (!(this instanceof InstancedMesh)) {
+			shaderProgram.setUniform("model", model);
+		}
 		for (Map.Entry<String, Texture> texture : textures.entrySet()) {
 			if (texture.getKey().equals("diffuseTexture")) {
 				shaderProgram.setUniform("modelColour", texture.getValue().getColour());
@@ -74,25 +87,15 @@ public class Mesh {
 			shaderProgram.setUniform(texture.getKey(), texture.getValue().getUnitID());
 			texture.getValue().bind();
 		}
-		vertexArray.draw();
+		draw();
 		for (Texture texture : textures.values()) {
 			texture.unbind();
 		}
 	}
 
-	public void render(ShaderProgram shaderProgram, int numberOfInstances) {
-		shaderProgram.setUniform("model", model);
-		for (Map.Entry<String, Texture> texture : textures.entrySet()) {
-			if (texture.getKey().equals("diffuseTexture")) {
-				shaderProgram.setUniform("modelColour", texture.getValue().getColour());
-			}
-			shaderProgram.setUniform(texture.getKey(), texture.getValue().getUnitID());
-			texture.getValue().bind();
-		}
-		vertexArray.draw(numberOfInstances);
-		for (Texture texture : textures.values()) {
-			texture.unbind();
-		}
+	protected void draw() {
+		vertexArray.draw();
+
 	}
 
 }

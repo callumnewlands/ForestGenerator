@@ -79,11 +79,13 @@ import lsystems.modules.Module;
 import lsystems.modules.ParametricExpressionModule;
 import lsystems.modules.ParametricParameterModule;
 import lsystems.modules.ParametricValueModule;
-import meshdata.Mesh;
-import meshdata.Texture;
-import meshdata.Vertex;
-import meshdata.VertexAttribute;
-import meshdata.VertexBuffer;
+import models.InstancedMesh;
+import models.InstancedModel;
+import models.Mesh;
+import models.Model;
+import models.meshdata.Texture;
+import models.meshdata.Vertex;
+import models.meshdata.VertexAttribute;
 import org.joml.Matrix4f;
 import org.joml.Vector2f;
 import org.joml.Vector3f;
@@ -108,8 +110,8 @@ public class App {
 	private static final String FRAGMENT_SHADER_PATH = "/shader.frag";
 	private static final int NUMBER_TREES = 4;
 	private static final List<Vector2f> treePositions = List.of(new Vector2f(-3, 18), new Vector2f(5, 3), new Vector2f(-2, -10), new Vector2f(20, -4));
-	private final List<Mesh> trees = new ArrayList<>();
-	private final List<Mesh> leaves = new ArrayList<>();
+	private final List<Model> trees = new ArrayList<>();
+	//	private final List<Mesh> leaves = new ArrayList<>();
 	private long window;
 	private ShaderProgram shaderProgram;
 	private ShaderProgram textureShaderProgram;
@@ -118,9 +120,9 @@ public class App {
 	private ShaderProgram instancedNormalTextureShaderProgram;
 	private TerrainQuadtree quadtree;
 	private List<Mesh> groundTiles = new ArrayList<>();
-	private Mesh instancedTree;
-	private Mesh instancedLeaf;
-	private Mesh instancedCanopies;
+	private InstancedModel instancedTree;
+	private InstancedMesh instancedLeaf;
+	//	private Mesh instancedCanopies;
 	private int numOfInstancedTrees = 300;
 	private int numOfInstancedLeaves = 30000;
 	private Camera camera;
@@ -252,11 +254,11 @@ public class App {
 		groundTiles = quadtree.getGroundTiles();
 
 		Texture floorTexture = new Texture(
-				ShaderProgram.RESOURCES_PATH + "/textures/floor2.png",
+				ShaderProgram.RESOURCES_PATH + "/textures/Ground_Forest_003_baseColor.jpg",
 				new Vector3f(0.34f, 0.17f, 0.07f),
 				2);
 //		Texture normalFloorTexture = new Texture(
-//				ShaderProgram.RESOURCES_PATH + "/Ground_Forest_002_normal.jpg",
+//				ShaderProgram.RESOURCES_PATH + "/textures/Ground_Forest_003_normal.jpg",
 //				new Vector3f(0.34f, 0.17f, 0.07f),
 //				5);
 
@@ -300,6 +302,7 @@ public class App {
 				new Vector3f(0.34f, 0.17f, 0.07f),
 				3);
 
+
 //		Create trees
 		for (int i = 0; i < NUMBER_TREES; i++) {
 			int numEdges = 10;
@@ -311,29 +314,29 @@ public class App {
 					.stream()
 					.map(m -> m.getName() == 'A' ? new ParametricValueModule('~', 0f) : m)
 					.collect(Collectors.toList()));
-			trees.add(turtleInterpreter.getMesh());
-			leaves.add(turtleInterpreter.getCombinedSubModelMeshes().get(0));
-		}
+			Mesh branches = turtleInterpreter.getMesh();
+			Mesh leaves = turtleInterpreter.getCombinedSubModelMeshes().get(0);
 
-		for (int i = 0; i < NUMBER_TREES; i++) {
 			Vector2f pos = treePositions.get(i);
 
-			trees.get(i).setModel((new Matrix4f())
+			branches.setModel((new Matrix4f())
 					.identity()
 					.translate(new Vector3f(pos.x, 0, pos.y))
 					.scale(TREE_SCALE));
-			trees.get(i).addTexture("diffuseTexture", barkTexture);
-			trees.get(i).addTexture("normalTexture", normalBarkTexture);
+			branches.addTexture("diffuseTexture", barkTexture);
+			branches.addTexture("normalTexture", normalBarkTexture);
 
-			leaves.get(i).setModel((new Matrix4f())
+			leaves.setModel((new Matrix4f())
 					.identity()
 					.translate(new Vector3f(pos.x, 0, pos.y))
 					.scale(TREE_SCALE));
-			leaves.get(i).addTexture("diffuseTexture", leafTexture);
-			leaves.get(i).addTexture("normalTexture", normalLeafTexture);
+			leaves.addTexture("diffuseTexture", leafTexture);
+			leaves.addTexture("normalTexture", normalLeafTexture);
+
+			trees.add(new Model(List.of(branches, leaves)));
 		}
 
-		// Instancing test
+		// Instanced tree
 		int numEdges = 10;
 		TurtleInterpreter turtleInterpreter = new TurtleInterpreter(numEdges);
 		turtleInterpreter.setSubModels(List.of(MeshUtils.transform(leaf, new Matrix4f().scale(LEAF_SCALE / TREE_SCALE))));
@@ -343,65 +346,37 @@ public class App {
 				.stream()
 				.map(m -> m.getName() == 'A' ? new ParametricValueModule('~', 0f) : m)
 				.collect(Collectors.toList()));
-		instancedTree = turtleInterpreter.getMesh();
-		instancedTree.addTexture("diffuseTexture", barkTexture);
-		instancedTree.addTexture("normalTexture", normalBarkTexture);
-		instancedCanopies = turtleInterpreter.getCombinedSubModelMeshes().get(0);
+		InstancedMesh instanceBranches = new InstancedMesh(turtleInterpreter.getMesh(), numOfInstancedTrees);
+		instanceBranches.addTexture("diffuseTexture", barkTexture);
+		instanceBranches.addTexture("normalTexture", normalBarkTexture);
+		InstancedMesh instancedCanopies = new InstancedMesh(turtleInterpreter.getCombinedSubModelMeshes().get(0), numOfInstancedTrees);
 		instancedCanopies.addTexture("diffuseTexture", leafTexture);
 		instancedCanopies.addTexture("normalTexture", normalLeafTexture);
-
-		float[] instancedModels = new float[numOfInstancedTrees * 16];
-
-		Random r = new Random();
-		for (int i = 0; i < numOfInstancedTrees; i++) {
+		instancedTree = new InstancedModel(List.of(instanceBranches, instancedCanopies), numOfInstancedTrees);
+		instancedTree.generateModelMatrices(() -> {
+			Random r = new Random();
 			float x = (r.nextFloat() - 0.5f) * GROUND_WIDTH;
 			float z = (r.nextFloat() - 0.5f) * GROUND_WIDTH;
-			Matrix4f model = new Matrix4f().identity()
+			return new Matrix4f().identity()
 					.translate(x, quadtree.getHeight(x, z), z)
 					.scale(r.nextFloat() + 0.5f)
 					.scale(TREE_SCALE);
-			for (int j = 0; j < 16; j++) {
-				float[] mat = new float[16];
-				model.get(mat);
-				instancedModels[i * 16 + j] = mat[j];
-			}
-		}
+		});
 
-		VertexBuffer instanceModel = new VertexBuffer(numOfInstancedTrees, VertexAttribute.INSTANCE_MODEL);
-		instanceModel.setVertexData(instancedModels);
-		instancedTree.getVertexArray().bindVertexBuffer(instanceModel);
-		instancedTree.getVertexArray().setInstanced(true);
-
-		instanceModel = new VertexBuffer(numOfInstancedTrees, VertexAttribute.INSTANCE_MODEL);
-		instanceModel.setVertexData(instancedModels);
-		instancedCanopies.getVertexArray().bindVertexBuffer(instanceModel);
-		instancedCanopies.getVertexArray().setInstanced(true);
-
-
-		instancedLeaf = leaf;
+		// Instanced leaves
+		instancedLeaf = new InstancedMesh(leaf, numOfInstancedLeaves);
 		instancedLeaf.addTexture("diffuseTexture", leafTexture);
 		instancedLeaf.addTexture("normalTexture", normalLeafTexture);
-		instancedModels = new float[numOfInstancedLeaves * 16];
-		for (int i = 0; i < numOfInstancedLeaves; i++) {
+		instancedLeaf.generateModelMatrices(() -> {
+			Random r = new Random();
 			float x = (r.nextFloat() - 0.5f) * GROUND_WIDTH;
 			float z = (r.nextFloat() - 0.5f) * GROUND_WIDTH;
-			Matrix4f model = new Matrix4f().identity()
+			return new Matrix4f().identity()
 					.translate(x, quadtree.getHeight(x, z), z)
-					.rotate(r.nextFloat() * (float) Math.PI * 2,
-							new Vector3f(0, 1, 0))
-					.rotate(r.nextFloat() * (float) Math.PI / 10,
-							new Vector3f(r.nextFloat(), 0, r.nextFloat()).normalize())
+					.rotate(r.nextFloat() * (float) Math.PI * 2, new Vector3f(0, 1, 0))
+					.rotate(r.nextFloat() * (float) Math.PI / 10, new Vector3f(r.nextFloat(), 0, r.nextFloat()).normalize())
 					.scale(LEAF_SCALE);
-			for (int j = 0; j < 16; j++) {
-				float[] mat = new float[16];
-				model.get(mat);
-				instancedModels[i * 16 + j] = mat[j];
-			}
-		}
-		instanceModel = new VertexBuffer(numOfInstancedLeaves, VertexAttribute.INSTANCE_MODEL);
-		instanceModel.setVertexData(instancedModels);
-		instancedLeaf.getVertexArray().bindVertexBuffer(instanceModel);
-		instancedLeaf.getVertexArray().setInstanced(true);
+		});
 	}
 
 	private void initLighting() {
@@ -518,6 +493,7 @@ public class App {
 		if (useNormalMapping) {
 			normalTextureShaderProgram.use();
 			normalTextureShaderProgram.setUniform("view", camera.getViewMatrix());
+			normalTextureShaderProgram.setUniform("viewPos", camera.getPosition());
 		} else {
 			textureShaderProgram.use();
 			textureShaderProgram.setUniform("view", camera.getViewMatrix());
@@ -526,7 +502,6 @@ public class App {
 		// draw trees
 		for (int i = 0; i < NUMBER_TREES; i++) {
 			trees.get(i).render(useNormalMapping ? normalTextureShaderProgram : textureShaderProgram);
-			leaves.get(i).render(useNormalMapping ? normalTextureShaderProgram : textureShaderProgram);
 		}
 
 		textureShaderProgram.use();
@@ -543,15 +518,15 @@ public class App {
 			instancedTextureShaderProgram.use();
 			instancedTextureShaderProgram.setUniform("view", camera.getViewMatrix());
 		}
-		instancedTree.render(useNormalMapping ? instancedNormalTextureShaderProgram : instancedTextureShaderProgram, numOfInstancedTrees);
-		instancedCanopies.render(useNormalMapping ? instancedNormalTextureShaderProgram : instancedTextureShaderProgram, numOfInstancedTrees);
+		instancedTree.render(useNormalMapping ? instancedNormalTextureShaderProgram : instancedTextureShaderProgram);
+
 
 		// TODO replace with different shader uniform for texture colouring and add variation to leaves on model
 		Vector3f lightCol = new Vector3f(0.74f, 0.37f, 0.27f);
 		instancedNormalTextureShaderProgram.setUniform("lightColour", lightCol);
 		instancedTextureShaderProgram.setUniform("lightColour", lightCol);
 
-		instancedLeaf.render(useNormalMapping ? instancedNormalTextureShaderProgram : instancedTextureShaderProgram, numOfInstancedLeaves);
+		instancedLeaf.render(useNormalMapping ? instancedNormalTextureShaderProgram : instancedTextureShaderProgram);
 
 		lightCol = new Vector3f(1.0f);
 		instancedNormalTextureShaderProgram.setUniform("lightColour", lightCol);

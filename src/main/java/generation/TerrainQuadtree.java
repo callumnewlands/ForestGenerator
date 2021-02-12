@@ -3,7 +3,7 @@ package generation;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
-import meshdata.Mesh;
+import models.Mesh;
 import org.joml.Vector2f;
 
 public class TerrainQuadtree {
