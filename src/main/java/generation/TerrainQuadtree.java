@@ -32,6 +32,10 @@ public class TerrainQuadtree {
 		return quad.getGroundTiles();
 	}
 
+	public float getHeight(float x, float z) {
+		return terrainGenerator.getHeight(x, z);
+	}
+
 	private class Quad {
 		private Vector2f centre;
 		private float width;

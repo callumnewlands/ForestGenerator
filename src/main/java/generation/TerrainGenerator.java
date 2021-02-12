@@ -32,6 +32,22 @@ public class TerrainGenerator {
 		return x0 + p * (x1 - x0);
 	}
 
+	public float getHeight(float x, float y) {
+		float amplitude = 1.0f;
+		float frequency = 1.0f;
+		float totalValue = 0.0f;
+
+		for (int i = 0; i < NO_OF_OCTAVES; i++) {
+			float scaledX = x / NOISE_SCALE * frequency;
+			float scaledY = y / NOISE_SCALE * frequency;
+			totalValue += noiseGenerator.noise2(scaledX, scaledY) * amplitude;
+			amplitude *= PERSISTANCE;
+			frequency *= LACUNARITY;
+		}
+		return totalValue;
+	}
+
+
 	private float[][] getHeightmap(Vector2f centre, float width, int verticesPerSide) {
 
 		float minX = centre.x - width / 2;
@@ -44,20 +60,7 @@ public class TerrainGenerator {
 			float y = lerp(minY, maxY, (float) yi / (verticesPerSide - 1));
 			for (int xi = 0; xi < verticesPerSide; xi++) {
 				float x = lerp(minX, maxX, (float) xi / (verticesPerSide - 1));
-
-				float amplitude = 1.0f;
-				float frequency = 1.0f;
-				float totalValue = 0.0f;
-
-				for (int i = 0; i < NO_OF_OCTAVES; i++) {
-					float scaledX = x / NOISE_SCALE * frequency;
-					float scaledY = y / NOISE_SCALE * frequency;
-					totalValue += noiseGenerator.noise2(scaledX, scaledY) * amplitude;
-					amplitude *= PERSISTANCE;
-					frequency *= LACUNARITY;
-				}
-
-				heights[xi][yi] = totalValue;
+				heights[xi][yi] = getHeight(x, y);
 			}
 		}
 		return heights;
