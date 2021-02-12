@@ -19,7 +19,7 @@ public class TerrainGenerator {
 	private static final float PERSISTANCE = 0.5f;
 	private static final float LACUNARITY = 2.0f;
 	// TODO horizontal scale
-	private static final float NOISE_SCALE = 10.0f;
+	private static final float NOISE_SCALE = 9.0f;
 
 	public TerrainGenerator() {
 		noiseGenerator = new PerlinNoiseGenerator(0);

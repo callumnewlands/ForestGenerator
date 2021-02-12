@@ -35,6 +35,7 @@ public class TurtleInterpreter {
 	private float stepSize;
 	@Setter
 	private List<Character> ignored = new ArrayList<>();
+	private boolean firstScale = true;
 	private Vector4f tropism = null;
 	@Setter
 	private List<Mesh> subModels = new ArrayList<>();
@@ -95,6 +96,7 @@ public class TurtleInterpreter {
 
 	private void startNewVerticesSubList() {
 		this.vertices.add(new ArrayList<>());
+		// TODO uncommenting this fixes gaps in monopodial tree but breaks normals
 //		addCrossSectionVertices(turtle.prevCross);
 	}
 
@@ -129,6 +131,15 @@ public class TurtleInterpreter {
 
 	}
 
+	private void turnToVertical() {
+		Vector3f up = new Vector3f(0, 1, 0);
+		Vector3f left = VectorUtils.cross(up, turtle.heading).normalize();
+
+		turtle.up = VectorUtils.cross(turtle.heading, left);
+
+//		addCrossSectionVertices(turtle.prevCross);
+	}
+
 	private void scale(float radius) {
 		float oldRadius = turtle.radius;
 		turtle.radius = radius;
@@ -139,12 +150,12 @@ public class TurtleInterpreter {
 				turtle.position.z);
 		updateCrossSection(model);
 
-		// Add cross section only on first scale
-		if (oldRadius == 0.5f) {
+		if (firstScale) {
 			addCrossSectionVertices(getUnitCross().stream()
 					.map(Vector3f::new)
 					.map(model::transformPosition)
 					.collect(Collectors.toList()));
+			firstScale = false;
 		}
 	}
 
@@ -263,6 +274,7 @@ public class TurtleInterpreter {
 				case 'T' -> parseT(module);
 				case '+' -> parseRotation(module, turtle.up);
 				case '-' -> turn(-this.rotationAngle, turtle.up);
+				case '$' -> turnToVertical();
 				case '&' -> parseRotation(module, VectorUtils.cross(turtle.up, turtle.heading).normalize());
 				case '/' -> parseRotation(module, turtle.heading);
 				case '[' -> states.push(this.turtle.copy());

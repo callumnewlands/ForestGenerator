@@ -101,6 +101,7 @@ public class App {
 
 	public static final float TREE_SCALE = 0.01f;
 	public static final float LEAF_SCALE = 1;
+	public static final float TWIG_SCALE = 0.06f;
 	private static final int MAJOR_VERSION = 4;
 	private static final int MINOR_VERSION = 6;
 	private static final int WINDOW_WIDTH = 1200;
@@ -122,9 +123,12 @@ public class App {
 	private List<Mesh> groundTiles = new ArrayList<>();
 	private InstancedModel instancedTree;
 	private InstancedMesh instancedLeaf;
+	private List<InstancedMesh> instancedTwigs = new ArrayList<>();
 	//	private Mesh instancedCanopies;
-	private int numOfInstancedTrees = 300;
-	private int numOfInstancedLeaves = 30000;
+	private int numOfInstancedTrees = 300; //300
+	private int numOfTwigTypes = 10;
+	private int numOfInstancedTwig = 30;
+	private int numOfInstancedLeaves = 30000; //30000
 	private Camera camera;
 	private Boolean useNormalMapping = true;
 
@@ -208,7 +212,7 @@ public class App {
 		instancedTextureShaderProgram = new ShaderProgram("/instTextureShader.vert", "/textureShader.frag");
 		normalTextureShaderProgram = new ShaderProgram("/textureShader.vert", "/normTextureShader.frag");
 		instancedNormalTextureShaderProgram = new ShaderProgram("/instTextureShader.vert", "/normTextureShader.frag");
-		final Vector3f cameraPosition = new Vector3f(0, 4.30f, 0);
+		final Vector3f cameraPosition = new Vector3f(0, 3.30f, 0);
 		final float cameraYaw = -90.0f;
 		final float cameraPitch = 0.0f;
 		camera = new Camera(cameraPosition, cameraYaw, cameraPitch);
@@ -254,7 +258,7 @@ public class App {
 		groundTiles = quadtree.getGroundTiles();
 
 		Texture floorTexture = new Texture(
-				ShaderProgram.RESOURCES_PATH + "/textures/Ground_Forest_003_baseColor.jpg",
+				ShaderProgram.RESOURCES_PATH + "/textures/floor2.png",
 				new Vector3f(0.34f, 0.17f, 0.07f),
 				2);
 //		Texture normalFloorTexture = new Texture(
@@ -377,6 +381,30 @@ public class App {
 					.rotate(r.nextFloat() * (float) Math.PI / 10, new Vector3f(r.nextFloat(), 0, r.nextFloat()).normalize())
 					.scale(LEAF_SCALE);
 		});
+
+		for (int i = 0; i < numOfTwigTypes; i++) {
+			numEdges = 5;
+			TurtleInterpreter twigTurtleInterpreter = new TurtleInterpreter(numEdges);
+			twigTurtleInterpreter.setIgnored(List.of('A', 'B', 'C'));
+			instructions = twigSystem().performDerivations(new Random().nextInt(2) + 5);
+			twigTurtleInterpreter.interpretInstructions(instructions);
+			Mesh twig = MeshUtils.transform(twigTurtleInterpreter.getMesh(), new Matrix4f().rotate((float) Math.PI / 2, new Vector3f(1, 0, 0)));
+
+			InstancedMesh instancedTwig = new InstancedMesh(twig, numOfInstancedTwig);
+			instancedTwig.addTexture("diffuseTexture", barkTexture);
+			instancedTwig.addTexture("normalTexture", normalBarkTexture);
+			instancedTwig.generateModelMatrices(() -> {
+				Random r = new Random();
+				float x = (r.nextFloat() - 0.5f) * GROUND_WIDTH;
+				float z = (r.nextFloat() - 0.5f) * GROUND_WIDTH;
+				return new Matrix4f().identity()
+						.translate(x, quadtree.getHeight(x, z) + 0.2f, z)
+						.rotate(r.nextFloat() * (float) Math.PI * 2, new Vector3f(0, 1, 0))
+						.rotate(r.nextFloat() * (float) Math.PI / 10, new Vector3f(r.nextFloat(), 0, r.nextFloat()).normalize())
+						.scale(TWIG_SCALE * (r.nextFloat() + 0.5f));
+			});
+			instancedTwigs.add(instancedTwig);
+		}
 	}
 
 	private void initLighting() {
@@ -459,6 +487,75 @@ public class App {
 				));
 	}
 
+	private LSystem twigSystem() {
+		float r1 = 0.9f;
+		float r2 = 0.6f;
+		float a0 = (float) Math.PI / 8;
+		float a2 = (float) Math.PI / 8;
+		float d = 2.3998277f;
+		float wr = 0.707f;
+
+		CharModule D = new CharModule('$');
+		Module AOut = new ParametricExpressionModule('A', List.of("l", "w"), vars -> List.of(vars.get("l") * r1, vars.get("w") * wr));
+		Module B1Out = new ParametricExpressionModule('B', List.of("l", "w"), vars -> List.of(vars.get("l") * r1, vars.get("w") * wr));
+		Module B2Out = new ParametricExpressionModule('B', List.of("l", "w"), vars -> List.of(vars.get("l") * r2, vars.get("w") * wr));
+		Module C1Out = new ParametricExpressionModule('C', List.of("l", "w"), vars -> List.of(vars.get("l") * r1, vars.get("w") * wr));
+		Module C2Out = new ParametricExpressionModule('C', List.of("l", "w"), vars -> List.of(vars.get("l") * r2, vars.get("w") * wr));
+		Module ExOut = new ParametricExpressionModule('!', List.of("l", "w"), vars -> List.of(vars.get("w")));
+		Module FOut = new ParametricExpressionModule('F', List.of("l", "w"), vars -> List.of(vars.get("l")));
+
+		return new LSystem(
+				List.of(
+						new ParametricValueModule('!', 2f),
+						new ParametricValueModule('A', List.of(10f, 1f))
+				),
+				List.of(),
+				List.of(
+						new ProductionBuilder(
+								List.of(new ParametricParameterModule('A', List.of("l", "w"))),
+								List.of(
+										ExOut,
+										FOut,
+										LB,
+										new ParametricValueModule('&', a0),
+										B2Out,
+										RB,
+										new ParametricValueModule('/', d),
+										AOut
+								)).withProbability(0.4f).build(),
+						new ProductionBuilder(
+								List.of(new ParametricParameterModule('A', List.of("l", "w"))),
+								List.of(
+										ExOut,
+										FOut,
+										AOut
+								)).withProbability(0.6f).build(),
+						new ProductionBuilder(
+								List.of(new ParametricParameterModule('B', List.of("l", "w"))),
+								List.of(
+										ExOut,
+										FOut,
+										LB,
+										new ParametricValueModule('+', -a2),
+										D,
+										AOut,
+										RB
+								)).withProbability(0.3f).build(),
+						new ProductionBuilder(
+								List.of(new ParametricParameterModule('B', List.of("l", "w"))),
+								List.of(
+										ExOut,
+										FOut
+								)).withProbability(0.3f).build(),
+						new ProductionBuilder(
+								List.of(new ParametricParameterModule('B', List.of("l", "w"))),
+								List.of(
+										ExOut,
+										FOut
+								)).withProbability(0.4f).build()
+				));
+	}
+
 	private LSystem pyramidSystem() {
 
 		return new LSystem(
@@ -520,6 +617,9 @@ public class App {
 		}
 		instancedTree.render(useNormalMapping ? instancedNormalTextureShaderProgram : instancedTextureShaderProgram);
 
+		for (InstancedMesh twig : instancedTwigs) {
+			twig.render(useNormalMapping ? instancedNormalTextureShaderProgram : instancedTextureShaderProgram);
+		}
 
 		// TODO replace with different shader uniform for texture colouring and add variation to leaves on model
 		Vector3f lightCol = new Vector3f(0.74f, 0.37f, 0.27f);
