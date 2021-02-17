@@ -39,13 +39,13 @@ import static org.lwjgl.glfw.GLFW.glfwGetTime;
 import static org.lwjgl.glfw.GLFW.glfwGetVideoMode;
 import static org.lwjgl.glfw.GLFW.glfwInit;
 import static org.lwjgl.glfw.GLFW.glfwMakeContextCurrent;
+import static org.lwjgl.glfw.GLFW.glfwMaximizeWindow;
 import static org.lwjgl.glfw.GLFW.glfwPollEvents;
 import static org.lwjgl.glfw.GLFW.glfwSetCursorPos;
 import static org.lwjgl.glfw.GLFW.glfwSetCursorPosCallback;
 import static org.lwjgl.glfw.GLFW.glfwSetErrorCallback;
 import static org.lwjgl.glfw.GLFW.glfwSetInputMode;
 import static org.lwjgl.glfw.GLFW.glfwSetKeyCallback;
-import static org.lwjgl.glfw.GLFW.glfwSetWindowPos;
 import static org.lwjgl.glfw.GLFW.glfwSetWindowShouldClose;
 import static org.lwjgl.glfw.GLFW.glfwShowWindow;
 import static org.lwjgl.glfw.GLFW.glfwSwapBuffers;
@@ -104,25 +104,26 @@ import utils.MeshUtils;
 public class App {
 
 	public static final float TREE_SCALE = 0.01f;
-	public static final float LEAF_SCALE = 1;
+	public static final float LEAF_SCALE = 0.8f;
 	public static final float TWIG_SCALE = 0.06f;
 	public static final float GRASS_SCALE = 1f;
 	private static final int MAJOR_VERSION = 4;
 	private static final int MINOR_VERSION = 6;
-	private static final int WINDOW_WIDTH = 1920;
-	private static final int WINDOW_HEIGHT = 1080;
-	private static final float GROUND_WIDTH = 100f;
+	private int WINDOW_WIDTH;
+	private int WINDOW_HEIGHT;
+	private static final float GROUND_WIDTH = 50f;
 	private static final String VERTEX_SHADER_PATH = "/shader.vert";
 	private static final String FRAGMENT_SHADER_PATH = "/shader.frag";
-	private static final int NUM_OF_INSTANCED_TREES = 200;
+	private static final int NUM_OF_INSTANCED_TREES = (int) (GROUND_WIDTH * GROUND_WIDTH * 0.04);
 	private static final int NUM_OF_TWIG_TYPES = 10;
-	private static final int NUM_OF_INSTANCED_TWIGS = 400;
-	private static final int NUM_OF_INSTANCED_GRASS = 10000;
-	private static final int NUM_OF_INSTANCED_LEAVES = 20000;
+	private static final int NUM_OF_INSTANCED_TWIGS = (int) (GROUND_WIDTH * GROUND_WIDTH * 0.04);
+	private static final int NUM_OF_ROCK_TYPES = 10;
+	private static final int NUM_OF_INSTANCED_ROCKS = (int) (GROUND_WIDTH * GROUND_WIDTH * 0.04);
+	private static final int NUM_OF_INSTANCED_GRASS = (int) (GROUND_WIDTH * GROUND_WIDTH * 2.00);
+	private static final int NUM_OF_INSTANCED_LEAVES = (int) (GROUND_WIDTH * GROUND_WIDTH * 2.00);
 	private static final int NUMBER_TREES = 4;
 	private static final List<Vector2f> treePositions = List.of(new Vector2f(-3, 18), new Vector2f(5, 3), new Vector2f(-2, -10), new Vector2f(20, -4));
 
-	//	private final List<Mesh> leaves = new ArrayList<>();
 	private long window;
 	private Camera camera;
 	private Boolean useNormalMapping = true;
@@ -173,8 +174,8 @@ public class App {
 		if (!glfwInit()) {
 			throw new IllegalStateException("Unable to initialize GLFW");
 		}
-		window = initWindow();
 
+		window = initWindow();
 		GL.createCapabilities();
 		System.out.println("Running OpenGL " + glGetString(GL_VERSION));
 
@@ -183,10 +184,10 @@ public class App {
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-
 		initShaders();
 		initScene();
 		initLighting();
+
 	}
 
 	private long initWindow() {
@@ -198,21 +199,24 @@ public class App {
 		glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 		glfwWindowHint(GLFW_SAMPLES, 4);
 
+		GLFWVidMode videoMode = glfwGetVideoMode(glfwGetPrimaryMonitor());
+		if (videoMode == null) {
+			throw new RuntimeException("Failed to get primary monitor");
+		}
+		WINDOW_WIDTH = videoMode.width();
+		WINDOW_HEIGHT = videoMode.height();
 		long window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Forest Simulator 2021", NULL, NULL);
 		if (window == NULL) {
 			throw new RuntimeException("Failed to create the GLFW window");
 		}
 
-		// Centre window
-		GLFWVidMode vidmode = glfwGetVideoMode(glfwGetPrimaryMonitor());
-		if (vidmode == null) {
-			throw new RuntimeException("Failed to get primary monitor");
-		}
-		glfwSetWindowPos(
-				window,
-				(vidmode.width() - WINDOW_WIDTH) / 2,
-				(vidmode.height() - WINDOW_HEIGHT) / 2
-		);
+
+//		glfwSetWindowPos(
+//				window,
+//				(videoMode.width()) / 2,
+//				(videoMode.height()) / 2
+//		);
+		glfwMaximizeWindow(window);
 
 		glfwMakeContextCurrent(window);
 		glfwSwapInterval(1);
@@ -302,12 +306,12 @@ public class App {
 		);
 
 		Texture leafTexture = new Texture(
-				ShaderProgram.RESOURCES_PATH + "/textures/Leaf1_front.tga",
+				ShaderProgram.RESOURCES_PATH + "/textures/Leaf2_front_rotated.tga",
 				new Vector3f(0.1f, 0.3f, 0.1f),
 				0);
 
 		Texture normalLeafTexture = new Texture(
-				ShaderProgram.RESOURCES_PATH + "/textures/Leaf1_normals_front.tga",
+				ShaderProgram.RESOURCES_PATH + "/textures/Leaf2_normals_front_rotated.tga",
 				new Vector3f(0.1f, 0.3f, 0.1f),
 				4);
 
@@ -615,6 +619,7 @@ public class App {
 			updateDeltaTime();
 			stepper += deltaTime / 10;
 			stepper -= (int) stepper;
+//			System.out.println(1 / deltaTime + " fps");
 			renderScene();
 			glfwSwapBuffers(window);
 			pollKeys();

@@ -18,6 +18,7 @@ void main()
 {
     worldPos = vec3(instanceModel * vec4(pos, 1.0));
 
+
     mat3 normalMatrix = transpose(inverse(mat3(instanceModel)));
     vec3 T = normalize(normalMatrix * tang);
     vec3 N = normalize(normalMatrix * norm);
