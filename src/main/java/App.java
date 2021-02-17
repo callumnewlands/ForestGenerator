@@ -53,6 +53,7 @@ import static org.lwjgl.glfw.GLFW.glfwSwapInterval;
 import static org.lwjgl.glfw.GLFW.glfwTerminate;
 import static org.lwjgl.glfw.GLFW.glfwWindowHint;
 import static org.lwjgl.glfw.GLFW.glfwWindowShouldClose;
+import static org.lwjgl.opengl.GL11.GL_CLAMP;
 import static org.lwjgl.opengl.GL11.GL_COLOR_BUFFER_BIT;
 import static org.lwjgl.opengl.GL11.GL_DEPTH_BUFFER_BIT;
 import static org.lwjgl.opengl.GL11.GL_DEPTH_TEST;
@@ -105,24 +106,27 @@ public class App {
 
 	public static final float TREE_SCALE = 0.01f;
 	public static final float LEAF_SCALE = 0.8f;
-	public static final float TWIG_SCALE = 0.06f;
-	public static final float GRASS_SCALE = 1f;
+	public static final float TWIG_SCALE = 0.05f;
+	public static final float GRASS_SCALE = 0.9f;
+	private static final float ROCK_SCALE = 0.6f;
 	private static final int MAJOR_VERSION = 4;
 	private static final int MINOR_VERSION = 6;
-	private int WINDOW_WIDTH;
-	private int WINDOW_HEIGHT;
-	private static final float GROUND_WIDTH = 50f;
+	private static final float GROUND_WIDTH = 70f;
 	private static final String VERTEX_SHADER_PATH = "/shader.vert";
 	private static final String FRAGMENT_SHADER_PATH = "/shader.frag";
-	private static final int NUM_OF_INSTANCED_TREES = (int) (GROUND_WIDTH * GROUND_WIDTH * 0.04);
+	private static final int NUM_OF_INSTANCED_TREES = (int) (GROUND_WIDTH * GROUND_WIDTH * 0.025);
 	private static final int NUM_OF_TWIG_TYPES = 10;
 	private static final int NUM_OF_INSTANCED_TWIGS = (int) (GROUND_WIDTH * GROUND_WIDTH * 0.04);
 	private static final int NUM_OF_ROCK_TYPES = 10;
 	private static final int NUM_OF_INSTANCED_ROCKS = (int) (GROUND_WIDTH * GROUND_WIDTH * 0.04);
-	private static final int NUM_OF_INSTANCED_GRASS = (int) (GROUND_WIDTH * GROUND_WIDTH * 2.00);
-	private static final int NUM_OF_INSTANCED_LEAVES = (int) (GROUND_WIDTH * GROUND_WIDTH * 2.00);
+	private static final int NUM_OF_INSTANCED_GRASS = (int) (GROUND_WIDTH * GROUND_WIDTH * 2.20);
+	private static final int NUM_OF_INSTANCED_LEAVES = (int) (GROUND_WIDTH * GROUND_WIDTH * 1.50);
 	private static final int NUMBER_TREES = 4;
 	private static final List<Vector2f> treePositions = List.of(new Vector2f(-3, 18), new Vector2f(5, 3), new Vector2f(-2, -10), new Vector2f(20, -4));
+
+	private float sunStrength = 0.9f;
+	private int WINDOW_WIDTH;
+	private int WINDOW_HEIGHT;
 
 	private long window;
 	private Camera camera;
@@ -142,6 +146,7 @@ public class App {
 	private InstancedMesh instancedLeaf;
 	private InstancedModel grassBillboard;
 	private List<InstancedMesh> instancedTwigs = new ArrayList<>();
+	private List<InstancedMesh> instancedRocks = new ArrayList<>();
 
 	private double lastFrame = 0.0;
 	private double deltaTime = 0.0;
@@ -186,7 +191,6 @@ public class App {
 
 		initShaders();
 		initScene();
-		initLighting();
 
 	}
 
@@ -210,12 +214,6 @@ public class App {
 			throw new RuntimeException("Failed to create the GLFW window");
 		}
 
-
-//		glfwSetWindowPos(
-//				window,
-//				(videoMode.width()) / 2,
-//				(videoMode.height()) / 2
-//		);
 		glfwMaximizeWindow(window);
 
 		glfwMakeContextCurrent(window);
@@ -262,6 +260,8 @@ public class App {
 		normalTextureShaderProgram.setUniform("projection", projection);
 		instancedNormalTextureShaderProgram.setUniform("projection", projection);
 		billboardShaderProgram.setUniform("projection", projection);
+
+		initLighting();
 	}
 
 	private void initScene() {
@@ -308,12 +308,14 @@ public class App {
 		Texture leafTexture = new Texture(
 				ShaderProgram.RESOURCES_PATH + "/textures/Leaf2_front_rotated.tga",
 				new Vector3f(0.1f, 0.3f, 0.1f),
-				0);
+				0,
+				GL_CLAMP);
 
 		Texture normalLeafTexture = new Texture(
 				ShaderProgram.RESOURCES_PATH + "/textures/Leaf2_normals_front_rotated.tga",
 				new Vector3f(0.1f, 0.3f, 0.1f),
-				4);
+				4,
+				GL_CLAMP);
 
 		Texture barkTexture = new Texture(
 				ShaderProgram.RESOURCES_PATH + "/textures/Bark_Pine_baseColor.jpg",
@@ -328,12 +330,23 @@ public class App {
 		Texture grassTexture = new Texture(
 				ShaderProgram.RESOURCES_PATH + "/textures/grass.png",
 				new Vector3f(0.1f, 0.3f, 0.1f),
-				5);
+				5,
+				GL_CLAMP);
+
+		Texture rockTexture = new Texture(
+				ShaderProgram.RESOURCES_PATH + "/textures/Mossy_rock_01_2K_Base_Color.png",
+				new Vector3f(0.3f, 0.3f, 0.3f),
+				6);
+
+		Texture rockNormalTexture = new Texture(
+				ShaderProgram.RESOURCES_PATH + "/textures/Mossy_rock_01_2K_Normal.png",
+				new Vector3f(0.3f, 0.3f, 0.3f),
+				7);
 
 
+		int numEdges = 6;
 //		Create trees
 		for (int i = 0; i < NUMBER_TREES; i++) {
-			int numEdges = 10;
 			TurtleInterpreter turtleInterpreter = new TurtleInterpreter(numEdges);
 			turtleInterpreter.setSubModels(List.of(MeshUtils.transform(leaf, new Matrix4f().scale(LEAF_SCALE / TREE_SCALE))));
 			turtleInterpreter.setIgnored(List.of('A'));
@@ -365,7 +378,6 @@ public class App {
 		}
 
 		// Instanced tree
-		int numEdges = 10;
 		TurtleInterpreter turtleInterpreter = new TurtleInterpreter(numEdges);
 		turtleInterpreter.setSubModels(List.of(MeshUtils.transform(leaf, new Matrix4f().scale(LEAF_SCALE / TREE_SCALE))));
 		turtleInterpreter.setIgnored(List.of('A'));
@@ -406,6 +418,7 @@ public class App {
 					.scale(LEAF_SCALE);
 		});
 
+		// twigs
 		for (int i = 0; i < NUM_OF_TWIG_TYPES; i++) {
 			numEdges = 5;
 			TurtleInterpreter twigTurtleInterpreter = new TurtleInterpreter(numEdges);
@@ -430,6 +443,32 @@ public class App {
 			instancedTwigs.add(instancedTwig);
 		}
 
+		// rocks
+		for (int i = 0; i < NUM_OF_ROCK_TYPES; i++) {
+			numEdges = 5;
+			TurtleInterpreter rockTurtleInterpreter = new TurtleInterpreter(numEdges);
+			rockTurtleInterpreter.setIgnored(List.of('A', 'B', 'C'));
+			instructions = prismSystem().performDerivations(new Random().nextInt(1));
+			rockTurtleInterpreter.interpretInstructions(instructions);
+			Mesh rock = MeshUtils.transform(rockTurtleInterpreter.getMesh(), new Matrix4f().rotate((float) Math.PI / 2, new Vector3f(1, 0, 0)));
+
+			InstancedMesh instancedRock = new InstancedMesh(rock, NUM_OF_INSTANCED_ROCKS / NUM_OF_ROCK_TYPES);
+			instancedRock.addTexture("diffuseTexture", rockTexture);
+			instancedRock.addTexture("normalTexture", rockNormalTexture);
+			instancedRock.generateModelMatrices(() -> {
+				Random r = new Random();
+				float x = (r.nextFloat() - 0.5f) * GROUND_WIDTH;
+				float z = (r.nextFloat() - 0.5f) * GROUND_WIDTH;
+				return new Matrix4f().identity()
+						.translate(x, quadtree.getHeight(x, z) + 0.2f, z)
+						.rotate(r.nextFloat() * (float) Math.PI * 2, new Vector3f(0, 1, 0))
+						.rotate(r.nextFloat() * (float) Math.PI / 10, new Vector3f(r.nextFloat(), 0, r.nextFloat()).normalize())
+						.scale(ROCK_SCALE * (r.nextFloat() + 0.5f));
+			});
+			instancedRocks.add(instancedRock);
+		}
+
+
 		// Instanced grass
 		Mesh grass = MeshUtils.transform(leaf, new Matrix4f().rotate((float) Math.PI / 2, out));
 		Mesh grassBoard = new Mesh(grass);
@@ -453,7 +492,7 @@ public class App {
 
 	private void initLighting() {
 		Vector3f lightPos = new Vector3f(5f, 100f, -20f);
-		Vector3f lightCol = new Vector3f(1.0f);
+		Vector3f lightCol = new Vector3f(sunStrength);
 
 		normalTextureShaderProgram.setUniform("lightPos", lightPos);
 		normalTextureShaderProgram.setUniform("lightColour", lightCol);
@@ -614,6 +653,23 @@ public class App {
 				));
 	}
 
+	private LSystem prismSystem() {
+
+		return new LSystem(
+				List.of(new CharModule('*'),
+						new ParametricValueModule('!', 1f),
+						new ParametricValueModule('F', 1f),
+						new CharModule('*')),
+				List.of(),
+				List.of(new ProductionBuilder(
+						List.of(new ParametricParameterModule('F', List.of("w"))),
+						List.of(new ParametricExpressionModule('F', List.of("w"), vars -> List.of(vars.get("w"))),
+								new ParametricExpressionModule('F', List.of("w"), vars -> List.of(vars.get("w")))))
+						.build()
+				));
+	}
+
+
 	private void loop() {
 		while (!glfwWindowShouldClose(window)) {
 			updateDeltaTime();
@@ -633,32 +689,31 @@ public class App {
 		ShaderProgram textureProgram = useNormalMapping ? normalTextureShaderProgram : textureShaderProgram;
 		ShaderProgram instanceProgram = useNormalMapping ? instancedNormalTextureShaderProgram : instancedTextureShaderProgram;
 
-		textureProgram.use();
 		textureProgram.setUniform("view", camera.getViewMatrix());
+		instanceProgram.setUniform("view", camera.getViewMatrix());
+		textureShaderProgram.setUniform("view", camera.getViewMatrix());
+		billboardShaderProgram.setUniform("view", camera.getViewMatrix());
+		billboardShaderProgram.setUniform("viewPos", camera.getPosition());
 
 		// draw trees
 		for (int i = 0; i < NUMBER_TREES; i++) {
 			trees.get(i).render(textureProgram);
 		}
 
-		textureShaderProgram.use();
-		textureShaderProgram.setUniform("view", camera.getViewMatrix());
-
 		for (Mesh groundTile : groundTiles) {
 			groundTile.render(textureShaderProgram);
 		}
 
-		instanceProgram.use();
-		instanceProgram.setUniform("view", camera.getViewMatrix());
 		instancedTree.render(instanceProgram);
 
 		for (InstancedMesh twig : instancedTwigs) {
 			twig.render(instanceProgram);
 		}
 
-		billboardShaderProgram.use();
-		billboardShaderProgram.setUniform("view", camera.getViewMatrix());
-		billboardShaderProgram.setUniform("viewPos", camera.getPosition());
+		for (InstancedMesh rock : instancedRocks) {
+			rock.render(instanceProgram);
+		}
+
 		grassBillboard.render(billboardShaderProgram);
 
 		// TODO replace with different shader uniform for texture colouring and add variation to leaves on model
@@ -667,7 +722,7 @@ public class App {
 
 		instancedLeaf.render(instanceProgram);
 
-		lightCol = new Vector3f(1.0f);
+		lightCol = new Vector3f(sunStrength);
 		instanceProgram.setUniform("lightColour", lightCol);
 
 	}

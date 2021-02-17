@@ -48,15 +48,20 @@ public class Texture {
 	private final int unit;
 	private final Vector3f colour;
 
+
 	public Texture(final String path, final Vector3f colour, final int textureUnit) {
+		this(path, colour, textureUnit, GL_REPEAT);
+	}
+
+	public Texture(final String path, final Vector3f colour, final int textureUnit, final int textureWrap) {
 		this.colour = colour;
 		this.handle = glGenTextures();
 		this.unit = GL_TEXTURE0 + textureUnit;
 		this.bind();
 
 		// set texture wrapping to GL_REPEAT in both directions (default wrapping method)
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, textureWrap);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, textureWrap);
 		// set texture filtering parameters
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -67,7 +72,6 @@ public class Texture {
 			e.printStackTrace();
 		}
 	}
-
 	public Texture(final float[][] greyscaleValues, final int width, final int height, final int textureUnit) {
 		this.colour = new Vector3f(0.3f);
 		this.handle = glGenTextures();

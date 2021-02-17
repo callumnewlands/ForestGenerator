@@ -2,6 +2,7 @@ package generation;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Stack;
@@ -140,6 +141,14 @@ public class TurtleInterpreter {
 //		addCrossSectionVertices(turtle.prevCross);
 	}
 
+	private void closeFace() {
+		addCrossSectionVertices(Collections.nCopies(numEdges + 1, turtle.position)
+				.stream()
+				.map(v -> new Vector3f(v.x, v.y, v.z))
+				.collect(Collectors.toList()));
+	}
+
+
 	private void scale(float radius) {
 		float oldRadius = turtle.radius;
 		turtle.radius = radius;
@@ -275,6 +284,7 @@ public class TurtleInterpreter {
 				case '+' -> parseRotation(module, turtle.up);
 				case '-' -> turn(-this.rotationAngle, turtle.up);
 				case '$' -> turnToVertical();
+				case '*' -> closeFace();
 				case '&' -> parseRotation(module, VectorUtils.cross(turtle.up, turtle.heading).normalize());
 				case '/' -> parseRotation(module, turtle.heading);
 				case '[' -> states.push(this.turtle.copy());
@@ -335,7 +345,7 @@ public class TurtleInterpreter {
 						int i2 = f.get((n + (s - 1)) % s);
 						Vector3f a1 = VectorUtils.subtract(verts.get(i1), v).normalize();
 						Vector3f a2 = VectorUtils.subtract(verts.get(i2), v).normalize();
-						Vector3f norm = VectorUtils.cross(a2, a1).normalize();
+						Vector3f norm = VectorUtils.cross(a2, a1).normalize().negate();
 						normalSum.putIfAbsent(v, norm);
 						normalSum.computeIfPresent(v, (key, val) -> VectorUtils.add(val, norm));
 						// Only works for rectangular faces
@@ -374,6 +384,8 @@ public class TurtleInterpreter {
 
 	// Call after interpretInstructions
 	public List<Mesh> getCombinedSubModelMeshes() {
+
+		// TODO would using instancing instead of combining data help? - would save space but may cost time?
 
 		List<Mesh> meshes = new ArrayList<>();
 

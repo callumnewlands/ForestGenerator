@@ -88,6 +88,7 @@ public class Mesh {
 	}
 
 	public void render(ShaderProgram shaderProgram) {
+		shaderProgram.use();
 		if (!(this instanceof InstancedMesh)) {
 			shaderProgram.setUniform("model", model);
 		}
