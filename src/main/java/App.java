@@ -117,7 +117,7 @@ public class App {
 	private static final int NUM_OF_INSTANCED_TREES = 200;
 	private static final int NUM_OF_TWIG_TYPES = 10;
 	private static final int NUM_OF_INSTANCED_TWIGS = 400;
-	private static final int NUM_OF_INSTANCED_GRASS = 1000;
+	private static final int NUM_OF_INSTANCED_GRASS = 10000;
 	private static final int NUM_OF_INSTANCED_LEAVES = 20000;
 	private static final int NUMBER_TREES = 4;
 	private static final List<Vector2f> treePositions = List.of(new Vector2f(-3, 18), new Vector2f(5, 3), new Vector2f(-2, -10), new Vector2f(20, -4));
@@ -437,7 +437,7 @@ public class App {
 			Random r = new Random();
 			float x = (r.nextFloat() - 0.5f) * GROUND_WIDTH;
 			float z = (r.nextFloat() - 0.5f) * GROUND_WIDTH;
-			float y = quadtree.getHeight(x, z) - r.nextFloat() * 0.3f - 0.3f;
+			float y = quadtree.getHeight(x, z) - r.nextFloat() * 0.6f - 0.3f;
 			return new Matrix4f().identity()
 					.translate(x, y, z)
 					.rotate(r.nextFloat() * (float) Math.PI * 2, new Vector3f(0, 1, 0))

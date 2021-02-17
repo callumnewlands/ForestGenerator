@@ -28,7 +28,7 @@ void main() {
 
     vec4 vertexCol = texture(diffuseTexture, textureCoord);
     vec3 viewDir = normalize(viewPos - worldPos);
-    float alpha = abs(dot(viewDir, norm));
+    float alpha = pow(abs(dot(viewDir, norm)), 2);
     if (vertexCol.a < 0.01 || alpha < 0.01) {
         discard;
     }
