@@ -61,9 +61,13 @@ import static org.lwjgl.opengl.GL11.glClear;
 import static org.lwjgl.opengl.GL11.glClearColor;
 import static org.lwjgl.opengl.GL11.glDisable;
 import static org.lwjgl.opengl.GL11.glEnable;
+import static org.lwjgl.opengl.GL11C.GL_BLEND;
 import static org.lwjgl.opengl.GL11C.GL_FRONT_AND_BACK;
 import static org.lwjgl.opengl.GL11C.GL_LINE;
+import static org.lwjgl.opengl.GL11C.GL_ONE_MINUS_SRC_ALPHA;
+import static org.lwjgl.opengl.GL11C.GL_SRC_ALPHA;
 import static org.lwjgl.opengl.GL11C.GL_VERSION;
+import static org.lwjgl.opengl.GL11C.glBlendFunc;
 import static org.lwjgl.opengl.GL11C.glGetString;
 import static org.lwjgl.opengl.GL11C.glPolygonMode;
 import static org.lwjgl.opengl.GL13C.GL_MULTISAMPLE;
@@ -102,35 +106,41 @@ public class App {
 	public static final float TREE_SCALE = 0.01f;
 	public static final float LEAF_SCALE = 1;
 	public static final float TWIG_SCALE = 0.06f;
+	public static final float GRASS_SCALE = 1f;
 	private static final int MAJOR_VERSION = 4;
 	private static final int MINOR_VERSION = 6;
-	private static final int WINDOW_WIDTH = 1200;
-	private static final int WINDOW_HEIGHT = 800;
-	private static final float GROUND_WIDTH = 100f; //200f
+	private static final int WINDOW_WIDTH = 1920;
+	private static final int WINDOW_HEIGHT = 1080;
+	private static final float GROUND_WIDTH = 100f;
 	private static final String VERTEX_SHADER_PATH = "/shader.vert";
 	private static final String FRAGMENT_SHADER_PATH = "/shader.frag";
+	private static final int NUM_OF_INSTANCED_TREES = 200;
+	private static final int NUM_OF_TWIG_TYPES = 10;
+	private static final int NUM_OF_INSTANCED_TWIGS = 400;
+	private static final int NUM_OF_INSTANCED_GRASS = 1000;
+	private static final int NUM_OF_INSTANCED_LEAVES = 20000;
 	private static final int NUMBER_TREES = 4;
 	private static final List<Vector2f> treePositions = List.of(new Vector2f(-3, 18), new Vector2f(5, 3), new Vector2f(-2, -10), new Vector2f(20, -4));
-	private final List<Model> trees = new ArrayList<>();
+
 	//	private final List<Mesh> leaves = new ArrayList<>();
 	private long window;
+	private Camera camera;
+	private Boolean useNormalMapping = true;
+
 	private ShaderProgram shaderProgram;
 	private ShaderProgram textureShaderProgram;
 	private ShaderProgram normalTextureShaderProgram;
 	private ShaderProgram instancedTextureShaderProgram;
 	private ShaderProgram instancedNormalTextureShaderProgram;
+	private ShaderProgram billboardShaderProgram;
+
 	private TerrainQuadtree quadtree;
+	private List<Model> trees = new ArrayList<>();
 	private List<Mesh> groundTiles = new ArrayList<>();
 	private InstancedModel instancedTree;
 	private InstancedMesh instancedLeaf;
+	private InstancedModel grassBillboard;
 	private List<InstancedMesh> instancedTwigs = new ArrayList<>();
-	//	private Mesh instancedCanopies;
-	private int numOfInstancedTrees = 300; //300
-	private int numOfTwigTypes = 10;
-	private int numOfInstancedTwig = 30;
-	private int numOfInstancedLeaves = 30000; //30000
-	private Camera camera;
-	private Boolean useNormalMapping = true;
 
 	private double lastFrame = 0.0;
 	private double deltaTime = 0.0;
@@ -170,6 +180,9 @@ public class App {
 
 		glEnable(GL_DEPTH_TEST);
 		glEnable(GL_MULTISAMPLE);
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
 
 		initShaders();
 		initScene();
@@ -212,6 +225,7 @@ public class App {
 		instancedTextureShaderProgram = new ShaderProgram("/instTextureShader.vert", "/textureShader.frag");
 		normalTextureShaderProgram = new ShaderProgram("/textureShader.vert", "/normTextureShader.frag");
 		instancedNormalTextureShaderProgram = new ShaderProgram("/instTextureShader.vert", "/normTextureShader.frag");
+		billboardShaderProgram = new ShaderProgram("/instTextureShader.vert", "/billboardTextureShader.frag");
 		final Vector3f cameraPosition = new Vector3f(0, 3.30f, 0);
 		final float cameraYaw = -90.0f;
 		final float cameraPitch = 0.0f;
@@ -243,6 +257,7 @@ public class App {
 		instancedTextureShaderProgram.setUniform("projection", projection);
 		normalTextureShaderProgram.setUniform("projection", projection);
 		instancedNormalTextureShaderProgram.setUniform("projection", projection);
+		billboardShaderProgram.setUniform("projection", projection);
 	}
 
 	private void initScene() {
@@ -251,7 +266,7 @@ public class App {
 		quadtree = new TerrainQuadtree(
 				new Vector2f(0, 0),
 				GROUND_WIDTH,
-				5,
+				7,
 				100
 		);
 		quadtree.setSeedPoint(new Vector2f(camera.getPosition().x, camera.getPosition().z));
@@ -293,7 +308,7 @@ public class App {
 
 		Texture normalLeafTexture = new Texture(
 				ShaderProgram.RESOURCES_PATH + "/textures/Leaf1_normals_front.tga",
-				new Vector3f(0.34f, 0.17f, 0.07f),
+				new Vector3f(0.1f, 0.3f, 0.1f),
 				4);
 
 		Texture barkTexture = new Texture(
@@ -305,6 +320,11 @@ public class App {
 				ShaderProgram.RESOURCES_PATH + "/textures/Bark_Pine_normal.jpg",
 				new Vector3f(0.34f, 0.17f, 0.07f),
 				3);
+
+		Texture grassTexture = new Texture(
+				ShaderProgram.RESOURCES_PATH + "/textures/grass.png",
+				new Vector3f(0.1f, 0.3f, 0.1f),
+				5);
 
 
 //		Create trees
@@ -350,13 +370,13 @@ public class App {
 				.stream()
 				.map(m -> m.getName() == 'A' ? new ParametricValueModule('~', 0f) : m)
 				.collect(Collectors.toList()));
-		InstancedMesh instanceBranches = new InstancedMesh(turtleInterpreter.getMesh(), numOfInstancedTrees);
+		InstancedMesh instanceBranches = new InstancedMesh(turtleInterpreter.getMesh(), NUM_OF_INSTANCED_TREES);
 		instanceBranches.addTexture("diffuseTexture", barkTexture);
 		instanceBranches.addTexture("normalTexture", normalBarkTexture);
-		InstancedMesh instancedCanopies = new InstancedMesh(turtleInterpreter.getCombinedSubModelMeshes().get(0), numOfInstancedTrees);
+		InstancedMesh instancedCanopies = new InstancedMesh(turtleInterpreter.getCombinedSubModelMeshes().get(0), NUM_OF_INSTANCED_TREES);
 		instancedCanopies.addTexture("diffuseTexture", leafTexture);
 		instancedCanopies.addTexture("normalTexture", normalLeafTexture);
-		instancedTree = new InstancedModel(List.of(instanceBranches, instancedCanopies), numOfInstancedTrees);
+		instancedTree = new InstancedModel(List.of(instanceBranches, instancedCanopies), NUM_OF_INSTANCED_TREES);
 		instancedTree.generateModelMatrices(() -> {
 			Random r = new Random();
 			float x = (r.nextFloat() - 0.5f) * GROUND_WIDTH;
@@ -368,7 +388,7 @@ public class App {
 		});
 
 		// Instanced leaves
-		instancedLeaf = new InstancedMesh(leaf, numOfInstancedLeaves);
+		instancedLeaf = new InstancedMesh(leaf, NUM_OF_INSTANCED_LEAVES);
 		instancedLeaf.addTexture("diffuseTexture", leafTexture);
 		instancedLeaf.addTexture("normalTexture", normalLeafTexture);
 		instancedLeaf.generateModelMatrices(() -> {
@@ -382,7 +402,7 @@ public class App {
 					.scale(LEAF_SCALE);
 		});
 
-		for (int i = 0; i < numOfTwigTypes; i++) {
+		for (int i = 0; i < NUM_OF_TWIG_TYPES; i++) {
 			numEdges = 5;
 			TurtleInterpreter twigTurtleInterpreter = new TurtleInterpreter(numEdges);
 			twigTurtleInterpreter.setIgnored(List.of('A', 'B', 'C'));
@@ -390,7 +410,7 @@ public class App {
 			twigTurtleInterpreter.interpretInstructions(instructions);
 			Mesh twig = MeshUtils.transform(twigTurtleInterpreter.getMesh(), new Matrix4f().rotate((float) Math.PI / 2, new Vector3f(1, 0, 0)));
 
-			InstancedMesh instancedTwig = new InstancedMesh(twig, numOfInstancedTwig);
+			InstancedMesh instancedTwig = new InstancedMesh(twig, NUM_OF_INSTANCED_TWIGS / NUM_OF_TWIG_TYPES);
 			instancedTwig.addTexture("diffuseTexture", barkTexture);
 			instancedTwig.addTexture("normalTexture", normalBarkTexture);
 			instancedTwig.generateModelMatrices(() -> {
@@ -405,24 +425,42 @@ public class App {
 			});
 			instancedTwigs.add(instancedTwig);
 		}
+
+		// Instanced grass
+		Mesh grass = MeshUtils.transform(leaf, new Matrix4f().rotate((float) Math.PI / 2, out));
+		Mesh grassBoard = new Mesh(grass);
+		grassBoard.addTexture("diffuseTexture", grassTexture);
+		grassBillboard = new InstancedModel(
+				List.of(grassBoard, MeshUtils.transform(grassBoard, new Matrix4f().rotate((float) Math.PI / 2, up))),
+				NUM_OF_INSTANCED_GRASS);
+		grassBillboard.generateModelMatrices(() -> {
+			Random r = new Random();
+			float x = (r.nextFloat() - 0.5f) * GROUND_WIDTH;
+			float z = (r.nextFloat() - 0.5f) * GROUND_WIDTH;
+			float y = quadtree.getHeight(x, z) - r.nextFloat() * 0.3f - 0.3f;
+			return new Matrix4f().identity()
+					.translate(x, y, z)
+					.rotate(r.nextFloat() * (float) Math.PI * 2, new Vector3f(0, 1, 0))
+					.rotate(r.nextFloat() * (float) Math.PI / 10, new Vector3f(r.nextFloat(), 0, r.nextFloat()).normalize())
+					.scale(GRASS_SCALE);
+		});
+
 	}
 
 	private void initLighting() {
 		Vector3f lightPos = new Vector3f(5f, 100f, -20f);
 		Vector3f lightCol = new Vector3f(1.0f);
 
-		normalTextureShaderProgram.use();
 		normalTextureShaderProgram.setUniform("lightPos", lightPos);
 		normalTextureShaderProgram.setUniform("lightColour", lightCol);
-		textureShaderProgram.use();
 		textureShaderProgram.setUniform("lightPos", lightPos);
 		textureShaderProgram.setUniform("lightColour", lightCol);
-		instancedTextureShaderProgram.use();
 		instancedTextureShaderProgram.setUniform("lightPos", lightPos);
 		instancedTextureShaderProgram.setUniform("lightColour", lightCol);
-		instancedNormalTextureShaderProgram.use();
 		instancedNormalTextureShaderProgram.setUniform("lightPos", lightPos);
 		instancedNormalTextureShaderProgram.setUniform("lightColour", lightCol);
+		billboardShaderProgram.setUniform("lightPos", lightPos);
+		billboardShaderProgram.setUniform("lightColour", lightCol);
 	}
 
 	private LSystem treeSystem() {
@@ -587,18 +625,15 @@ public class App {
 	private void renderScene() {
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		if (useNormalMapping) {
-			normalTextureShaderProgram.use();
-			normalTextureShaderProgram.setUniform("view", camera.getViewMatrix());
-			normalTextureShaderProgram.setUniform("viewPos", camera.getPosition());
-		} else {
-			textureShaderProgram.use();
-			textureShaderProgram.setUniform("view", camera.getViewMatrix());
-		}
+		ShaderProgram textureProgram = useNormalMapping ? normalTextureShaderProgram : textureShaderProgram;
+		ShaderProgram instanceProgram = useNormalMapping ? instancedNormalTextureShaderProgram : instancedTextureShaderProgram;
+
+		textureProgram.use();
+		textureProgram.setUniform("view", camera.getViewMatrix());
 
 		// draw trees
 		for (int i = 0; i < NUMBER_TREES; i++) {
-			trees.get(i).render(useNormalMapping ? normalTextureShaderProgram : textureShaderProgram);
+			trees.get(i).render(textureProgram);
 		}
 
 		textureShaderProgram.use();
@@ -608,29 +643,27 @@ public class App {
 			groundTile.render(textureShaderProgram);
 		}
 
-		if (useNormalMapping) {
-			instancedNormalTextureShaderProgram.use();
-			instancedNormalTextureShaderProgram.setUniform("view", camera.getViewMatrix());
-		} else {
-			instancedTextureShaderProgram.use();
-			instancedTextureShaderProgram.setUniform("view", camera.getViewMatrix());
-		}
-		instancedTree.render(useNormalMapping ? instancedNormalTextureShaderProgram : instancedTextureShaderProgram);
+		instanceProgram.use();
+		instanceProgram.setUniform("view", camera.getViewMatrix());
+		instancedTree.render(instanceProgram);
 
 		for (InstancedMesh twig : instancedTwigs) {
-			twig.render(useNormalMapping ? instancedNormalTextureShaderProgram : instancedTextureShaderProgram);
+			twig.render(instanceProgram);
 		}
+
+		billboardShaderProgram.use();
+		billboardShaderProgram.setUniform("view", camera.getViewMatrix());
+		billboardShaderProgram.setUniform("viewPos", camera.getPosition());
+		grassBillboard.render(billboardShaderProgram);
 
 		// TODO replace with different shader uniform for texture colouring and add variation to leaves on model
 		Vector3f lightCol = new Vector3f(0.74f, 0.37f, 0.27f);
-		instancedNormalTextureShaderProgram.setUniform("lightColour", lightCol);
-		instancedTextureShaderProgram.setUniform("lightColour", lightCol);
+		instanceProgram.setUniform("lightColour", lightCol);
 
-		instancedLeaf.render(useNormalMapping ? instancedNormalTextureShaderProgram : instancedTextureShaderProgram);
+		instancedLeaf.render(instanceProgram);
 
 		lightCol = new Vector3f(1.0f);
-		instancedNormalTextureShaderProgram.setUniform("lightColour", lightCol);
-		instancedTextureShaderProgram.setUniform("lightColour", lightCol);
+		instanceProgram.setUniform("lightColour", lightCol);
 
 	}
 

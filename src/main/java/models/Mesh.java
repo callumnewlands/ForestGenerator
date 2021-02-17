@@ -38,6 +38,17 @@ public class Mesh {
 		this.vertices = mesh.vertices;
 		this.indices = mesh.indices;
 		this.vertexAttributes = mesh.vertexAttributes;
+		this.textures = mesh.textures;
+		this.model = mesh.model;
+		this.vertexArray = createVAO();
+	}
+
+	public Mesh(Mesh mesh, List<Vertex> transformedVertices) {
+		this.vertices = transformedVertices;
+		this.indices = mesh.indices.clone();
+		this.vertexAttributes = new ArrayList<>(mesh.vertexAttributes);
+		this.textures = new HashMap<>(mesh.textures);
+		this.model = new Matrix4f(mesh.model);
 		this.vertexArray = createVAO();
 	}
 

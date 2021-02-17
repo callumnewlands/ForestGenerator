@@ -2,6 +2,7 @@ package models;
 
 import java.util.List;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import models.meshdata.VertexAttribute;
 import models.meshdata.VertexBuffer;
 import org.joml.Matrix4f;
@@ -12,6 +13,7 @@ public class InstancedModel extends Model {
 	public InstancedModel(List<Mesh> meshes, int numberOfInstances) {
 		super(meshes);
 		this.numberOfInstances = numberOfInstances;
+		this.meshes = this.meshes.stream().map(m -> new InstancedMesh(m, numberOfInstances)).collect(Collectors.toList());
 	}
 
 	public void generateModelMatrices(Supplier<Matrix4f> generator) {

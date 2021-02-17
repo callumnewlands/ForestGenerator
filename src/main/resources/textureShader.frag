@@ -14,6 +14,11 @@ out vec4 fragColour;
 
 void main()
 {
+
+    vec4 vertexCol = texture(diffuseTexture, textureCoord);
+    if (vertexCol.a < 0.01) {
+        discard;
+    }
     // ambient
     float ambientStrength = 0.5f;
     vec3 ambient = ambientStrength * lightColour;
@@ -23,11 +28,6 @@ void main()
     vec3 lightDir = normalize(lightPos - worldPos);
     float diff = max(dot(norm, lightDir), 0.0f);
     vec3 diffuse = diff * lightColour;
-
-    vec4 vertexCol = texture(diffuseTexture, textureCoord);
-    if (vertexCol.a < 0.01) {
-        discard;
-    }
     fragColour = vec4(ambient + diffuse, 1.0) * vertexCol;
 //    fragColour = vec4(norm, 1.0);
 

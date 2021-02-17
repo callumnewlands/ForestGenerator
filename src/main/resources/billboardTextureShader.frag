@@ -6,6 +6,7 @@ in vec2 textureCoord;
 
 uniform vec3 modelColour;
 uniform vec3 lightPos;
+uniform vec3 viewPos;
 uniform vec3 lightColour;
 uniform sampler2D diffuseTexture;
 uniform sampler2D normalTexture;
@@ -13,11 +14,6 @@ uniform sampler2D normalTexture;
 out vec4 fragColour;
 
 void main() {
-
-    vec4 vertexCol = texture(diffuseTexture, textureCoord);
-    if (vertexCol.a < 0.01) {
-        discard;
-    }
 
     // ambient
     float ambientStrength = 0.5f;
@@ -30,7 +26,14 @@ void main() {
     float diff = max(dot(norm, lightDir), 0.0f);
     vec3 diffuse = diff * lightColour;
 
-    fragColour = vec4(ambient + diffuse, 1.0) * vertexCol;
-//        fragColour = vec4(norm, 1.0);
+    vec4 vertexCol = texture(diffuseTexture, textureCoord);
+    vec3 viewDir = normalize(viewPos - worldPos);
+    float alpha = abs(dot(viewDir, norm));
+    if (vertexCol.a < 0.01 || alpha < 0.01) {
+        discard;
+    }
+
+    fragColour = vec4(ambient + diffuse, alpha) * vertexCol;
+    //        fragColour = vec4(norm, 1.0);
 
 }

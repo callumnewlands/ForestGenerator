@@ -31,7 +31,7 @@ public final class MeshUtils {
 
 	public static Mesh transform(Mesh mesh, Matrix4f model) {
 		List<Vertex> transformedVertices = transform(mesh.getVertices(), model);
-		return new Mesh(transformedVertices, mesh.getIndices(), mesh.getVertexAttributes());
+		return new Mesh(mesh, transformedVertices);
 	}
 
 }
