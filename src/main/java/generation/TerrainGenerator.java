@@ -3,9 +3,10 @@ package generation;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.IntStream;
-import models.Mesh;
-import models.meshdata.Vertex;
-import models.meshdata.VertexAttribute;
+import modeldata.Mesh;
+import modeldata.meshdata.Texture;
+import modeldata.meshdata.Vertex;
+import modeldata.meshdata.VertexAttribute;
 import org.j3d.texture.procedural.PerlinNoiseGenerator;
 import org.joml.Vector2f;
 import org.joml.Vector3f;
@@ -30,6 +31,11 @@ public class TerrainGenerator {
 	 */
 	private float lerp(float x0, float x1, float p) {
 		return x0 + p * (x1 - x0);
+	}
+
+	private float round(float f) {
+		int precision = 100;
+		return Math.round(f * precision) / (float) precision;
 	}
 
 	public float getHeight(float x, float y) {
@@ -66,7 +72,7 @@ public class TerrainGenerator {
 		return heights;
 	}
 
-	public Mesh getGroundTile(Vector2f centre, float width, int verticesPerSide, float textureWidth) {
+	public Mesh getGroundTile(Vector2f centre, float width, int verticesPerSide, float textureWidth, Texture texture) {
 
 		float minX = centre.x - width / 2;
 		float maxX = centre.x + width / 2;
@@ -98,7 +104,7 @@ public class TerrainGenerator {
 				float texX = (xi * textureTilesPerGroundTile) / verticesPerSide;
 				float texY = (yi * textureTilesPerGroundTile) / verticesPerSide;
 
-				Vector3f pos = new Vector3f(x, h, y);
+				Vector3f pos = new Vector3f(round(x), round(h), round(y));
 				Vector3f right = new Vector3f(lerp(minX, maxX, (float) hx / (verticesPerSide - 1)), h, y);
 				Vector3f tang = VectorUtils.subtract(right, pos);
 
@@ -122,7 +128,9 @@ public class TerrainGenerator {
 				}
 		).toArray();
 
-		return new Mesh(vertices, indices, List.of(VertexAttribute.POSITION, VertexAttribute.NORMAL, VertexAttribute.TANGENT, VertexAttribute.TEXTURE));
+		Mesh mesh = new Mesh(vertices, indices, List.of(VertexAttribute.POSITION, VertexAttribute.NORMAL, VertexAttribute.TANGENT, VertexAttribute.TEXTURE));
+		mesh.addTexture("diffuseTexture", texture);
+		return mesh;
 	}
 
 }

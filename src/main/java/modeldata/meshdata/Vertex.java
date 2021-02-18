@@ -1,4 +1,4 @@
-package models.meshdata;
+package modeldata.meshdata;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

@@ -1,4 +1,4 @@
-package models;
+package modeldata;
 
 import java.util.List;
 import lombok.AllArgsConstructor;

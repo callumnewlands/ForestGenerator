@@ -1,10 +1,10 @@
-package models;
+package modeldata;
 
 import java.util.List;
 import java.util.function.Supplier;
-import models.meshdata.Vertex;
-import models.meshdata.VertexAttribute;
-import models.meshdata.VertexBuffer;
+import modeldata.meshdata.Vertex;
+import modeldata.meshdata.VertexAttribute;
+import modeldata.meshdata.VertexBuffer;
 import org.joml.Matrix4f;
 
 public class InstancedMesh extends Mesh {

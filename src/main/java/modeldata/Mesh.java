@@ -1,4 +1,4 @@
-package models;
+package modeldata;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -6,10 +6,10 @@ import java.util.List;
 import java.util.Map;
 import lombok.Getter;
 import lombok.Setter;
-import models.meshdata.Texture;
-import models.meshdata.Vertex;
-import models.meshdata.VertexArray;
-import models.meshdata.VertexAttribute;
+import modeldata.meshdata.Texture;
+import modeldata.meshdata.Vertex;
+import modeldata.meshdata.VertexArray;
+import modeldata.meshdata.VertexAttribute;
 import org.apache.commons.lang3.ArrayUtils;
 import org.joml.Matrix4f;
 import org.joml.Vector2f;

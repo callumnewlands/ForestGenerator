@@ -1,4 +1,4 @@
-package models.meshdata;
+package modeldata.meshdata;
 
 import java.util.List;
 

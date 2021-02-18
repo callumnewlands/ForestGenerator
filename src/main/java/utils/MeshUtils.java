@@ -2,8 +2,8 @@ package utils;
 
 import java.util.List;
 import java.util.stream.Collectors;
-import models.Mesh;
-import models.meshdata.Vertex;
+import modeldata.Mesh;
+import modeldata.meshdata.Vertex;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 
