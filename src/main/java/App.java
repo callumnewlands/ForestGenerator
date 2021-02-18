@@ -110,16 +110,17 @@ public class App {
 	private static final float ROCK_SCALE = 0.6f;
 	private static final int MAJOR_VERSION = 4;
 	private static final int MINOR_VERSION = 6;
-	private static final float GROUND_WIDTH = 70f;
+	private static final float GROUND_WIDTH = 200f;
 	private static final String VERTEX_SHADER_PATH = "/shader.vert";
 	private static final String FRAGMENT_SHADER_PATH = "/shader.frag";
-	private static final int NUM_OF_INSTANCED_TREES = (int) (GROUND_WIDTH * GROUND_WIDTH * 0.025);
+	public static final boolean RENDER_OBJECTS = true;
+	private static final int NUM_OF_INSTANCED_TREES = RENDER_OBJECTS ? (int) (GROUND_WIDTH * GROUND_WIDTH * 0.025) : 0;
 	private static final int NUM_OF_TWIG_TYPES = 10;
-	private static final int NUM_OF_INSTANCED_TWIGS = (int) (GROUND_WIDTH * GROUND_WIDTH * 0.04);
+	private static final int NUM_OF_INSTANCED_TWIGS = RENDER_OBJECTS ? (int) (GROUND_WIDTH * GROUND_WIDTH * 0.04) : 0;
 	private static final int NUM_OF_ROCK_TYPES = 10;
-	private static final int NUM_OF_INSTANCED_ROCKS = (int) (GROUND_WIDTH * GROUND_WIDTH * 0.04);
-	private static final int NUM_OF_INSTANCED_GRASS = (int) (GROUND_WIDTH * GROUND_WIDTH * 2.20);
-	private static final int NUM_OF_INSTANCED_LEAVES = (int) (GROUND_WIDTH * GROUND_WIDTH * 1.50);
+	private static final int NUM_OF_INSTANCED_ROCKS = RENDER_OBJECTS ? (int) (GROUND_WIDTH * GROUND_WIDTH * 0.04) : 0;
+	private static final int NUM_OF_INSTANCED_GRASS = RENDER_OBJECTS ? (int) (GROUND_WIDTH * GROUND_WIDTH * 2.20) : 0;
+	private static final int NUM_OF_INSTANCED_LEAVES = RENDER_OBJECTS ? (int) (GROUND_WIDTH * GROUND_WIDTH * 1.50) : 0;
 	private static final int NUMBER_TREES = 4;
 	private static final List<Vector2f> treePositions = List.of(new Vector2f(-3, 18), new Vector2f(5, 3), new Vector2f(-2, -10), new Vector2f(20, -4));
 
@@ -139,8 +140,7 @@ public class App {
 	private ShaderProgram billboardShaderProgram;
 
 	private TerrainQuadtree quadtree;
-	private List<Model> trees = new ArrayList<>();
-	private List<Mesh> groundTiles = new ArrayList<>();
+	//	private List<Model> trees = new ArrayList<>();
 	private InstancedModel instancedTree;
 	private InstancedMesh instancedLeaf;
 	private InstancedModel grassBillboard;
@@ -153,6 +153,7 @@ public class App {
 
 	private float lastX;
 	private float lastY;
+	private Matrix4f projection;
 
 	public static void main(String[] args) throws IOException {
 		new App().run();
@@ -251,7 +252,7 @@ public class App {
 		final float perspectiveAngle = (float) Math.toRadians(45.0f);
 		final float nearPlane = 0.1f;
 		final float farPlane = 300.0f;
-		Matrix4f projection = new Matrix4f()
+		projection = new Matrix4f()
 				.perspective(perspectiveAngle, (float) WINDOW_WIDTH / WINDOW_HEIGHT, nearPlane, farPlane);
 		shaderProgram.setUniform("projection", projection);
 		textureShaderProgram.setUniform("projection", projection);
@@ -266,28 +267,20 @@ public class App {
 	private void initScene() {
 		glClearColor(.529f, .808f, .922f, 0f);
 
-		quadtree = new TerrainQuadtree(
-				new Vector2f(0, 0),
-				GROUND_WIDTH,
-				7,
-				100
-		);
-		quadtree.setSeedPoint(new Vector2f(camera.getPosition().x, camera.getPosition().z));
-		groundTiles = quadtree.getGroundTiles();
-
 		Texture floorTexture = new Texture(
 				ShaderProgram.RESOURCES_PATH + "/textures/floor2.png",
 				new Vector3f(0.34f, 0.17f, 0.07f),
 				2);
-//		Texture normalFloorTexture = new Texture(
-//				ShaderProgram.RESOURCES_PATH + "/textures/Ground_Forest_003_normal.jpg",
-//				new Vector3f(0.34f, 0.17f, 0.07f),
-//				5);
 
-		for (Mesh tile : groundTiles) {
-			tile.addTexture("diffuseTexture", floorTexture);
-//			tile.addTexture("normalTexture", normalFloorTexture);
-		}
+		quadtree = new TerrainQuadtree(
+				new Vector2f(0, 0),
+				GROUND_WIDTH,
+				5,
+				(int) (GROUND_WIDTH / 2),
+				floorTexture
+		);
+		quadtree.setSeedPoint(new Vector2f(camera.getPosition().x, camera.getPosition().z));
+
 
 		Vector3f up = new Vector3f(0f, 1f, 0f);
 		Vector3f out = new Vector3f(0f, 0f, 1f);
@@ -344,37 +337,38 @@ public class App {
 
 
 		int numEdges = 6;
-//		Create trees
-		for (int i = 0; i < NUMBER_TREES; i++) {
-			TurtleInterpreter turtleInterpreter = new TurtleInterpreter(numEdges);
-			turtleInterpreter.setSubModels(List.of(MeshUtils.transform(leaf, new Matrix4f().scale(LEAF_SCALE / TREE_SCALE))));
-			turtleInterpreter.setIgnored(List.of('A'));
-			List<Module> instructions = treeSystem().performDerivations(new Random().nextInt(2) + 7);
-			turtleInterpreter.interpretInstructions(instructions
-					.stream()
-					.map(m -> m.getName() == 'A' ? new ParametricValueModule('~', 0f) : m)
-					.collect(Collectors.toList()));
-			Mesh branches = turtleInterpreter.getMesh();
-			Mesh leaves = turtleInterpreter.getCombinedSubModelMeshes().get(0);
 
-			Vector2f pos = treePositions.get(i);
-
-			branches.setModel((new Matrix4f())
-					.identity()
-					.translate(new Vector3f(pos.x, 0, pos.y))
-					.scale(TREE_SCALE));
-			branches.addTexture("diffuseTexture", barkTexture);
-			branches.addTexture("normalTexture", normalBarkTexture);
-
-			leaves.setModel((new Matrix4f())
-					.identity()
-					.translate(new Vector3f(pos.x, 0, pos.y))
-					.scale(TREE_SCALE));
-			leaves.addTexture("diffuseTexture", leafTexture);
-			leaves.addTexture("normalTexture", normalLeafTexture);
-
-			trees.add(new Model(List.of(branches, leaves)));
-		}
+////		Create trees
+//		for (int i = 0; i < NUMBER_TREES; i++) {
+//			TurtleInterpreter turtleInterpreter = new TurtleInterpreter(numEdges);
+//			turtleInterpreter.setSubModels(List.of(MeshUtils.transform(leaf, new Matrix4f().scale(LEAF_SCALE / TREE_SCALE))));
+//			turtleInterpreter.setIgnored(List.of('A'));
+//			List<Module> instructions = treeSystem().performDerivations(new Random().nextInt(2) + 7);
+//			turtleInterpreter.interpretInstructions(instructions
+//					.stream()
+//					.map(m -> m.getName() == 'A' ? new ParametricValueModule('~', 0f) : m)
+//					.collect(Collectors.toList()));
+//			Mesh branches = turtleInterpreter.getMesh();
+//			Mesh leaves = turtleInterpreter.getCombinedSubModelMeshes().get(0);
+//
+//			Vector2f pos = treePositions.get(i);
+//
+//			branches.setModel((new Matrix4f())
+//					.identity()
+//					.translate(new Vector3f(pos.x, 0, pos.y))
+//					.scale(TREE_SCALE));
+//			branches.addTexture("diffuseTexture", barkTexture);
+//			branches.addTexture("normalTexture", normalBarkTexture);
+//
+//			leaves.setModel((new Matrix4f())
+//					.identity()
+//					.translate(new Vector3f(pos.x, 0, pos.y))
+//					.scale(TREE_SCALE));
+//			leaves.addTexture("diffuseTexture", leafTexture);
+//			leaves.addTexture("normalTexture", normalLeafTexture);
+//
+//			trees.add(new Model(List.of(branches, leaves)));
+//		}
 
 		// Instanced tree
 		TurtleInterpreter turtleInterpreter = new TurtleInterpreter(numEdges);
@@ -641,8 +635,7 @@ public class App {
 		return new LSystem(
 				List.of(new ParametricValueModule('!', 1f),
 						new ParametricValueModule('F', 1f),
-						new ParametricValueModule('!', 0.1f),
-						new ParametricValueModule('F', 1f)),
+						new ParametricValueModule('!', 0.01f)),
 				List.of(),
 				List.of(new ProductionBuilder(
 						List.of(new ParametricParameterModule('F', List.of("w"))),
@@ -694,14 +687,12 @@ public class App {
 		billboardShaderProgram.setUniform("view", camera.getViewMatrix());
 		billboardShaderProgram.setUniform("viewPos", camera.getPosition());
 
-		// draw trees
-		for (int i = 0; i < NUMBER_TREES; i++) {
-			trees.get(i).render(textureProgram);
-		}
+//		// draw trees
+//		for (int i = 0; i < NUMBER_TREES; i++) {
+//			trees.get(i).render(textureProgram);
+//		}
 
-		for (Mesh groundTile : groundTiles) {
-			groundTile.render(textureShaderProgram);
-		}
+		quadtree.render(textureShaderProgram, camera.getViewMatrix().mulLocal(projection));
 
 		instancedTree.render(instanceProgram);
 
@@ -739,15 +730,19 @@ public class App {
 	private void pollKeys() {
 		if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
 			camera.move(Camera.MovementDirection.FORWARD, (float) deltaTime);
+			quadtree.setSeedPoint(camera.getPosition().x, camera.getPosition().z);
 		}
 		if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
 			camera.move(Camera.MovementDirection.LEFT, (float) deltaTime);
+			quadtree.setSeedPoint(camera.getPosition().x, camera.getPosition().z);
 		}
 		if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
 			camera.move(Camera.MovementDirection.BACKWARD, (float) deltaTime);
+			quadtree.setSeedPoint(camera.getPosition().x, camera.getPosition().z);
 		}
 		if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
 			camera.move(Camera.MovementDirection.RIGHT, (float) deltaTime);
+			quadtree.setSeedPoint(camera.getPosition().x, camera.getPosition().z);
 		}
 		if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
 			camera.move(Camera.MovementDirection.UP, (float) deltaTime);
