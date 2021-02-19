@@ -1,12 +1,7 @@
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.Random;
-import java.util.stream.Collectors;
 
-import static lsystems.modules.DefinedModules.LB;
-import static lsystems.modules.DefinedModules.RB;
 import static org.lwjgl.glfw.Callbacks.glfwFreeCallbacks;
 import static org.lwjgl.glfw.GLFW.GLFW_CONTEXT_VERSION_MAJOR;
 import static org.lwjgl.glfw.GLFW.GLFW_CONTEXT_VERSION_MINOR;
@@ -53,7 +48,6 @@ import static org.lwjgl.glfw.GLFW.glfwSwapInterval;
 import static org.lwjgl.glfw.GLFW.glfwTerminate;
 import static org.lwjgl.glfw.GLFW.glfwWindowHint;
 import static org.lwjgl.glfw.GLFW.glfwWindowShouldClose;
-import static org.lwjgl.opengl.GL11.GL_CLAMP;
 import static org.lwjgl.opengl.GL11.GL_COLOR_BUFFER_BIT;
 import static org.lwjgl.opengl.GL11.GL_DEPTH_BUFFER_BIT;
 import static org.lwjgl.opengl.GL11.GL_DEPTH_TEST;
@@ -76,20 +70,6 @@ import static org.lwjgl.opengl.GL30.GL_FRAMEBUFFER_SRGB;
 import static org.lwjgl.system.MemoryUtil.NULL;
 
 import generation.TerrainQuadtree;
-import generation.TurtleInterpreter;
-import lsystems.LSystem;
-import lsystems.ProductionBuilder;
-import lsystems.modules.CharModule;
-import lsystems.modules.Module;
-import lsystems.modules.ParametricExpressionModule;
-import lsystems.modules.ParametricParameterModule;
-import lsystems.modules.ParametricValueModule;
-import modeldata.InstancedMesh;
-import modeldata.InstancedModel;
-import modeldata.Mesh;
-import modeldata.meshdata.Texture;
-import modeldata.meshdata.Vertex;
-import modeldata.meshdata.VertexAttribute;
 import org.joml.Matrix4f;
 import org.joml.Vector2f;
 import org.joml.Vector3f;
@@ -99,28 +79,15 @@ import org.lwjgl.glfw.GLFWVidMode;
 import org.lwjgl.opengl.GL;
 import rendering.Camera;
 import rendering.ShaderProgram;
-import utils.MeshUtils;
+import sceneobjects.Textures;
 
 public class App {
 
-	public static final float TREE_SCALE = 0.01f;
-	public static final float LEAF_SCALE = 0.8f;
-	public static final float TWIG_SCALE = 0.05f;
-	public static final float GRASS_SCALE = 0.9f;
-	private static final float ROCK_SCALE = 0.6f;
+	public static final float GROUND_WIDTH = TerrainQuadtree.GROUND_WIDTH;
 	private static final int MAJOR_VERSION = 4;
 	private static final int MINOR_VERSION = 6;
-	private static final float GROUND_WIDTH = 200f;
 	private static final String VERTEX_SHADER_PATH = "/shader.vert";
 	private static final String FRAGMENT_SHADER_PATH = "/shader.frag";
-	public static final boolean RENDER_OBJECTS = true;
-	private static final int NUM_OF_INSTANCED_TREES = RENDER_OBJECTS ? (int) (GROUND_WIDTH * GROUND_WIDTH * 0.025) : 0;
-	private static final int NUM_OF_TWIG_TYPES = 10;
-	private static final int NUM_OF_INSTANCED_TWIGS = RENDER_OBJECTS ? (int) (GROUND_WIDTH * GROUND_WIDTH * 0.04) : 0;
-	private static final int NUM_OF_ROCK_TYPES = 10;
-	private static final int NUM_OF_INSTANCED_ROCKS = RENDER_OBJECTS ? (int) (GROUND_WIDTH * GROUND_WIDTH * 0.04) : 0;
-	private static final int NUM_OF_INSTANCED_GRASS = RENDER_OBJECTS ? (int) (GROUND_WIDTH * GROUND_WIDTH * 2.20) : 0;
-	private static final int NUM_OF_INSTANCED_LEAVES = RENDER_OBJECTS ? (int) (GROUND_WIDTH * GROUND_WIDTH * 1.50) : 0;
 	private static final int NUMBER_TREES = 4;
 	private static final List<Vector2f> treePositions = List.of(new Vector2f(-3, 18), new Vector2f(5, 3), new Vector2f(-2, -10), new Vector2f(20, -4));
 
@@ -141,11 +108,6 @@ public class App {
 
 	private TerrainQuadtree quadtree;
 	//	private List<Model> trees = new ArrayList<>();
-	private InstancedModel instancedTree;
-	private InstancedMesh instancedLeaf;
-	private InstancedModel grassBillboard;
-	private List<InstancedMesh> instancedTwigs = new ArrayList<>();
-	private List<InstancedMesh> instancedRocks = new ArrayList<>();
 
 	private double lastFrame = 0.0;
 	private double deltaTime = 0.0;
@@ -267,219 +229,15 @@ public class App {
 	private void initScene() {
 		glClearColor(.529f, .808f, .922f, 0f);
 
-		Texture floorTexture = new Texture(
-				ShaderProgram.RESOURCES_PATH + "/textures/floor2.png",
-				new Vector3f(0.34f, 0.17f, 0.07f),
-				2);
-
+		int QUADTREE_DEPTH = 3;
 		quadtree = new TerrainQuadtree(
 				new Vector2f(0, 0),
 				GROUND_WIDTH,
-				5,
-				(int) (GROUND_WIDTH / 2),
-				floorTexture
+				QUADTREE_DEPTH,
+				(int) (GROUND_WIDTH / 2 * Math.pow(2, (5 - QUADTREE_DEPTH))),
+				Textures.ground
 		);
 		quadtree.setSeedPoint(new Vector2f(camera.getPosition().x, camera.getPosition().z));
-
-
-		Vector3f up = new Vector3f(0f, 1f, 0f);
-		Vector3f out = new Vector3f(0f, 0f, 1f);
-		final int[] indices = {0, 1, 3, 1, 2, 3};
-		Mesh leaf = new Mesh(List.of(
-				new Vertex(new Vector3f(0f, 0f, -0.5f), up, out, new Vector2f(0, 0)),
-				new Vertex(new Vector3f(1f, 0f, -0.5f), up, out, new Vector2f(0, 1)),
-				new Vertex(new Vector3f(1f, 0f, 0.5f), up, out, new Vector2f(1, 1)),
-				new Vertex(new Vector3f(0f, 0f, 0.5f), up, out, new Vector2f(1, 0))
-		), indices, List.of(
-				VertexAttribute.POSITION,
-				VertexAttribute.NORMAL,
-				VertexAttribute.TANGENT,
-				VertexAttribute.TEXTURE)
-		);
-
-		Texture leafTexture = new Texture(
-				ShaderProgram.RESOURCES_PATH + "/textures/Leaf2_front_rotated.tga",
-				new Vector3f(0.1f, 0.3f, 0.1f),
-				0,
-				GL_CLAMP);
-
-		Texture normalLeafTexture = new Texture(
-				ShaderProgram.RESOURCES_PATH + "/textures/Leaf2_normals_front_rotated.tga",
-				new Vector3f(0.1f, 0.3f, 0.1f),
-				4,
-				GL_CLAMP);
-
-		Texture barkTexture = new Texture(
-				ShaderProgram.RESOURCES_PATH + "/textures/Bark_Pine_baseColor.jpg",
-				new Vector3f(0.34f, 0.17f, 0.07f),
-				1);
-
-		Texture normalBarkTexture = new Texture(
-				ShaderProgram.RESOURCES_PATH + "/textures/Bark_Pine_normal.jpg",
-				new Vector3f(0.34f, 0.17f, 0.07f),
-				3);
-
-		Texture grassTexture = new Texture(
-				ShaderProgram.RESOURCES_PATH + "/textures/grass.png",
-				new Vector3f(0.1f, 0.3f, 0.1f),
-				5,
-				GL_CLAMP);
-
-		Texture rockTexture = new Texture(
-				ShaderProgram.RESOURCES_PATH + "/textures/Mossy_rock_01_2K_Base_Color.png",
-				new Vector3f(0.3f, 0.3f, 0.3f),
-				6);
-
-		Texture rockNormalTexture = new Texture(
-				ShaderProgram.RESOURCES_PATH + "/textures/Mossy_rock_01_2K_Normal.png",
-				new Vector3f(0.3f, 0.3f, 0.3f),
-				7);
-
-
-		int numEdges = 6;
-
-////		Create trees
-//		for (int i = 0; i < NUMBER_TREES; i++) {
-//			TurtleInterpreter turtleInterpreter = new TurtleInterpreter(numEdges);
-//			turtleInterpreter.setSubModels(List.of(MeshUtils.transform(leaf, new Matrix4f().scale(LEAF_SCALE / TREE_SCALE))));
-//			turtleInterpreter.setIgnored(List.of('A'));
-//			List<Module> instructions = treeSystem().performDerivations(new Random().nextInt(2) + 7);
-//			turtleInterpreter.interpretInstructions(instructions
-//					.stream()
-//					.map(m -> m.getName() == 'A' ? new ParametricValueModule('~', 0f) : m)
-//					.collect(Collectors.toList()));
-//			Mesh branches = turtleInterpreter.getMesh();
-//			Mesh leaves = turtleInterpreter.getCombinedSubModelMeshes().get(0);
-//
-//			Vector2f pos = treePositions.get(i);
-//
-//			branches.setModel((new Matrix4f())
-//					.identity()
-//					.translate(new Vector3f(pos.x, 0, pos.y))
-//					.scale(TREE_SCALE));
-//			branches.addTexture("diffuseTexture", barkTexture);
-//			branches.addTexture("normalTexture", normalBarkTexture);
-//
-//			leaves.setModel((new Matrix4f())
-//					.identity()
-//					.translate(new Vector3f(pos.x, 0, pos.y))
-//					.scale(TREE_SCALE));
-//			leaves.addTexture("diffuseTexture", leafTexture);
-//			leaves.addTexture("normalTexture", normalLeafTexture);
-//
-//			trees.add(new Model(List.of(branches, leaves)));
-//		}
-
-		// Instanced tree
-		TurtleInterpreter turtleInterpreter = new TurtleInterpreter(numEdges);
-		turtleInterpreter.setSubModels(List.of(MeshUtils.transform(leaf, new Matrix4f().scale(LEAF_SCALE / TREE_SCALE))));
-		turtleInterpreter.setIgnored(List.of('A'));
-		List<Module> instructions = treeSystem().performDerivations(new Random().nextInt(2) + 7);
-		turtleInterpreter.interpretInstructions(instructions
-				.stream()
-				.map(m -> m.getName() == 'A' ? new ParametricValueModule('~', 0f) : m)
-				.collect(Collectors.toList()));
-		InstancedMesh instanceBranches = new InstancedMesh(turtleInterpreter.getMesh(), NUM_OF_INSTANCED_TREES);
-		instanceBranches.addTexture("diffuseTexture", barkTexture);
-		instanceBranches.addTexture("normalTexture", normalBarkTexture);
-		InstancedMesh instancedCanopies = new InstancedMesh(turtleInterpreter.getCombinedSubModelMeshes().get(0), NUM_OF_INSTANCED_TREES);
-		instancedCanopies.addTexture("diffuseTexture", leafTexture);
-		instancedCanopies.addTexture("normalTexture", normalLeafTexture);
-		instancedTree = new InstancedModel(List.of(instanceBranches, instancedCanopies), NUM_OF_INSTANCED_TREES);
-		instancedTree.generateModelMatrices(() -> {
-			Random r = new Random();
-			float x = (r.nextFloat() - 0.5f) * GROUND_WIDTH;
-			float z = (r.nextFloat() - 0.5f) * GROUND_WIDTH;
-			return new Matrix4f().identity()
-					.translate(x, quadtree.getHeight(x, z), z)
-					.scale(r.nextFloat() + 0.5f)
-					.scale(TREE_SCALE);
-		});
-
-		// Instanced leaves
-		instancedLeaf = new InstancedMesh(leaf, NUM_OF_INSTANCED_LEAVES);
-		instancedLeaf.addTexture("diffuseTexture", leafTexture);
-		instancedLeaf.addTexture("normalTexture", normalLeafTexture);
-		instancedLeaf.generateModelMatrices(() -> {
-			Random r = new Random();
-			float x = (r.nextFloat() - 0.5f) * GROUND_WIDTH;
-			float z = (r.nextFloat() - 0.5f) * GROUND_WIDTH;
-			return new Matrix4f().identity()
-					.translate(x, quadtree.getHeight(x, z), z)
-					.rotate(r.nextFloat() * (float) Math.PI * 2, new Vector3f(0, 1, 0))
-					.rotate(r.nextFloat() * (float) Math.PI / 10, new Vector3f(r.nextFloat(), 0, r.nextFloat()).normalize())
-					.scale(LEAF_SCALE);
-		});
-
-		// twigs
-		for (int i = 0; i < NUM_OF_TWIG_TYPES; i++) {
-			numEdges = 5;
-			TurtleInterpreter twigTurtleInterpreter = new TurtleInterpreter(numEdges);
-			twigTurtleInterpreter.setIgnored(List.of('A', 'B', 'C'));
-			instructions = twigSystem().performDerivations(new Random().nextInt(2) + 5);
-			twigTurtleInterpreter.interpretInstructions(instructions);
-			Mesh twig = MeshUtils.transform(twigTurtleInterpreter.getMesh(), new Matrix4f().rotate((float) Math.PI / 2, new Vector3f(1, 0, 0)));
-
-			InstancedMesh instancedTwig = new InstancedMesh(twig, NUM_OF_INSTANCED_TWIGS / NUM_OF_TWIG_TYPES);
-			instancedTwig.addTexture("diffuseTexture", barkTexture);
-			instancedTwig.addTexture("normalTexture", normalBarkTexture);
-			instancedTwig.generateModelMatrices(() -> {
-				Random r = new Random();
-				float x = (r.nextFloat() - 0.5f) * GROUND_WIDTH;
-				float z = (r.nextFloat() - 0.5f) * GROUND_WIDTH;
-				return new Matrix4f().identity()
-						.translate(x, quadtree.getHeight(x, z) + 0.2f, z)
-						.rotate(r.nextFloat() * (float) Math.PI * 2, new Vector3f(0, 1, 0))
-						.rotate(r.nextFloat() * (float) Math.PI / 10, new Vector3f(r.nextFloat(), 0, r.nextFloat()).normalize())
-						.scale(TWIG_SCALE * (r.nextFloat() + 0.5f));
-			});
-			instancedTwigs.add(instancedTwig);
-		}
-
-		// rocks
-		for (int i = 0; i < NUM_OF_ROCK_TYPES; i++) {
-			numEdges = 5;
-			TurtleInterpreter rockTurtleInterpreter = new TurtleInterpreter(numEdges);
-			rockTurtleInterpreter.setIgnored(List.of('A', 'B', 'C'));
-			instructions = prismSystem().performDerivations(new Random().nextInt(1));
-			rockTurtleInterpreter.interpretInstructions(instructions);
-			Mesh rock = MeshUtils.transform(rockTurtleInterpreter.getMesh(), new Matrix4f().rotate((float) Math.PI / 2, new Vector3f(1, 0, 0)));
-
-			InstancedMesh instancedRock = new InstancedMesh(rock, NUM_OF_INSTANCED_ROCKS / NUM_OF_ROCK_TYPES);
-			instancedRock.addTexture("diffuseTexture", rockTexture);
-			instancedRock.addTexture("normalTexture", rockNormalTexture);
-			instancedRock.generateModelMatrices(() -> {
-				Random r = new Random();
-				float x = (r.nextFloat() - 0.5f) * GROUND_WIDTH;
-				float z = (r.nextFloat() - 0.5f) * GROUND_WIDTH;
-				return new Matrix4f().identity()
-						.translate(x, quadtree.getHeight(x, z) + 0.2f, z)
-						.rotate(r.nextFloat() * (float) Math.PI * 2, new Vector3f(0, 1, 0))
-						.rotate(r.nextFloat() * (float) Math.PI / 10, new Vector3f(r.nextFloat(), 0, r.nextFloat()).normalize())
-						.scale(ROCK_SCALE * (r.nextFloat() + 0.5f));
-			});
-			instancedRocks.add(instancedRock);
-		}
-
-
-		// Instanced grass
-		Mesh grass = MeshUtils.transform(leaf, new Matrix4f().rotate((float) Math.PI / 2, out));
-		Mesh grassBoard = new Mesh(grass);
-		grassBoard.addTexture("diffuseTexture", grassTexture);
-		grassBillboard = new InstancedModel(
-				List.of(grassBoard, MeshUtils.transform(grassBoard, new Matrix4f().rotate((float) Math.PI / 2, up))),
-				NUM_OF_INSTANCED_GRASS);
-		grassBillboard.generateModelMatrices(() -> {
-			Random r = new Random();
-			float x = (r.nextFloat() - 0.5f) * GROUND_WIDTH;
-			float z = (r.nextFloat() - 0.5f) * GROUND_WIDTH;
-			float y = quadtree.getHeight(x, z) - r.nextFloat() * 0.6f - 0.3f;
-			return new Matrix4f().identity()
-					.translate(x, y, z)
-					.rotate(r.nextFloat() * (float) Math.PI * 2, new Vector3f(0, 1, 0))
-					.rotate(r.nextFloat() * (float) Math.PI / 10, new Vector3f(r.nextFloat(), 0, r.nextFloat()).normalize())
-					.scale(GRASS_SCALE);
-		});
 
 	}
 
@@ -498,169 +256,6 @@ public class App {
 		billboardShaderProgram.setUniform("lightPos", lightPos);
 		billboardShaderProgram.setUniform("lightColour", lightCol);
 	}
-
-	private LSystem treeSystem() {
-		float d1 = 1.6535f; //94.74f;
-		float d2 = 2.3148f; //132.63f;
-		float a = 0.1053f * (float) Math.PI; //18.95f;
-		float lr = 1.109f;
-		float vr = 1.832f; //1.732f
-		float e = 0.052f; //0.22f
-
-		CharModule A = new CharModule('A');
-		ParametricParameterModule ExIn = new ParametricParameterModule('!', List.of("w"));
-		Module ExOut = new ParametricExpressionModule('!', List.of("w"), vars -> List.of(vars.get("w") * vr));
-		ParametricParameterModule FIn = new ParametricParameterModule('F', List.of("l"));
-		Module FOut = new ParametricExpressionModule('F', List.of("l"), vars -> List.of(vars.get("l") * lr));
-
-		return new LSystem(
-				List.of(
-						new ParametricValueModule('T', List.of(0f, -1f, 0f, e)),
-						new ParametricValueModule('!', 1f),
-						new ParametricValueModule('F', 200f),
-//						new ParametricValueModule('/', (float) Math.PI / 4),
-						A
-				),
-				List.of(),
-				List.of(
-						new ProductionBuilder(List.of(A), List.of(
-								new ParametricValueModule('!', vr),
-								new ParametricValueModule('F', 50f),
-								LB,
-								new ParametricValueModule('&', a),
-								new ParametricValueModule('F', 50f),
-								A,
-								RB,
-								new ParametricValueModule('/', d1),
-								LB,
-								new ParametricValueModule('&', a),
-								new ParametricValueModule('F', 50f),
-								A,
-								RB,
-								new ParametricValueModule('/', d2),
-								new ParametricValueModule('&', a),
-								new ParametricValueModule('F', 50f),
-								A
-						)).withProbability(0.7f).build(),
-						new ProductionBuilder(List.of(A), List.of(
-								new ParametricValueModule('!', vr),
-								new ParametricValueModule('F', 50f),
-								LB,
-								new ParametricValueModule('&', a),
-								new ParametricValueModule('F', 50f),
-								A,
-								RB,
-								new ParametricValueModule('/', (float) Math.PI),
-								new ParametricValueModule('&', a),
-								new ParametricValueModule('F', 50f),
-								A
-						)).withProbability(0.3f).build(),
-
-						new ProductionBuilder(List.of(FIn), List.of(FOut)).build(),
-						new ProductionBuilder(List.of(ExIn), List.of(ExOut)).build()
-				));
-	}
-
-	private LSystem twigSystem() {
-		float r1 = 0.9f;
-		float r2 = 0.6f;
-		float a0 = (float) Math.PI / 8;
-		float a2 = (float) Math.PI / 8;
-		float d = 2.3998277f;
-		float wr = 0.707f;
-
-		CharModule D = new CharModule('$');
-		Module AOut = new ParametricExpressionModule('A', List.of("l", "w"), vars -> List.of(vars.get("l") * r1, vars.get("w") * wr));
-		Module B1Out = new ParametricExpressionModule('B', List.of("l", "w"), vars -> List.of(vars.get("l") * r1, vars.get("w") * wr));
-		Module B2Out = new ParametricExpressionModule('B', List.of("l", "w"), vars -> List.of(vars.get("l") * r2, vars.get("w") * wr));
-		Module C1Out = new ParametricExpressionModule('C', List.of("l", "w"), vars -> List.of(vars.get("l") * r1, vars.get("w") * wr));
-		Module C2Out = new ParametricExpressionModule('C', List.of("l", "w"), vars -> List.of(vars.get("l") * r2, vars.get("w") * wr));
-		Module ExOut = new ParametricExpressionModule('!', List.of("l", "w"), vars -> List.of(vars.get("w")));
-		Module FOut = new ParametricExpressionModule('F', List.of("l", "w"), vars -> List.of(vars.get("l")));
-
-		return new LSystem(
-				List.of(
-						new ParametricValueModule('!', 2f),
-						new ParametricValueModule('A', List.of(10f, 1f))
-				),
-				List.of(),
-				List.of(
-						new ProductionBuilder(
-								List.of(new ParametricParameterModule('A', List.of("l", "w"))),
-								List.of(
-										ExOut,
-										FOut,
-										LB,
-										new ParametricValueModule('&', a0),
-										B2Out,
-										RB,
-										new ParametricValueModule('/', d),
-										AOut
-								)).withProbability(0.4f).build(),
-						new ProductionBuilder(
-								List.of(new ParametricParameterModule('A', List.of("l", "w"))),
-								List.of(
-										ExOut,
-										FOut,
-										AOut
-								)).withProbability(0.6f).build(),
-						new ProductionBuilder(
-								List.of(new ParametricParameterModule('B', List.of("l", "w"))),
-								List.of(
-										ExOut,
-										FOut,
-										LB,
-										new ParametricValueModule('+', -a2),
-										D,
-										AOut,
-										RB
-								)).withProbability(0.3f).build(),
-						new ProductionBuilder(
-								List.of(new ParametricParameterModule('B', List.of("l", "w"))),
-								List.of(
-										ExOut,
-										FOut
-								)).withProbability(0.3f).build(),
-						new ProductionBuilder(
-								List.of(new ParametricParameterModule('B', List.of("l", "w"))),
-								List.of(
-										ExOut,
-										FOut
-								)).withProbability(0.4f).build()
-				));
-	}
-
-	private LSystem pyramidSystem() {
-
-		return new LSystem(
-				List.of(new ParametricValueModule('!', 1f),
-						new ParametricValueModule('F', 1f),
-						new ParametricValueModule('!', 0.01f)),
-				List.of(),
-				List.of(new ProductionBuilder(
-						List.of(new ParametricParameterModule('F', List.of("w"))),
-						List.of(new ParametricExpressionModule('F', List.of("w"), vars -> List.of(vars.get("w"))),
-								new ParametricExpressionModule('F', List.of("w"), vars -> List.of(vars.get("w")))))
-						.build()
-				));
-	}
-
-	private LSystem prismSystem() {
-
-		return new LSystem(
-				List.of(new CharModule('*'),
-						new ParametricValueModule('!', 1f),
-						new ParametricValueModule('F', 1f),
-						new CharModule('*')),
-				List.of(),
-				List.of(new ProductionBuilder(
-						List.of(new ParametricParameterModule('F', List.of("w"))),
-						List.of(new ParametricExpressionModule('F', List.of("w"), vars -> List.of(vars.get("w"))),
-								new ParametricExpressionModule('F', List.of("w"), vars -> List.of(vars.get("w")))))
-						.build()
-				));
-	}
-
 
 	private void loop() {
 		while (!glfwWindowShouldClose(window)) {
@@ -687,33 +282,7 @@ public class App {
 		billboardShaderProgram.setUniform("view", camera.getViewMatrix());
 		billboardShaderProgram.setUniform("viewPos", camera.getPosition());
 
-//		// draw trees
-//		for (int i = 0; i < NUMBER_TREES; i++) {
-//			trees.get(i).render(textureProgram);
-//		}
-
-		quadtree.render(textureShaderProgram, camera.getViewMatrix().mulLocal(projection));
-
-		instancedTree.render(instanceProgram);
-
-		for (InstancedMesh twig : instancedTwigs) {
-			twig.render(instanceProgram);
-		}
-
-		for (InstancedMesh rock : instancedRocks) {
-			rock.render(instanceProgram);
-		}
-
-		grassBillboard.render(billboardShaderProgram);
-
-		// TODO replace with different shader uniform for texture colouring and add variation to leaves on model
-		Vector3f lightCol = new Vector3f(0.74f, 0.37f, 0.27f);
-		instanceProgram.setUniform("lightColour", lightCol);
-
-		instancedLeaf.render(instanceProgram);
-
-		lightCol = new Vector3f(sunStrength);
-		instanceProgram.setUniform("lightColour", lightCol);
+		quadtree.render(textureShaderProgram, instanceProgram, billboardShaderProgram, camera.getViewMatrix().mulLocal(projection));
 
 	}
 
