@@ -6,11 +6,10 @@ import java.util.Random;
 import java.util.stream.Collectors;
 import modeldata.Mesh;
 import modeldata.meshdata.Texture;
-import modeldata.meshdata.Vertex;
-import modeldata.meshdata.VertexAttribute;
 import org.joml.Matrix4f;
 import org.joml.Vector2f;
 import org.joml.Vector3f;
+import rendering.LevelOfDetail;
 import rendering.ShaderProgram;
 import sceneobjects.FallenLeaves;
 import sceneobjects.Grass;
@@ -22,43 +21,25 @@ public class TerrainQuadtree {
 
 	public static final float GROUND_WIDTH = 100f;
 	public static final boolean RENDER_OBJECTS = true;
-	// TODO swap this to be in terms of a world distance
 	public static final float DISTANCE_COEFF = 1.7f;
-	private static final int NUM_OF_INSTANCED_TREES = RENDER_OBJECTS ? (int) (GROUND_WIDTH * GROUND_WIDTH * 0.025) : 0;
+	private static final int NUM_OF_INSTANCED_TREES = (int) (GROUND_WIDTH * GROUND_WIDTH * 0.025);
 	private static final int NUM_OF_TWIG_TYPES = 10;
-	private static final int NUM_OF_INSTANCED_TWIGS = RENDER_OBJECTS ? (int) (GROUND_WIDTH * GROUND_WIDTH * 0.04) : 0;
+	private static final int NUM_OF_INSTANCED_TWIGS = (int) (GROUND_WIDTH * GROUND_WIDTH * 0.04);
 	private static final int NUM_OF_ROCK_TYPES = 10;
-	private static final int NUM_OF_INSTANCED_ROCKS = RENDER_OBJECTS ? (int) (GROUND_WIDTH * GROUND_WIDTH * 0.04) : 0;
-	private static final int NUM_OF_INSTANCED_GRASS = RENDER_OBJECTS ? (int) (GROUND_WIDTH * GROUND_WIDTH * 2.20) : 0;
-	private static final int NUM_OF_INSTANCED_LEAVES = RENDER_OBJECTS ? (int) (GROUND_WIDTH * GROUND_WIDTH * 1.50) : 0;
+	private static final int NUM_OF_INSTANCED_ROCKS = (int) (GROUND_WIDTH * GROUND_WIDTH * 0.04);
+	private static final int NUM_OF_INSTANCED_GRASS = (int) (GROUND_WIDTH * GROUND_WIDTH * 2.20);
+	private static final int NUM_OF_INSTANCED_LEAVES = (int) (GROUND_WIDTH * GROUND_WIDTH * 1.50);
 
-	private Quad quad;
-	private int maxDepth;
-	private int verticesPerTile;
-	private int numberOfTilesAcross;
-	private int numberOfMaxDepthTiles;
-	private float textureWidth;
+	private final Quad quad;
+	private final int maxDepth;
+	private final int verticesPerTile;
+	private final int numberOfTilesAcross;
+	private final int numberOfMaxDepthTiles;
+	private final float textureWidth;
+	private final TerrainGenerator terrainGenerator = new TerrainGenerator();
+	private final Texture texture;
 	private Vector2f seedPoint = new Vector2f(0, 0);
-	private TerrainGenerator terrainGenerator = new TerrainGenerator();
-	private Texture texture;
-
-	private Vector3f up = new Vector3f(0f, 1f, 0f);
-	private Vector3f out = new Vector3f(0f, 0f, 1f);
-	private Mesh leaf = new Mesh(
-			List.of(
-					new Vertex(new Vector3f(0f, 0f, -0.5f), up, out, new Vector2f(0, 0)),
-					new Vertex(new Vector3f(1f, 0f, -0.5f), up, out, new Vector2f(0, 1)),
-					new Vertex(new Vector3f(1f, 0f, 0.5f), up, out, new Vector2f(1, 1)),
-					new Vertex(new Vector3f(0f, 0f, 0.5f), up, out, new Vector2f(1, 0))
-			),
-			new int[] {0, 1, 3, 1, 2, 3},
-			List.of(
-					VertexAttribute.POSITION,
-					VertexAttribute.NORMAL,
-					VertexAttribute.TANGENT,
-					VertexAttribute.TEXTURE)
-	);
-
+	private int nodeCount = 0;
 
 	public TerrainQuadtree(Vector2f centre, float width, int maxDepth, int verticesPerTile, Texture texture) {
 		this.maxDepth = maxDepth;
@@ -77,11 +58,6 @@ public class TerrainQuadtree {
 
 	public void setSeedPoint(Vector2f seedPoint) {
 		this.seedPoint = seedPoint;
-//		this.quad.updateChildren();
-	}
-
-	public List<Mesh> getGroundTiles(Matrix4f MVP) {
-		return quad.getGroundTiles(MVP);
 	}
 
 	public float getHeight(float x, float z) {
@@ -89,14 +65,17 @@ public class TerrainQuadtree {
 	}
 
 	public void render(ShaderProgram textureProgram, ShaderProgram instanceProgram, ShaderProgram billboardProgram, Matrix4f MVP) {
-		quad.render(textureProgram, instanceProgram, billboardProgram, MVP);
+		List<Quad> tiles = quad.getVisibleQuads(MVP);
+		for (Quad tile : tiles) {
+			tile.render(textureProgram, instanceProgram, billboardProgram);
+		}
 	}
 
 	private class Quad {
-		private Vector2f centre;
-		private float width;
-		private int depth;
-		private Mesh mesh;
+		private final Vector2f centre;
+		private final float width;
+		private final int depth;
+		private final Mesh mesh;
 		private List<Quad> children = null;
 		private SceneObjects sceneObjects = null;
 
@@ -142,44 +121,53 @@ public class TerrainQuadtree {
 				for (Quad child : children) {
 					child.updateChildren();
 				}
+				if (depth == 2) {
+					nodeCount += 1;
+					System.out.printf("%.2f%% nodes generated %n", nodeCount / Math.pow(4, depth) * 100);
+				}
 			} else {
 				sceneObjects = new SceneObjects();
 				children = null;
 			}
 		}
 
-		// TODO filter quads not meshes and then get scene objects (for rendering) from (already fetched) ground tiles list to avoid filtering twice
-		//		once this has been done, you'll have a list of quads to render each with an associated depth (LOD) so you can render at a given LOD
-		private List<Mesh> getGroundTiles(Matrix4f MVP) {
+		private List<Quad> getVisibleQuads(Matrix4f MVP) {
 
-			if (centre.distance(seedPoint) > DISTANCE_COEFF * width || this.children == null) {
+			if (Math.abs(centre.x - seedPoint.x) > DISTANCE_COEFF * width ||
+					Math.abs(centre.y - seedPoint.y) > DISTANCE_COEFF * width ||
+					this.children == null) {
 				if (isOutsideView(MVP)) {
 					return List.of();
 				}
-				return List.of(mesh);
+				return List.of(this);
 			}
-			return children.stream().flatMap(q -> q.getGroundTiles(MVP).stream()).collect(Collectors.toList());
+			return children.stream().flatMap(q -> q.getVisibleQuads(MVP).stream()).collect(Collectors.toList());
 		}
 
-		private List<SceneObjects> getSceneObjects(Matrix4f MVP) {
+		private List<SceneObjects> getSceneObjects() {
 
 			if (children == null) {
-				if (isOutsideView(MVP)) {
-					return List.of();
-				}
 				return List.of(sceneObjects);
 			}
-			return children.stream().flatMap(q -> q.getSceneObjects(MVP).stream()).collect(Collectors.toList());
+			return children.stream().flatMap(q -> q.getSceneObjects().stream()).collect(Collectors.toList());
 		}
 
 
-		public void render(ShaderProgram textureProgram, ShaderProgram instanceProgram, ShaderProgram billboardProgram, Matrix4f MVP) {
-			for (Mesh groundTile : getGroundTiles(MVP)) {
-				groundTile.render(textureProgram);
+		public void render(ShaderProgram textureProgram, ShaderProgram instanceProgram, ShaderProgram billboardProgram) {
+
+			mesh.render(textureProgram);
+
+			LevelOfDetail levelOfDetail;
+			if (depth > (maxDepth + 1) / 2) {
+				levelOfDetail = LevelOfDetail.HIGH;
+			} else {
+				levelOfDetail = LevelOfDetail.LOW;
 			}
 
-			for (SceneObjects objects : getSceneObjects(MVP)) {
-				objects.render(instanceProgram, billboardProgram);
+			if (RENDER_OBJECTS) {
+				for (SceneObjects objects : getSceneObjects()) {
+					objects.render(instanceProgram, billboardProgram, levelOfDetail);
+				}
 			}
 
 		}
@@ -207,12 +195,15 @@ public class TerrainQuadtree {
 				grass = new Grass(1, getNumber(NUM_OF_INSTANCED_GRASS), centre, width, TerrainQuadtree.this, false);
 			}
 
-			private void render(ShaderProgram instanceProgram, ShaderProgram billboardProgram) {
+			private void render(ShaderProgram instanceProgram, ShaderProgram billboardProgram, LevelOfDetail levelOfDetail) {
 
-				trees.render(instanceProgram);
+				trees.render(instanceProgram, levelOfDetail);
+
 				twigs.render(instanceProgram);
 				rocks.render(instanceProgram);
-				grass.render(billboardProgram);
+				// TODO fix grass alpha issue, render order needs to depend on view direction (depth from camera not a static position)
+				//		may also be affected by order in relation to terrain tiles
+				grass.render(billboardProgram, levelOfDetail);
 
 				// TODO replace with different shader uniform for texture colouring and add variation to leaves on model
 				Vector3f lightCol = new Vector3f(0.74f, 0.37f, 0.27f);

@@ -1,6 +1,7 @@
 package sceneobjects;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import generation.TerrainQuadtree;
 import modeldata.Mesh;
@@ -8,6 +9,7 @@ import modeldata.meshdata.Texture;
 import org.joml.Matrix4f;
 import org.joml.Vector2f;
 import org.joml.Vector3f;
+import rendering.LevelOfDetail;
 import utils.MeshUtils;
 
 public class Grass extends InstancedModelGroundObject {
@@ -30,15 +32,14 @@ public class Grass extends InstancedModelGroundObject {
 	}
 
 	@Override
-	List<Mesh> getMeshes() {
+	Map<LevelOfDetail, List<Mesh>> getMeshes() {
 		Mesh grass = MeshUtils.transform(Trees.leaf, new Matrix4f().rotate((float) Math.PI / 2, out));
-		Mesh grassBoard = new Mesh(grass);
-		grassBoard.addTexture("diffuseTexture", Textures.grass);
-		return List.of(grassBoard, MeshUtils.transform(grassBoard, new Matrix4f().rotate((float) Math.PI / 2, up)));
+		return Map.of(LevelOfDetail.LOW,
+				List.of(new Mesh(grass), MeshUtils.transform(grass, new Matrix4f().rotate((float) Math.PI / 2, up))));
 	}
 
 	@Override
-	List<Texture> getDiffuseTextures() {
-		return List.of(Textures.grass, Textures.grass);
+	Map<LevelOfDetail, List<Texture>> getDiffuseTextures() {
+		return Map.of(LevelOfDetail.LOW, List.of(Textures.grass, Textures.grass));
 	}
 }

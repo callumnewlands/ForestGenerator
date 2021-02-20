@@ -6,6 +6,8 @@ import modeldata.meshdata.Texture;
 import org.joml.Vector3f;
 import rendering.ShaderProgram;
 
+// TODO do shader programs similar to textures
+
 public final class Textures {
 
 	public static Texture leaf = new Texture(

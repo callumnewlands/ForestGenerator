@@ -1,5 +1,4 @@
 import java.io.IOException;
-import java.util.List;
 import java.util.Objects;
 
 import static org.lwjgl.glfw.Callbacks.glfwFreeCallbacks;
@@ -88,8 +87,6 @@ public class App {
 	private static final int MINOR_VERSION = 6;
 	private static final String VERTEX_SHADER_PATH = "/shader.vert";
 	private static final String FRAGMENT_SHADER_PATH = "/shader.frag";
-	private static final int NUMBER_TREES = 4;
-	private static final List<Vector2f> treePositions = List.of(new Vector2f(-3, 18), new Vector2f(5, 3), new Vector2f(-2, -10), new Vector2f(20, -4));
 
 	private float sunStrength = 0.9f;
 	private int WINDOW_WIDTH;
@@ -107,7 +104,6 @@ public class App {
 	private ShaderProgram billboardShaderProgram;
 
 	private TerrainQuadtree quadtree;
-	//	private List<Model> trees = new ArrayList<>();
 
 	private double lastFrame = 0.0;
 	private double deltaTime = 0.0;
@@ -229,12 +225,12 @@ public class App {
 	private void initScene() {
 		glClearColor(.529f, .808f, .922f, 0f);
 
-		int QUADTREE_DEPTH = 3;
+		int QUADTREE_DEPTH = 4;
 		quadtree = new TerrainQuadtree(
 				new Vector2f(0, 0),
 				GROUND_WIDTH,
 				QUADTREE_DEPTH,
-				(int) (GROUND_WIDTH / 2 * Math.pow(2, (5 - QUADTREE_DEPTH))),
+				(int) (GROUND_WIDTH / 2 * Math.pow(2, Math.max((5 - QUADTREE_DEPTH), 0))),
 				Textures.ground
 		);
 		quadtree.setSeedPoint(new Vector2f(camera.getPosition().x, camera.getPosition().z));

@@ -1,6 +1,7 @@
 package sceneobjects;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import java.util.stream.Collectors;
 
@@ -23,6 +24,7 @@ import modeldata.meshdata.VertexAttribute;
 import org.joml.Matrix4f;
 import org.joml.Vector2f;
 import org.joml.Vector3f;
+import rendering.LevelOfDetail;
 import utils.MeshUtils;
 
 public class Trees extends InstancedModelGroundObject {
@@ -61,7 +63,7 @@ public class Trees extends InstancedModelGroundObject {
 	}
 
 	@Override
-	List<Mesh> getMeshes() {
+	Map<LevelOfDetail, List<Mesh>> getMeshes() {
 		int numEdges = 6;
 		TurtleInterpreter turtleInterpreter = new TurtleInterpreter(numEdges);
 		turtleInterpreter.setSubModels(List.of(MeshUtils.transform(leaf, new Matrix4f().scale(LEAF_SCALE / TREE_SCALE))));
@@ -73,7 +75,17 @@ public class Trees extends InstancedModelGroundObject {
 				.collect(Collectors.toList()));
 		Mesh branches = turtleInterpreter.getMesh();
 		Mesh canopy = turtleInterpreter.getCombinedSubModelMeshes().get(0);
-		return List.of(branches, canopy);
+
+		Mesh board = MeshUtils.transform(Trees.leaf, new Matrix4f().rotate((float) Math.PI / 2, out).scale(10f / TREE_SCALE));
+		List<Mesh> billboard = List.of(
+				new Mesh(board),
+				MeshUtils.transform(board, new Matrix4f().rotate((float) Math.PI / 2, up)),
+				new Mesh(canopy)
+		);
+
+		return Map.of(
+				LevelOfDetail.HIGH, List.of(branches, canopy),
+				LevelOfDetail.LOW, billboard);
 	}
 
 	private LSystem treeSystem() {
@@ -139,12 +151,17 @@ public class Trees extends InstancedModelGroundObject {
 	}
 
 	@Override
-	List<Texture> getDiffuseTextures() {
-		return List.of(Textures.bark, Textures.leaf);
+	Map<LevelOfDetail, List<Texture>> getDiffuseTextures() {
+		return Map.of(
+				LevelOfDetail.HIGH, List.of(Textures.bark, Textures.leaf),
+				LevelOfDetail.LOW, List.of(Textures.bark, Textures.bark, Textures.leaf)
+		);
 	}
 
 	@Override
-	List<Texture> getNormalTextures() {
-		return List.of(Textures.barkNormal, Textures.leafNormal);
+	Map<LevelOfDetail, List<Texture>> getNormalTextures() {
+		return Map.of(
+				LevelOfDetail.HIGH, List.of(Textures.barkNormal, Textures.leafNormal),
+				LevelOfDetail.LOW, List.of(Textures.barkNormal, Textures.barkNormal, Textures.leafNormal));
 	}
 }

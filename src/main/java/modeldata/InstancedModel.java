@@ -8,7 +8,7 @@ import modeldata.meshdata.VertexBuffer;
 import org.joml.Matrix4f;
 
 public class InstancedModel extends Model {
-	private int numberOfInstances;
+	private final int numberOfInstances;
 
 	public InstancedModel(List<Mesh> meshes, int numberOfInstances) {
 		super(meshes);
