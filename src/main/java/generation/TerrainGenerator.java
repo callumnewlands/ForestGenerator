@@ -3,7 +3,7 @@ package generation;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.IntStream;
-import modeldata.Mesh;
+import modeldata.meshdata.Mesh;
 import modeldata.meshdata.Texture;
 import modeldata.meshdata.Vertex;
 import modeldata.meshdata.VertexAttribute;

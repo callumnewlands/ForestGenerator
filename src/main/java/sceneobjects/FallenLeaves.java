@@ -1,14 +1,18 @@
 package sceneobjects;
 
+import java.util.List;
+import java.util.Map;
+
 import static sceneobjects.Trees.LEAF_SCALE;
 
 import generation.TerrainQuadtree;
-import modeldata.Mesh;
+import modeldata.meshdata.Mesh;
 import modeldata.meshdata.Texture;
 import org.joml.Vector2f;
+import rendering.LevelOfDetail;
 import rendering.Textures;
 
-public class FallenLeaves extends InstancedMeshGroundObject {
+public class FallenLeaves extends InstancedGroundObject {
 
 	public FallenLeaves(int numberOfTypes, int numberOfInstances, Vector2f regionCentre, float regionWidth, TerrainQuadtree quadtree, boolean yRotationOnly) {
 		super(numberOfTypes, numberOfInstances, regionCentre, regionWidth, quadtree, yRotationOnly);
@@ -25,17 +29,18 @@ public class FallenLeaves extends InstancedMeshGroundObject {
 	}
 
 	@Override
-	Mesh getMesh() {
-		return Trees.leaf;
+	Map<LevelOfDetail, List<Mesh>> getMeshes() {
+		return Map.of(LevelOfDetail.LOW, List.of(Trees.leaf));
 	}
 
 	@Override
-	Texture getDiffuseTexture() {
-		return Textures.leaf;
+	Map<LevelOfDetail, List<Texture>> getDiffuseTextures() {
+		return Map.of(LevelOfDetail.LOW, List.of(Textures.leaf));
 	}
 
 	@Override
-	Texture getNormalTexture() {
-		return Textures.leafNormal;
+	Map<LevelOfDetail, List<Texture>> getNormalTextures() {
+		return Map.of(LevelOfDetail.LOW, List.of(Textures.leafNormal));
 	}
+
 }

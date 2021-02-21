@@ -14,6 +14,7 @@ import static org.lwjgl.assimp.Assimp.aiProcess_GenSmoothNormals;
 import static org.lwjgl.assimp.Assimp.aiProcess_JoinIdenticalVertices;
 import static org.lwjgl.assimp.Assimp.aiProcess_Triangulate;
 
+import modeldata.meshdata.Mesh;
 import modeldata.meshdata.Texture;
 import modeldata.meshdata.Vertex;
 import modeldata.meshdata.VertexAttribute;
@@ -30,7 +31,7 @@ import rendering.ShaderProgram;
 
 public class LoadedModel implements Model {
 
-	private SingleModel model;
+	private final SingleModel model;
 
 	public LoadedModel(final String resourcePath) {
 		this(resourcePath,

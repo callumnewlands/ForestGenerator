@@ -17,7 +17,7 @@ import lsystems.modules.Module;
 import lsystems.modules.ParametricExpressionModule;
 import lsystems.modules.ParametricParameterModule;
 import lsystems.modules.ParametricValueModule;
-import modeldata.Mesh;
+import modeldata.meshdata.Mesh;
 import modeldata.meshdata.Texture;
 import modeldata.meshdata.Vertex;
 import modeldata.meshdata.VertexAttribute;
@@ -28,7 +28,7 @@ import rendering.LevelOfDetail;
 import rendering.Textures;
 import utils.MeshUtils;
 
-public class Trees extends InstancedModelGroundObject {
+public class Trees extends InstancedGroundObject {
 
 	public static final float TREE_SCALE = 0.01f;
 	public static final float LEAF_SCALE = 0.8f;

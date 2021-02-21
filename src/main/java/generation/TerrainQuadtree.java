@@ -10,7 +10,7 @@ import static rendering.ShaderPrograms.instancedTextureShaderProgram;
 import static rendering.ShaderPrograms.normalTextureShaderProgram;
 import static rendering.ShaderPrograms.textureShaderProgram;
 
-import modeldata.Mesh;
+import modeldata.meshdata.Mesh;
 import modeldata.meshdata.Texture;
 import org.joml.Matrix4f;
 import org.joml.Vector2f;
@@ -208,7 +208,7 @@ public class TerrainQuadtree {
 
 				trees.render(instanceProgram, levelOfDetail);
 
-				twigs.render(instanceProgram);
+				twigs.render(instanceProgram, levelOfDetail);
 				rocks.render(instancedTextureShaderProgram, levelOfDetail);
 				// TODO fix grass alpha issue, render order needs to depend on view direction (depth from camera not a static position)
 				//		may also be affected by order in relation to terrain tiles
@@ -217,7 +217,7 @@ public class TerrainQuadtree {
 				// TODO replace with different shader uniform for texture colouring and add variation to leaves on model
 				Vector3f lightCol = new Vector3f(0.74f, 0.37f, 0.27f);
 				instanceProgram.setUniform("lightColour", lightCol);
-				leaves.render(instanceProgram);
+				leaves.render(instanceProgram, levelOfDetail);
 				lightCol = new Vector3f(0.9f);
 				instanceProgram.setUniform("lightColour", lightCol);
 			}

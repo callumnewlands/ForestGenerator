@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import generation.TerrainQuadtree;
-import modeldata.Mesh;
+import modeldata.meshdata.Mesh;
 import modeldata.meshdata.Texture;
 import org.joml.Matrix4f;
 import org.joml.Vector2f;
@@ -13,7 +13,7 @@ import rendering.LevelOfDetail;
 import rendering.Textures;
 import utils.MeshUtils;
 
-public class Grass extends InstancedModelGroundObject {
+public class Grass extends InstancedGroundObject {
 
 	private final static Vector3f up = new Vector3f(0f, 1f, 0f);
 	private final static Vector3f out = new Vector3f(0f, 0f, 1f);

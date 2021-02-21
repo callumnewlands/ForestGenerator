@@ -4,15 +4,15 @@ import java.util.List;
 import java.util.Map;
 import generation.TerrainQuadtree;
 import modeldata.LoadedModel;
-import modeldata.Mesh;
 import modeldata.Model;
+import modeldata.meshdata.Mesh;
 import modeldata.meshdata.Texture;
 import org.joml.Vector2f;
 import rendering.LevelOfDetail;
 import rendering.ShaderProgram;
 import rendering.Textures;
 
-public class Rocks extends InstancedModelGroundObject {
+public class Rocks extends InstancedGroundObject {
 
 	private static Model rock = new LoadedModel(ShaderProgram.RESOURCES_PATH + "/Rock1.obj");
 
@@ -27,7 +27,7 @@ public class Rocks extends InstancedModelGroundObject {
 
 	@Override
 	float getHeightOffset() {
-		return 0.2f;
+		return -0.1f;
 	}
 
 	@Override

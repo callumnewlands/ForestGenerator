@@ -7,7 +7,7 @@ import java.util.Map;
 import java.util.Random;
 import generation.TerrainQuadtree;
 import modeldata.InstancedModel;
-import modeldata.Mesh;
+import modeldata.meshdata.Mesh;
 import modeldata.meshdata.Texture;
 import org.joml.Matrix4f;
 import org.joml.Vector2f;
@@ -15,12 +15,12 @@ import org.joml.Vector3f;
 import rendering.LevelOfDetail;
 import rendering.ShaderProgram;
 
-public abstract class InstancedModelGroundObject {
+public abstract class InstancedGroundObject {
 
 	private final Map<LevelOfDetail, List<InstancedModel>> models = new HashMap<>();
 
 	// TODO same model matrices for different LODs
-	public InstancedModelGroundObject(int numberOfTypes, int numberOfInstances, Vector2f regionCentre, float regionWidth, TerrainQuadtree quadtree, boolean yRotationOnly) {
+	public InstancedGroundObject(int numberOfTypes, int numberOfInstances, Vector2f regionCentre, float regionWidth, TerrainQuadtree quadtree, boolean yRotationOnly) {
 		for (int i = 0; i < numberOfTypes; i++) {
 			Map<LevelOfDetail, List<Mesh>> meshes = getMeshes();
 			Map<LevelOfDetail, List<Texture>> diffuseTextures = getDiffuseTextures();

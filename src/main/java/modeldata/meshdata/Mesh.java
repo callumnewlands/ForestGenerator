@@ -1,4 +1,4 @@
-package modeldata;
+package modeldata.meshdata;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -6,10 +6,6 @@ import java.util.List;
 import java.util.Map;
 import lombok.Getter;
 import lombok.Setter;
-import modeldata.meshdata.Texture;
-import modeldata.meshdata.Vertex;
-import modeldata.meshdata.VertexArray;
-import modeldata.meshdata.VertexAttribute;
 import org.apache.commons.lang3.ArrayUtils;
 import org.joml.Matrix4f;
 import org.joml.Vector2f;
@@ -26,29 +22,39 @@ public class Mesh {
 	private Matrix4f model = new Matrix4f().identity();
 	protected Map<String, Texture> textures = new HashMap<>();
 	protected VertexArray vertexArray;
+	private boolean isInstanced;
 
 	public Mesh(List<Vertex> vertices, int[] indices, List<VertexAttribute> vertexAttributes) {
+		this(vertices, indices, vertexAttributes, false);
+	}
+
+	public Mesh(List<Vertex> vertices, int[] indices, List<VertexAttribute> vertexAttributes, boolean isInstanced) {
 		this.vertices = vertices;
 		this.indices = indices;
 		this.vertexAttributes = vertexAttributes;
+		this.isInstanced = isInstanced;
 		this.vertexArray = createVAO();
 	}
 
 	public Mesh(Mesh mesh) {
-		this.vertices = mesh.vertices;
-		this.indices = mesh.indices;
-		this.vertexAttributes = mesh.vertexAttributes;
-		this.textures = mesh.textures;
-		this.model = mesh.model;
-		this.vertexArray = createVAO();
+		this(mesh, mesh.vertices);
+	}
+
+	public Mesh(Mesh mesh, boolean isInstanced) {
+		this(mesh, mesh.vertices, isInstanced);
 	}
 
 	public Mesh(Mesh mesh, List<Vertex> transformedVertices) {
+		this(mesh, transformedVertices, mesh.isInstanced);
+	}
+
+	public Mesh(Mesh mesh, List<Vertex> transformedVertices, boolean isInstanced) {
 		this.vertices = transformedVertices;
 		this.indices = mesh.indices.clone();
 		this.vertexAttributes = new ArrayList<>(mesh.vertexAttributes);
 		this.textures = new HashMap<>(mesh.textures);
 		this.model = new Matrix4f(mesh.model);
+		this.isInstanced = isInstanced;
 		this.vertexArray = createVAO();
 	}
 
@@ -87,9 +93,9 @@ public class Mesh {
 
 	}
 
-	public void render(ShaderProgram shaderProgram) {
+	private void bindForRender(ShaderProgram shaderProgram) {
 		shaderProgram.use();
-		if (!(this instanceof InstancedMesh)) {
+		if (!isInstanced) {
 			shaderProgram.setUniform("model", model);
 		}
 		for (Map.Entry<String, Texture> texture : textures.entrySet()) {
@@ -99,15 +105,40 @@ public class Mesh {
 			shaderProgram.setUniform(texture.getKey(), texture.getValue().getUnitID());
 			texture.getValue().bind();
 		}
-		draw();
+	}
+
+	private void unbindFromRender() {
 		for (Texture texture : textures.values()) {
 			texture.unbind();
 		}
 	}
 
-	protected void draw() {
-		vertexArray.draw();
+	public void render(ShaderProgram shaderProgram) {
+		bindForRender(shaderProgram);
+		draw();
+		unbindFromRender();
+	}
 
+	public void render(ShaderProgram shaderProgram, int numberOfInstances) {
+		bindForRender(shaderProgram);
+		draw(numberOfInstances);
+		unbindFromRender();
+	}
+
+	protected void draw() {
+		if (isInstanced) {
+			vertexArray.draw(1);
+		} else {
+			vertexArray.draw();
+		}
+	}
+
+	protected void draw(int numberOfInstances) {
+		if (isInstanced) {
+			vertexArray.draw(numberOfInstances);
+		} else {
+			throw new RuntimeException("Attempting to draw single mesh as instanced mesh");
+		}
 	}
 
 }

@@ -13,7 +13,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lsystems.modules.Module;
 import lsystems.modules.ParametricValueModule;
-import modeldata.Mesh;
+import modeldata.meshdata.Mesh;
 import modeldata.meshdata.Vertex;
 import modeldata.meshdata.VertexAttribute;
 import org.apache.commons.lang3.ArrayUtils;

@@ -1,6 +1,7 @@
 package sceneobjects;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 
 import static lsystems.modules.DefinedModules.LB;
@@ -15,15 +16,16 @@ import lsystems.modules.Module;
 import lsystems.modules.ParametricExpressionModule;
 import lsystems.modules.ParametricParameterModule;
 import lsystems.modules.ParametricValueModule;
-import modeldata.Mesh;
+import modeldata.meshdata.Mesh;
 import modeldata.meshdata.Texture;
 import org.joml.Matrix4f;
 import org.joml.Vector2f;
 import org.joml.Vector3f;
+import rendering.LevelOfDetail;
 import rendering.Textures;
 import utils.MeshUtils;
 
-public class Twigs extends InstancedMeshGroundObject {
+public class Twigs extends InstancedGroundObject {
 
 	public Twigs(int numberOfTypes, int numberOfInstances, Vector2f regionCentre, float regionWidth, TerrainQuadtree quadtree, boolean yRotationOnly) {
 		super(numberOfTypes, numberOfInstances, regionCentre, regionWidth, quadtree, yRotationOnly);
@@ -40,13 +42,24 @@ public class Twigs extends InstancedMeshGroundObject {
 	}
 
 	@Override
-	Mesh getMesh() {
+	Map<LevelOfDetail, List<Mesh>> getMeshes() {
 		int numEdges = 5;
 		TurtleInterpreter twigTurtleInterpreter = new TurtleInterpreter(numEdges);
 		twigTurtleInterpreter.setIgnored(List.of('A', 'B', 'C'));
 		List<Module> instructions = twigSystem().performDerivations(new Random().nextInt(2) + 5);
 		twigTurtleInterpreter.interpretInstructions(instructions);
-		return MeshUtils.transform(twigTurtleInterpreter.getMesh(), new Matrix4f().rotate((float) Math.PI / 2, new Vector3f(1, 0, 0)));
+		Mesh twig = MeshUtils.transform(twigTurtleInterpreter.getMesh(), new Matrix4f().rotate((float) Math.PI / 2, new Vector3f(1, 0, 0)));
+		return Map.of(LevelOfDetail.HIGH, List.of(twig));
+	}
+
+	@Override
+	Map<LevelOfDetail, List<Texture>> getDiffuseTextures() {
+		return Map.of(LevelOfDetail.HIGH, List.of(Textures.bark));
+	}
+
+	@Override
+	Map<LevelOfDetail, List<Texture>> getNormalTextures() {
+		return Map.of(LevelOfDetail.HIGH, List.of(Textures.barkNormal));
 	}
 
 	private LSystem twigSystem() {
@@ -118,13 +131,4 @@ public class Twigs extends InstancedMeshGroundObject {
 				));
 	}
 
-	@Override
-	Texture getDiffuseTexture() {
-		return Textures.bark;
-	}
-
-	@Override
-	Texture getNormalTexture() {
-		return Textures.barkNormal;
-	}
 }
