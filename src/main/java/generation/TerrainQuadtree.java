@@ -4,6 +4,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.util.stream.Collectors;
+
+import static rendering.ShaderPrograms.instancedNormalTextureShaderProgram;
+import static rendering.ShaderPrograms.instancedTextureShaderProgram;
+import static rendering.ShaderPrograms.normalTextureShaderProgram;
+import static rendering.ShaderPrograms.textureShaderProgram;
+
 import modeldata.Mesh;
 import modeldata.meshdata.Texture;
 import org.joml.Matrix4f;
@@ -11,6 +17,7 @@ import org.joml.Vector2f;
 import org.joml.Vector3f;
 import rendering.LevelOfDetail;
 import rendering.ShaderProgram;
+import rendering.ShaderPrograms;
 import sceneobjects.FallenLeaves;
 import sceneobjects.Grass;
 import sceneobjects.Rocks;
@@ -25,10 +32,9 @@ public class TerrainQuadtree {
 	private static final int NUM_OF_INSTANCED_TREES = (int) (GROUND_WIDTH * GROUND_WIDTH * 0.025);
 	private static final int NUM_OF_TWIG_TYPES = 10;
 	private static final int NUM_OF_INSTANCED_TWIGS = (int) (GROUND_WIDTH * GROUND_WIDTH * 0.04);
-	private static final int NUM_OF_ROCK_TYPES = 10;
-	private static final int NUM_OF_INSTANCED_ROCKS = (int) (GROUND_WIDTH * GROUND_WIDTH * 0.04);
-	private static final int NUM_OF_INSTANCED_GRASS = (int) (GROUND_WIDTH * GROUND_WIDTH * 2.20);
-	private static final int NUM_OF_INSTANCED_LEAVES = (int) (GROUND_WIDTH * GROUND_WIDTH * 1.50);
+	private static final int NUM_OF_INSTANCED_ROCKS = (int) (GROUND_WIDTH * GROUND_WIDTH * 0.01);
+	private static final int NUM_OF_INSTANCED_GRASS = (int) (GROUND_WIDTH * GROUND_WIDTH * 2.30);
+	private static final int NUM_OF_INSTANCED_LEAVES = (int) (GROUND_WIDTH * GROUND_WIDTH * 1.30);
 
 	private final Quad quad;
 	private final int maxDepth;
@@ -64,10 +70,10 @@ public class TerrainQuadtree {
 		return terrainGenerator.getHeight(x, z);
 	}
 
-	public void render(ShaderProgram textureProgram, ShaderProgram instanceProgram, ShaderProgram billboardProgram, Matrix4f MVP) {
+	public void render(Boolean useNormalMapping, Matrix4f MVP) {
 		List<Quad> tiles = quad.getVisibleQuads(MVP);
 		for (Quad tile : tiles) {
-			tile.render(textureProgram, instanceProgram, billboardProgram);
+			tile.render(useNormalMapping);
 		}
 	}
 
@@ -153,9 +159,9 @@ public class TerrainQuadtree {
 		}
 
 
-		public void render(ShaderProgram textureProgram, ShaderProgram instanceProgram, ShaderProgram billboardProgram) {
+		public void render(Boolean useNormalMapping) {
 
-			mesh.render(textureProgram);
+			mesh.render(ShaderPrograms.textureShaderProgram);
 
 			LevelOfDetail levelOfDetail;
 			if (depth > (maxDepth + 1) / 2) {
@@ -166,7 +172,7 @@ public class TerrainQuadtree {
 
 			if (RENDER_OBJECTS) {
 				for (SceneObjects objects : getSceneObjects()) {
-					objects.render(instanceProgram, billboardProgram, levelOfDetail);
+					objects.render(useNormalMapping, levelOfDetail);
 				}
 			}
 
@@ -191,19 +197,22 @@ public class TerrainQuadtree {
 				trees = new Trees(1, getNumber(NUM_OF_INSTANCED_TREES), centre, width, TerrainQuadtree.this, true);
 				leaves = new FallenLeaves(1, getNumber(NUM_OF_INSTANCED_LEAVES), centre, width, TerrainQuadtree.this, false);
 				twigs = new Twigs(NUM_OF_TWIG_TYPES, getNumber(NUM_OF_INSTANCED_TWIGS), centre, width, TerrainQuadtree.this, false);
-				rocks = new Rocks(NUM_OF_ROCK_TYPES, getNumber(NUM_OF_INSTANCED_ROCKS), centre, width, TerrainQuadtree.this, false);
+				rocks = new Rocks(1, getNumber(NUM_OF_INSTANCED_ROCKS), centre, width, TerrainQuadtree.this, false);
 				grass = new Grass(1, getNumber(NUM_OF_INSTANCED_GRASS), centre, width, TerrainQuadtree.this, false);
 			}
 
-			private void render(ShaderProgram instanceProgram, ShaderProgram billboardProgram, LevelOfDetail levelOfDetail) {
+			private void render(Boolean useNormalMapping, LevelOfDetail levelOfDetail) {
+
+				ShaderProgram textureProgram = useNormalMapping ? normalTextureShaderProgram : textureShaderProgram;
+				ShaderProgram instanceProgram = useNormalMapping ? instancedNormalTextureShaderProgram : instancedTextureShaderProgram;
 
 				trees.render(instanceProgram, levelOfDetail);
 
 				twigs.render(instanceProgram);
-				rocks.render(instanceProgram);
+				rocks.render(instancedTextureShaderProgram, levelOfDetail);
 				// TODO fix grass alpha issue, render order needs to depend on view direction (depth from camera not a static position)
 				//		may also be affected by order in relation to terrain tiles
-				grass.render(billboardProgram, levelOfDetail);
+				grass.render(ShaderPrograms.billboardShaderProgram, levelOfDetail);
 
 				// TODO replace with different shader uniform for texture colouring and add variation to leaves on model
 				Vector3f lightCol = new Vector3f(0.74f, 0.37f, 0.27f);

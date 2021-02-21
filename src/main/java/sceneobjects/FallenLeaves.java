@@ -6,6 +6,7 @@ import generation.TerrainQuadtree;
 import modeldata.Mesh;
 import modeldata.meshdata.Texture;
 import org.joml.Vector2f;
+import rendering.Textures;
 
 public class FallenLeaves extends InstancedMeshGroundObject {
 

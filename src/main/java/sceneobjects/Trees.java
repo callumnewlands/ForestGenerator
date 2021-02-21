@@ -25,6 +25,7 @@ import org.joml.Matrix4f;
 import org.joml.Vector2f;
 import org.joml.Vector3f;
 import rendering.LevelOfDetail;
+import rendering.Textures;
 import utils.MeshUtils;
 
 public class Trees extends InstancedModelGroundObject {

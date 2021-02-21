@@ -7,7 +7,7 @@ import modeldata.meshdata.VertexAttribute;
 import modeldata.meshdata.VertexBuffer;
 import org.joml.Matrix4f;
 
-public class InstancedModel extends Model {
+public class InstancedModel extends SingleModel {
 	private final int numberOfInstances;
 
 	public InstancedModel(List<Mesh> meshes, int numberOfInstances) {

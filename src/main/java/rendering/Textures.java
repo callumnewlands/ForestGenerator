@@ -1,12 +1,9 @@
-package sceneobjects;
+package rendering;
 
 import static org.lwjgl.opengl.GL11.GL_CLAMP;
 
 import modeldata.meshdata.Texture;
 import org.joml.Vector3f;
-import rendering.ShaderProgram;
-
-// TODO do shader programs similar to textures
 
 public final class Textures {
 

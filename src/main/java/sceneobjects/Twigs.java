@@ -20,6 +20,7 @@ import modeldata.meshdata.Texture;
 import org.joml.Matrix4f;
 import org.joml.Vector2f;
 import org.joml.Vector3f;
+import rendering.Textures;
 import utils.MeshUtils;
 
 public class Twigs extends InstancedMeshGroundObject {

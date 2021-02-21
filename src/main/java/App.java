@@ -67,6 +67,7 @@ import static org.lwjgl.opengl.GL11C.glPolygonMode;
 import static org.lwjgl.opengl.GL13C.GL_MULTISAMPLE;
 import static org.lwjgl.opengl.GL30.GL_FRAMEBUFFER_SRGB;
 import static org.lwjgl.system.MemoryUtil.NULL;
+import static rendering.ShaderPrograms.billboardShaderProgram;
 
 import generation.TerrainQuadtree;
 import org.joml.Matrix4f;
@@ -77,8 +78,8 @@ import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.glfw.GLFWVidMode;
 import org.lwjgl.opengl.GL;
 import rendering.Camera;
-import rendering.ShaderProgram;
-import sceneobjects.Textures;
+import rendering.ShaderPrograms;
+import rendering.Textures;
 
 public class App {
 
@@ -88,20 +89,13 @@ public class App {
 	private static final String VERTEX_SHADER_PATH = "/shader.vert";
 	private static final String FRAGMENT_SHADER_PATH = "/shader.frag";
 
-	private float sunStrength = 0.9f;
+	private float sunStrength = 1f;
 	private int WINDOW_WIDTH;
 	private int WINDOW_HEIGHT;
 
 	private long window;
 	private Camera camera;
 	private Boolean useNormalMapping = true;
-
-	private ShaderProgram shaderProgram;
-	private ShaderProgram textureShaderProgram;
-	private ShaderProgram normalTextureShaderProgram;
-	private ShaderProgram instancedTextureShaderProgram;
-	private ShaderProgram instancedNormalTextureShaderProgram;
-	private ShaderProgram billboardShaderProgram;
 
 	private TerrainQuadtree quadtree;
 
@@ -180,12 +174,6 @@ public class App {
 	}
 
 	private void initShaders() throws IOException {
-		shaderProgram = new ShaderProgram(VERTEX_SHADER_PATH, FRAGMENT_SHADER_PATH);
-		textureShaderProgram = new ShaderProgram("/textureShader.vert", "/textureShader.frag");
-		instancedTextureShaderProgram = new ShaderProgram("/instTextureShader.vert", "/textureShader.frag");
-		normalTextureShaderProgram = new ShaderProgram("/textureShader.vert", "/normTextureShader.frag");
-		instancedNormalTextureShaderProgram = new ShaderProgram("/instTextureShader.vert", "/normTextureShader.frag");
-		billboardShaderProgram = new ShaderProgram("/instTextureShader.vert", "/billboardTextureShader.frag");
 		final Vector3f cameraPosition = new Vector3f(0, 3.30f, 0);
 		final float cameraYaw = -90.0f;
 		final float cameraPitch = 0.0f;
@@ -212,20 +200,14 @@ public class App {
 		final float farPlane = 300.0f;
 		projection = new Matrix4f()
 				.perspective(perspectiveAngle, (float) WINDOW_WIDTH / WINDOW_HEIGHT, nearPlane, farPlane);
-		shaderProgram.setUniform("projection", projection);
-		textureShaderProgram.setUniform("projection", projection);
-		instancedTextureShaderProgram.setUniform("projection", projection);
-		normalTextureShaderProgram.setUniform("projection", projection);
-		instancedNormalTextureShaderProgram.setUniform("projection", projection);
-		billboardShaderProgram.setUniform("projection", projection);
-
+		ShaderPrograms.forAll(sp -> sp.setUniform("projection", projection));
 		initLighting();
 	}
 
 	private void initScene() {
 		glClearColor(.529f, .808f, .922f, 0f);
 
-		int QUADTREE_DEPTH = 4;
+		int QUADTREE_DEPTH = 3; //4
 		quadtree = new TerrainQuadtree(
 				new Vector2f(0, 0),
 				GROUND_WIDTH,
@@ -241,16 +223,8 @@ public class App {
 		Vector3f lightPos = new Vector3f(5f, 100f, -20f);
 		Vector3f lightCol = new Vector3f(sunStrength);
 
-		normalTextureShaderProgram.setUniform("lightPos", lightPos);
-		normalTextureShaderProgram.setUniform("lightColour", lightCol);
-		textureShaderProgram.setUniform("lightPos", lightPos);
-		textureShaderProgram.setUniform("lightColour", lightCol);
-		instancedTextureShaderProgram.setUniform("lightPos", lightPos);
-		instancedTextureShaderProgram.setUniform("lightColour", lightCol);
-		instancedNormalTextureShaderProgram.setUniform("lightPos", lightPos);
-		instancedNormalTextureShaderProgram.setUniform("lightColour", lightCol);
-		billboardShaderProgram.setUniform("lightPos", lightPos);
-		billboardShaderProgram.setUniform("lightColour", lightCol);
+		ShaderPrograms.forAll(sp -> sp.setUniform("lightPos", lightPos));
+		ShaderPrograms.forAll(sp -> sp.setUniform("lightColour", lightCol));
 	}
 
 	private void loop() {
@@ -269,16 +243,10 @@ public class App {
 	private void renderScene() {
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		ShaderProgram textureProgram = useNormalMapping ? normalTextureShaderProgram : textureShaderProgram;
-		ShaderProgram instanceProgram = useNormalMapping ? instancedNormalTextureShaderProgram : instancedTextureShaderProgram;
-
-		textureProgram.setUniform("view", camera.getViewMatrix());
-		instanceProgram.setUniform("view", camera.getViewMatrix());
-		textureShaderProgram.setUniform("view", camera.getViewMatrix());
-		billboardShaderProgram.setUniform("view", camera.getViewMatrix());
+		ShaderPrograms.forAll(sp -> sp.setUniform("view", camera.getViewMatrix()));
 		billboardShaderProgram.setUniform("viewPos", camera.getPosition());
 
-		quadtree.render(textureShaderProgram, instanceProgram, billboardShaderProgram, camera.getViewMatrix().mulLocal(projection));
+		quadtree.render(useNormalMapping, camera.getViewMatrix().mulLocal(projection));
 
 	}
 
