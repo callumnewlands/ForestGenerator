@@ -345,4 +345,12 @@ public class LoadedModel implements Model {
 	public List<Mesh> getMeshes() {
 		return model.getMeshes();
 	}
+
+	@Override
+	public void setIsInstanced(boolean value) {
+		for (Mesh mesh : model.getMeshes()) {
+			mesh.setInstanced(value);
+		}
+	}
 }
+

@@ -11,4 +11,6 @@ public interface Model {
 	void addTextures(String uniform, List<Texture> textures);
 
 	List<Mesh> getMeshes();
+
+	void setIsInstanced(boolean value);
 }

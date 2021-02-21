@@ -30,4 +30,11 @@ public class SingleModel implements Model {
 			meshes.get(i).addTexture(uniform, texture);
 		}
 	}
+
+	@Override
+	public void setIsInstanced(boolean value) {
+		for (Mesh mesh : meshes) {
+			mesh.setInstanced(value);
+		}
+	}
 }

@@ -2,7 +2,6 @@ package modeldata;
 
 import java.util.List;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 import modeldata.meshdata.Mesh;
 import modeldata.meshdata.VertexAttribute;
 import modeldata.meshdata.VertexBuffer;
@@ -19,9 +18,10 @@ public class InstancedModel extends SingleModel {
 	public InstancedModel(List<Mesh> meshes, int numberOfInstances) {
 		super(meshes);
 		this.numberOfInstances = numberOfInstances;
-		this.meshes = this.meshes.stream().map(m -> new Mesh(m, true)).collect(Collectors.toList());
+		this.setIsInstanced(true);
 	}
 
+	// Generates a model matrix for each instance of the model and assigns the same matrix to each mesh in the instance
 	public void generateModelMatrices(Supplier<Matrix4f> generator) {
 		float[] instancedModels = new float[numberOfInstances * 16];
 		for (int i = 0; i < numberOfInstances; i++) {

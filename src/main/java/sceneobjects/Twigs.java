@@ -38,7 +38,7 @@ public class Twigs extends InstancedGroundObject {
 
 	@Override
 	float getHeightOffset() {
-		return 0.2f;
+		return 0.1f;
 	}
 
 	@Override

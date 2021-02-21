@@ -77,7 +77,9 @@ public class Trees extends InstancedGroundObject {
 		Mesh branches = turtleInterpreter.getMesh();
 		Mesh canopy = turtleInterpreter.getCombinedSubModelMeshes().get(0);
 
-		Mesh board = MeshUtils.transform(Trees.leaf, new Matrix4f().rotate((float) Math.PI / 2, out).scale(10f / TREE_SCALE));
+		Mesh board = MeshUtils.transform(Trees.leaf, new Matrix4f()
+				.scale(1f, 10f / TREE_SCALE, 1f / TREE_SCALE)
+				.rotate((float) Math.PI / 2, out));
 		List<Mesh> billboard = List.of(
 				new Mesh(board),
 				MeshUtils.transform(board, new Matrix4f().rotate((float) Math.PI / 2, up)),

@@ -3,8 +3,6 @@ package rendering;
 import java.io.IOException;
 import java.util.function.Consumer;
 
-// TODO do shader programs similar to textures
-
 public final class ShaderPrograms {
 	public static ShaderProgram shaderProgram;
 	public static ShaderProgram textureShaderProgram;

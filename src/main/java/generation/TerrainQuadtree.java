@@ -210,8 +210,6 @@ public class TerrainQuadtree {
 
 				twigs.render(instanceProgram, levelOfDetail);
 				rocks.render(instancedTextureShaderProgram, levelOfDetail);
-				// TODO fix grass alpha issue, render order needs to depend on view direction (depth from camera not a static position)
-				//		may also be affected by order in relation to terrain tiles
 				grass.render(ShaderPrograms.billboardShaderProgram, levelOfDetail);
 
 				// TODO replace with different shader uniform for texture colouring and add variation to leaves on model
