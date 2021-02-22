@@ -5,7 +5,7 @@ import java.util.Map;
 import java.util.Random;
 import generation.TerrainQuadtree;
 import modeldata.meshdata.Mesh;
-import modeldata.meshdata.Texture;
+import modeldata.meshdata.Texture2D;
 import org.joml.Matrix4f;
 import org.joml.Vector2f;
 import org.joml.Vector3f;
@@ -40,7 +40,7 @@ public class Grass extends InstancedGroundObject {
 	}
 
 	@Override
-	Map<LevelOfDetail, List<Texture>> getDiffuseTextures() {
+	Map<LevelOfDetail, List<Texture2D>> getDiffuseTextures() {
 		return Map.of(LevelOfDetail.LOW, List.of(Textures.grass, Textures.grass));
 	}
 }

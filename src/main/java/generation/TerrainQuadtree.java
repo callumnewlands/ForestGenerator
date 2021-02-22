@@ -11,7 +11,7 @@ import static rendering.ShaderPrograms.normalTextureShaderProgram;
 import static rendering.ShaderPrograms.textureShaderProgram;
 
 import modeldata.meshdata.Mesh;
-import modeldata.meshdata.Texture;
+import modeldata.meshdata.Texture2D;
 import org.joml.Matrix4f;
 import org.joml.Vector2f;
 import org.joml.Vector3f;
@@ -43,11 +43,11 @@ public class TerrainQuadtree {
 	private final int numberOfMaxDepthTiles;
 	private final float textureWidth;
 	private final TerrainGenerator terrainGenerator = new TerrainGenerator();
-	private final Texture texture;
+	private final Texture2D texture;
 	private Vector2f seedPoint = new Vector2f(0, 0);
 	private int nodeCount = 0;
 
-	public TerrainQuadtree(Vector2f centre, float width, int maxDepth, int verticesPerTile, Texture texture) {
+	public TerrainQuadtree(Vector2f centre, float width, int maxDepth, int verticesPerTile, Texture2D texture) {
 		this.maxDepth = maxDepth;
 		this.verticesPerTile = verticesPerTile;
 		this.texture = texture;
@@ -85,7 +85,7 @@ public class TerrainQuadtree {
 		private List<Quad> children = null;
 		private SceneObjects sceneObjects = null;
 
-		Quad(Vector2f centre, float width, int depth, Texture texture) {
+		Quad(Vector2f centre, float width, int depth, Texture2D texture) {
 			this.centre = centre;
 			this.width = width;
 			this.depth = depth;
@@ -127,9 +127,9 @@ public class TerrainQuadtree {
 				for (Quad child : children) {
 					child.updateChildren();
 				}
-				if (depth == 2) {
+				if (depth == maxDepth - 1) {
 					nodeCount += 1;
-					System.out.printf("%.2f%% nodes generated %n", nodeCount / Math.pow(4, depth) * 100);
+					System.out.printf("%.2f%% generated %n", nodeCount / Math.pow(4, depth) * 100);
 				}
 			} else {
 				sceneObjects = new SceneObjects();

@@ -18,7 +18,7 @@ public class SingleModel implements Model {
 		}
 	}
 
-	public void addTextures(String uniform, List<Texture> textures) {
+	public void addTextures(String uniform, List<? extends Texture> textures) {
 		if (textures.size() != meshes.size()) {
 			throw new RuntimeException("Unequal number of meshes and textures");
 		}

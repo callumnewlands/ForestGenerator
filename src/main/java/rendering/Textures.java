@@ -1,55 +1,91 @@
 package rendering;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 import static org.lwjgl.opengl.GL11.GL_CLAMP;
 
-import modeldata.meshdata.Texture;
+import modeldata.meshdata.CubemapTexture;
+import modeldata.meshdata.Texture2D;
 import org.joml.Vector3f;
 
 public final class Textures {
 
-	public static Texture leaf = new Texture(
+	public static Texture2D leaf = new Texture2D(
 			ShaderProgram.RESOURCES_PATH + "/textures/Leaf2_front_rotated.tga",
 			new Vector3f(0.1f, 0.3f, 0.1f),
 			0,
 			GL_CLAMP);
 
-	public static Texture leafNormal = new Texture(
+	public static Texture2D leafNormal = new Texture2D(
 			ShaderProgram.RESOURCES_PATH + "/textures/Leaf2_normals_front_rotated.tga",
 			new Vector3f(0.1f, 0.3f, 0.1f),
 			1,
 			GL_CLAMP);
 
-	public static Texture bark = new Texture(
+	public static Texture2D bark = new Texture2D(
 			ShaderProgram.RESOURCES_PATH + "/textures/Bark_Pine_baseColor.jpg",
 			new Vector3f(0.34f, 0.17f, 0.07f),
 			2);
 
-	public static Texture ground = new Texture(
+	public static Texture2D ground = new Texture2D(
 			ShaderProgram.RESOURCES_PATH + "/textures/floor2.png",
 			new Vector3f(0.34f, 0.17f, 0.07f),
 			3);
 
-	public static Texture barkNormal = new Texture(
+	public static Texture2D barkNormal = new Texture2D(
 			ShaderProgram.RESOURCES_PATH + "/textures/Bark_Pine_normal.jpg",
 			new Vector3f(0.34f, 0.17f, 0.07f),
 			4);
 
-	public static Texture grass = new Texture(
+	public static Texture2D grass = new Texture2D(
 			ShaderProgram.RESOURCES_PATH + "/textures/grass.png",
 			new Vector3f(0.1f, 0.3f, 0.1f),
 			5,
 			GL_CLAMP);
 
-	public static Texture rock = new Texture(
+	public static Texture2D rock = new Texture2D(
 			ShaderProgram.RESOURCES_PATH + "/textures/Mossy_rock_01_2K_Base_Color.png",
 			new Vector3f(0.3f, 0.3f, 0.3f),
 			6);
 
-	public static Texture rockNormal = new Texture(
+	public static Texture2D rockNormal = new Texture2D(
 			ShaderProgram.RESOURCES_PATH + "/textures/Mossy_rock_01_2K_Normal.png",
 			new Vector3f(0.3f, 0.3f, 0.3f),
 			7);
 
+	public static CubemapTexture skybox = new CubemapTexture(
+			List.of("right.jpg",
+					"left.jpg",
+					"top.jpg",
+					"bottom.jpg",
+					"front.jpg",
+					"back.jpg"
+			).stream().map(s -> ShaderProgram.RESOURCES_PATH + "/textures/skybox/" + s).collect(Collectors.toList()),
+			new Vector3f(.529f, .808f, .922f),
+			8);
+
+	public static CubemapTexture skybox2 = new CubemapTexture(
+			List.of("posx.jpg",
+					"negx.jpg",
+					"posy.jpg",
+					"negy.jpg",
+					"posz.jpg",
+					"negz.jpg"
+			).stream().map(s -> ShaderProgram.RESOURCES_PATH + "/textures/skybox2/" + s).collect(Collectors.toList()),
+			new Vector3f(.529f, .808f, .922f),
+			8);
+
+	public static CubemapTexture skybox3 = new CubemapTexture(
+			List.of("posx.jpg",
+					"negx.jpg",
+					"posy.jpg",
+					"negy.jpg",
+					"posz.jpg",
+					"negz.jpg"
+			).stream().map(s -> ShaderProgram.RESOURCES_PATH + "/textures/skybox3/" + s).collect(Collectors.toList()),
+			new Vector3f(.529f, .808f, .922f),
+			8);
 
 	private Textures() {
 

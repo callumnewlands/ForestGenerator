@@ -337,7 +337,7 @@ public class LoadedModel implements Model {
 		model.render(shaderProgram);
 	}
 
-	public void addTextures(String uniform, List<Texture> textures) {
+	public void addTextures(String uniform, List<? extends Texture> textures) {
 		model.addTextures(uniform, textures);
 	}
 

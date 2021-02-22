@@ -18,7 +18,7 @@ import lsystems.modules.ParametricExpressionModule;
 import lsystems.modules.ParametricParameterModule;
 import lsystems.modules.ParametricValueModule;
 import modeldata.meshdata.Mesh;
-import modeldata.meshdata.Texture;
+import modeldata.meshdata.Texture2D;
 import modeldata.meshdata.Vertex;
 import modeldata.meshdata.VertexAttribute;
 import org.joml.Matrix4f;
@@ -154,7 +154,7 @@ public class Trees extends InstancedGroundObject {
 	}
 
 	@Override
-	Map<LevelOfDetail, List<Texture>> getDiffuseTextures() {
+	Map<LevelOfDetail, List<Texture2D>> getDiffuseTextures() {
 		return Map.of(
 				LevelOfDetail.HIGH, List.of(Textures.bark, Textures.leaf),
 				LevelOfDetail.LOW, List.of(Textures.bark, Textures.bark, Textures.leaf)
@@ -162,7 +162,7 @@ public class Trees extends InstancedGroundObject {
 	}
 
 	@Override
-	Map<LevelOfDetail, List<Texture>> getNormalTextures() {
+	Map<LevelOfDetail, List<Texture2D>> getNormalTextures() {
 		return Map.of(
 				LevelOfDetail.HIGH, List.of(Textures.barkNormal, Textures.leafNormal),
 				LevelOfDetail.LOW, List.of(Textures.barkNormal, Textures.barkNormal, Textures.leafNormal));

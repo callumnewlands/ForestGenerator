@@ -13,6 +13,11 @@ public class Vertex {
 	private Vector3f tangent;
 	private Vector2f texCoord;
 
+	public Vertex(Vector3f position) {
+		this.position = position;
+	}
+
+
 	public Vertex(Vector3f position, Vector3f normal) {
 		this.position = position;
 		this.normal = normal;

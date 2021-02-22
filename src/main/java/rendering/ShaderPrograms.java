@@ -10,6 +10,7 @@ public final class ShaderPrograms {
 	public static ShaderProgram instancedTextureShaderProgram;
 	public static ShaderProgram instancedNormalTextureShaderProgram;
 	public static ShaderProgram billboardShaderProgram;
+	public static ShaderProgram skyboxShaderProgram;
 
 	static {
 		try {
@@ -19,6 +20,7 @@ public final class ShaderPrograms {
 			normalTextureShaderProgram = new ShaderProgram("/textureShader.vert", "/normTextureShader.frag");
 			instancedNormalTextureShaderProgram = new ShaderProgram("/instTextureShader.vert", "/normTextureShader.frag");
 			billboardShaderProgram = new ShaderProgram("/instTextureShader.vert", "/billboardTextureShader.frag");
+			skyboxShaderProgram = new ShaderProgram("/skyboxShader.vert", "/skyboxShader.frag");
 		} catch (IOException e) {
 			throw new RuntimeException("Unable to load 1 or more shader programs");
 		}
@@ -31,6 +33,7 @@ public final class ShaderPrograms {
 		function.accept(normalTextureShaderProgram);
 		function.accept(instancedNormalTextureShaderProgram);
 		function.accept(billboardShaderProgram);
+		function.accept(skyboxShaderProgram);
 	}
 
 	private ShaderPrograms() {

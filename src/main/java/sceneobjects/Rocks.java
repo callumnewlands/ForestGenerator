@@ -6,7 +6,7 @@ import generation.TerrainQuadtree;
 import modeldata.LoadedModel;
 import modeldata.Model;
 import modeldata.meshdata.Mesh;
-import modeldata.meshdata.Texture;
+import modeldata.meshdata.Texture2D;
 import org.joml.Vector2f;
 import rendering.LevelOfDetail;
 import rendering.ShaderProgram;
@@ -36,12 +36,12 @@ public class Rocks extends InstancedGroundObject {
 	}
 
 	@Override
-	Map<LevelOfDetail, List<Texture>> getDiffuseTextures() {
+	Map<LevelOfDetail, List<Texture2D>> getDiffuseTextures() {
 		return Map.of(LevelOfDetail.HIGH, List.of(Textures.rock));
 	}
 
 	@Override
-	Map<LevelOfDetail, List<Texture>> getNormalTextures() {
+	Map<LevelOfDetail, List<Texture2D>> getNormalTextures() {
 		return Map.of(LevelOfDetail.HIGH, List.of(Textures.rockNormal));
 	}
 

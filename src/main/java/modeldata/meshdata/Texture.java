@@ -8,101 +8,39 @@ import java.nio.IntBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.file.Paths;
 
-import static org.lwjgl.opengl.GL11.GL_LINEAR;
 import static org.lwjgl.opengl.GL11.GL_RED;
 import static org.lwjgl.opengl.GL11.GL_RGBA;
-import static org.lwjgl.opengl.GL11.GL_TEXTURE_2D;
-import static org.lwjgl.opengl.GL11.GL_TEXTURE_MIN_FILTER;
-import static org.lwjgl.opengl.GL11.GL_UNSIGNED_BYTE;
-import static org.lwjgl.opengl.GL11.glBindTexture;
 import static org.lwjgl.opengl.GL11.glGenTextures;
-import static org.lwjgl.opengl.GL11.glTexParameteri;
-import static org.lwjgl.opengl.GL11C.GL_REPEAT;
 import static org.lwjgl.opengl.GL11C.GL_RGB;
-import static org.lwjgl.opengl.GL11C.GL_TEXTURE_MAG_FILTER;
-import static org.lwjgl.opengl.GL11C.GL_TEXTURE_WRAP_S;
-import static org.lwjgl.opengl.GL11C.GL_TEXTURE_WRAP_T;
-import static org.lwjgl.opengl.GL11C.glTexImage2D;
 import static org.lwjgl.opengl.GL13C.GL_TEXTURE0;
-import static org.lwjgl.opengl.GL13C.glActiveTexture;
-import static org.lwjgl.opengl.GL30C.glGenerateMipmap;
 import static org.lwjgl.stb.STBImage.stbi_failure_reason;
 import static org.lwjgl.stb.STBImage.stbi_load_from_memory;
 import static org.lwjgl.stb.STBImage.stbi_set_flip_vertically_on_load;
 import static org.lwjgl.system.MemoryStack.stackPush;
 
+import lombok.AllArgsConstructor;
 import org.joml.Vector3f;
-import org.lwjgl.BufferUtils;
 import org.lwjgl.system.MemoryStack;
 
-public class Texture {
+public abstract class Texture {
 
-	private static final int RGBA_NO_OF_COMPONENTS = 4;
-	private static final int RGB_NO_OF_COMPONENTS = 3;
-	private static final int SINGLE_COMPONENT = 1;
+	static final int RGBA_NO_OF_COMPONENTS = 4;
+	static final int RGB_NO_OF_COMPONENTS = 3;
+	static final int SINGLE_COMPONENT = 1;
 
-	private final int handle;
-	private int width;
-	private int height;
-	private int numberOfComponents;
-	private final int unit;
+	protected final int handle;
+	protected final int unit;
 	private final Vector3f colour;
 
-
-	public Texture(final String path, final Vector3f colour, final int textureUnit) {
-		this(path, colour, textureUnit, GL_REPEAT);
-	}
-
-	public Texture(final String path, final Vector3f colour, final int textureUnit, final int textureWrap) {
+	public Texture(final Vector3f colour, final int textureUnit, final int textureWrap) {
 		this.colour = colour;
 		this.handle = glGenTextures();
 		this.unit = GL_TEXTURE0 + textureUnit;
 		this.bind();
-
-		// set texture wrapping to GL_REPEAT in both directions (default wrapping method)
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, textureWrap);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, textureWrap);
-		// set texture filtering parameters
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-		try {
-			loadTextureFromFile(path);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
-	public Texture(final float[][] greyscaleValues, final int width, final int height, final int textureUnit) {
-		this.colour = new Vector3f(0.3f);
-		this.handle = glGenTextures();
-		this.unit = textureUnit;
-		this.bind();
-
-		// set texture wrapping to GL_REPEAT in both directions (default wrapping method)
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-		// set texture filtering parameters
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-		ByteBuffer image = BufferUtils.createByteBuffer(width * height * 3);
-
-		for (int y = 0; y < height; y++) {
-			for (int x = 0; x < width; x++) {
-				int col = (int) ((greyscaleValues[x][y] + 1) / 2 * 255);
-				for (int component = 0; component < 3; component++) {
-					image.put((byte) col);
-				}
-			}
-		}
-		image.flip();
-
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
-
-		glGenerateMipmap(GL_TEXTURE_2D);
+		this.setHints(textureWrap);
 	}
 
-	private static ByteBuffer readFileToByteBuffer(final String path) throws IOException {
+	protected static ByteBuffer readFileToByteBuffer(final String path) throws IOException {
 		ByteBuffer buffer;
 		File file = new File(Paths.get(path).toAbsolutePath().toString());
 		if (file.exists() && file.isFile()) {
@@ -117,18 +55,27 @@ public class Texture {
 		return buffer;
 	}
 
-	private void loadTextureFromFile(final String path) throws IOException {
+	protected abstract void setHints(int textureWrap);
+
+	protected LoadedImage loadTextureFromFile(final String path) throws IOException {
+		return loadTextureFromFile(path, true);
+	}
+
+	protected LoadedImage loadTextureFromFile(final String path, final boolean flip) throws IOException {
 		ByteBuffer rawImageData;
 		ByteBuffer image;
 
 		rawImageData = readFileToByteBuffer(path);
 
+		int width;
+		int height;
+		int numberOfComponents;
 		try (MemoryStack stack = stackPush()) {
 			IntBuffer widthBuffer = stack.mallocInt(1);
 			IntBuffer heightBuffer = stack.mallocInt(1);
 			IntBuffer numberOfComponentsBuffer = stack.mallocInt(1);
 
-			stbi_set_flip_vertically_on_load(true);
+			stbi_set_flip_vertically_on_load(flip);
 
 			image = stbi_load_from_memory(rawImageData, widthBuffer, heightBuffer,
 					numberOfComponentsBuffer, 0);
@@ -136,9 +83,9 @@ public class Texture {
 				throw new RuntimeException("Failed to load image: " + stbi_failure_reason());
 			}
 
-			this.width = widthBuffer.get(0);
-			this.height = heightBuffer.get(0);
-			this.numberOfComponents = numberOfComponentsBuffer.get(0);
+			width = widthBuffer.get(0);
+			height = heightBuffer.get(0);
+			numberOfComponents = numberOfComponentsBuffer.get(0);
 		}
 
 		int format;
@@ -153,21 +100,12 @@ public class Texture {
 					+ numberOfComponents);
 		}
 
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, format, GL_UNSIGNED_BYTE, image);
-
-		glGenerateMipmap(GL_TEXTURE_2D);
-
-
+		return new LoadedImage(image, format, width, height);
 	}
 
-	public void bind() {
-		glActiveTexture(this.unit);
-		glBindTexture(GL_TEXTURE_2D, this.handle);
-	}
+	abstract public void bind();
 
-	public void unbind() {
-		glBindTexture(GL_TEXTURE_2D, 0);
-	}
+	abstract public void unbind();
 
 	public int getUnitID() {
 		return this.unit - GL_TEXTURE0;
@@ -177,5 +115,11 @@ public class Texture {
 		return colour;
 	}
 
+	@AllArgsConstructor
+	static class LoadedImage {
+		final ByteBuffer imageData;
+		final int format;
+		final int width;
+		final int height;
+	}
 }
-

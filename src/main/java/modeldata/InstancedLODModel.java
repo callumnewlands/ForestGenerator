@@ -52,6 +52,7 @@ public class InstancedLODModel {
 			switch (levelOfDetail) {
 				case HIGH -> lodModel = models.get(LevelOfDetail.LOW);
 				case LOW -> lodModel = models.get(LevelOfDetail.HIGH);
+				default -> throw new RuntimeException("Unhandled LOD: " + levelOfDetail);
 			}
 		}
 		for (Mesh mesh : lodModel.getMeshes()) {

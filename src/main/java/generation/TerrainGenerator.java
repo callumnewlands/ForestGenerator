@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.IntStream;
 import modeldata.meshdata.Mesh;
-import modeldata.meshdata.Texture;
+import modeldata.meshdata.Texture2D;
 import modeldata.meshdata.Vertex;
 import modeldata.meshdata.VertexAttribute;
 import org.j3d.texture.procedural.PerlinNoiseGenerator;
@@ -72,7 +72,7 @@ public class TerrainGenerator {
 		return heights;
 	}
 
-	public Mesh getGroundTile(Vector2f centre, float width, int verticesPerSide, float textureWidth, Texture texture) {
+	public Mesh getGroundTile(Vector2f centre, float width, int verticesPerSide, float textureWidth, Texture2D texture) {
 
 		float minX = centre.x - width / 2;
 		float maxX = centre.x + width / 2;

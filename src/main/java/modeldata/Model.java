@@ -8,7 +8,7 @@ import rendering.ShaderProgram;
 public interface Model {
 	void render(ShaderProgram shaderProgram);
 
-	void addTextures(String uniform, List<Texture> textures);
+	void addTextures(String uniform, List<? extends Texture> textures);
 
 	List<Mesh> getMeshes();
 

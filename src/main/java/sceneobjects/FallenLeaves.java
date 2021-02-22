@@ -7,7 +7,7 @@ import static sceneobjects.Trees.LEAF_SCALE;
 
 import generation.TerrainQuadtree;
 import modeldata.meshdata.Mesh;
-import modeldata.meshdata.Texture;
+import modeldata.meshdata.Texture2D;
 import org.joml.Vector2f;
 import rendering.LevelOfDetail;
 import rendering.Textures;
@@ -34,12 +34,12 @@ public class FallenLeaves extends InstancedGroundObject {
 	}
 
 	@Override
-	Map<LevelOfDetail, List<Texture>> getDiffuseTextures() {
+	Map<LevelOfDetail, List<Texture2D>> getDiffuseTextures() {
 		return Map.of(LevelOfDetail.LOW, List.of(Textures.leaf));
 	}
 
 	@Override
-	Map<LevelOfDetail, List<Texture>> getNormalTextures() {
+	Map<LevelOfDetail, List<Texture2D>> getNormalTextures() {
 		return Map.of(LevelOfDetail.LOW, List.of(Textures.leafNormal));
 	}
 

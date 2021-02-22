@@ -10,7 +10,7 @@ import modeldata.InstancedLODModel;
 import modeldata.InstancedLODModelBuilder;
 import modeldata.SingleModel;
 import modeldata.meshdata.Mesh;
-import modeldata.meshdata.Texture;
+import modeldata.meshdata.Texture2D;
 import org.joml.Matrix4f;
 import org.joml.Vector2f;
 import org.joml.Vector3f;
@@ -24,8 +24,8 @@ public abstract class InstancedGroundObject {
 	public InstancedGroundObject(int numberOfTypes, int numberOfInstances, Vector2f regionCentre, float regionWidth, TerrainQuadtree quadtree, boolean yRotationOnly) {
 		for (int i = 0; i < numberOfTypes; i++) {
 			Map<LevelOfDetail, List<Mesh>> lodMeshes = getMeshes();
-			Map<LevelOfDetail, List<Texture>> diffuseTextures = getDiffuseTextures();
-			Map<LevelOfDetail, List<Texture>> normalTextures = getNormalTextures();
+			Map<LevelOfDetail, List<Texture2D>> diffuseTextures = getDiffuseTextures();
+			Map<LevelOfDetail, List<Texture2D>> normalTextures = getNormalTextures();
 			InstancedLODModelBuilder modelBuilder = new InstancedLODModelBuilder();
 			// For each LOD, construct the lod representation for type i
 			for (LevelOfDetail lod : lodMeshes.keySet()) {
@@ -73,9 +73,9 @@ public abstract class InstancedGroundObject {
 
 	abstract Map<LevelOfDetail, List<Mesh>> getMeshes();
 
-	abstract Map<LevelOfDetail, List<Texture>> getDiffuseTextures();
+	abstract Map<LevelOfDetail, List<Texture2D>> getDiffuseTextures();
 
-	Map<LevelOfDetail, List<Texture>> getNormalTextures() {
+	Map<LevelOfDetail, List<Texture2D>> getNormalTextures() {
 		return null;
 	}
 

@@ -23,9 +23,11 @@ import static org.lwjgl.opengl.GL20C.glLinkProgram;
 import static org.lwjgl.opengl.GL20C.glShaderSource;
 import static org.lwjgl.opengl.GL20C.glUniform1i;
 import static org.lwjgl.opengl.GL20C.glUniform3f;
+import static org.lwjgl.opengl.GL20C.glUniformMatrix3fv;
 import static org.lwjgl.opengl.GL20C.glUniformMatrix4fv;
 import static org.lwjgl.opengl.GL20C.glUseProgram;
 
+import org.joml.Matrix3f;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.lwjgl.BufferUtils;
@@ -92,6 +94,15 @@ public class ShaderProgram {
 		FloatBuffer buffer = BufferUtils.createFloatBuffer(matrixOrder * matrixOrder);
 		value.get(buffer);
 		glUniformMatrix4fv(location, false, buffer);
+	}
+
+	public void setUniform(String name, Matrix3f value) {
+		this.use();
+		final int matrixOrder = 3;
+		int location = glGetUniformLocation(this.handle, name);
+		FloatBuffer buffer = BufferUtils.createFloatBuffer(matrixOrder * matrixOrder);
+		value.get(buffer);
+		glUniformMatrix3fv(location, false, buffer);
 	}
 
 	public void setUniform(String name, int value) {
