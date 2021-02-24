@@ -7,7 +7,6 @@ import modeldata.meshdata.VertexAttribute;
 import modeldata.meshdata.VertexBuffer;
 import org.joml.Matrix4f;
 import rendering.LevelOfDetail;
-import rendering.ShaderProgram;
 
 public class InstancedLODModel {
 
@@ -46,7 +45,7 @@ public class InstancedLODModel {
 
 	}
 
-	public void render(ShaderProgram shaderProgram, LevelOfDetail levelOfDetail) {
+	public void render(LevelOfDetail levelOfDetail) {
 		Model lodModel = models.get(levelOfDetail);
 		if (lodModel == null) {
 			switch (levelOfDetail) {
@@ -56,7 +55,7 @@ public class InstancedLODModel {
 			}
 		}
 		for (Mesh mesh : lodModel.getMeshes()) {
-			mesh.render(shaderProgram, numberOfInstances);
+			mesh.render(numberOfInstances);
 		}
 	}
 }

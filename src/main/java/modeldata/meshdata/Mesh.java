@@ -23,6 +23,7 @@ public class Mesh {
 	protected Map<String, Texture> textures = new HashMap<>();
 	protected VertexArray vertexArray;
 	private boolean isInstanced;
+	private ShaderProgram shaderProgram;
 
 	public Mesh(List<Vertex> vertices, int[] indices, List<VertexAttribute> vertexAttributes) {
 		this(vertices, indices, vertexAttributes, false);
@@ -54,6 +55,7 @@ public class Mesh {
 		this.vertexAttributes = new ArrayList<>(mesh.vertexAttributes);
 		this.textures = new HashMap<>(mesh.textures);
 		this.model = new Matrix4f(mesh.model);
+		this.shaderProgram = mesh.shaderProgram;
 		this.isInstanced = isInstanced;
 		this.vertexArray = createVAO();
 	}
@@ -93,7 +95,7 @@ public class Mesh {
 
 	}
 
-	private void bindForRender(ShaderProgram shaderProgram) {
+	private void bindForRender() {
 		shaderProgram.use();
 		if (!isInstanced) {
 			shaderProgram.setUniform("model", model);
@@ -113,14 +115,14 @@ public class Mesh {
 		}
 	}
 
-	public void render(ShaderProgram shaderProgram) {
-		bindForRender(shaderProgram);
+	public void render() {
+		bindForRender();
 		draw();
 		unbindFromRender();
 	}
 
-	public void render(ShaderProgram shaderProgram, int numberOfInstances) {
-		bindForRender(shaderProgram);
+	public void render(int numberOfInstances) {
+		bindForRender();
 		draw(numberOfInstances);
 		unbindFromRender();
 	}

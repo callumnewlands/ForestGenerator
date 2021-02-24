@@ -7,6 +7,9 @@ import java.util.stream.Collectors;
 
 import static lsystems.modules.DefinedModules.LB;
 import static lsystems.modules.DefinedModules.RB;
+import static rendering.ShaderPrograms.billboardShaderProgram;
+import static rendering.ShaderPrograms.instancedLeafShaderProgram;
+import static rendering.ShaderPrograms.instancedNormalTextureShaderProgram;
 
 import generation.TerrainQuadtree;
 import generation.TurtleInterpreter;
@@ -18,7 +21,6 @@ import lsystems.modules.ParametricExpressionModule;
 import lsystems.modules.ParametricParameterModule;
 import lsystems.modules.ParametricValueModule;
 import modeldata.meshdata.Mesh;
-import modeldata.meshdata.Texture2D;
 import modeldata.meshdata.Vertex;
 import modeldata.meshdata.VertexAttribute;
 import org.joml.Matrix4f;
@@ -75,19 +77,38 @@ public class Trees extends InstancedGroundObject {
 				.map(m -> m.getName() == 'A' ? new ParametricValueModule('~', 0f) : m)
 				.collect(Collectors.toList()));
 		Mesh branches = turtleInterpreter.getMesh();
+		branches.addTexture("diffuseTexture", Textures.bark);
+		branches.addTexture("normalTexture", Textures.barkNormal);
+		branches.setShaderProgram(instancedNormalTextureShaderProgram);
+
 		Mesh canopy = turtleInterpreter.getCombinedSubModelMeshes().get(0);
+		canopy.addTexture("leaf_front", Textures.leafFront);
+		canopy.addTexture("leaf_transl_front", Textures.leafFrontT);
+		canopy.addTexture("leaf_TSNM_front", Textures.leafFrontNorm);
+		canopy.addTexture("leaf_TSHLM_front_t", Textures.leafFrontHL);
+		canopy.addTexture("leaf_back", Textures.leafBack);
+		canopy.addTexture("leaf_transl_back", Textures.leafBackT);
+		canopy.addTexture("leaf_TSNM_back", Textures.leafBackNorm);
+		canopy.addTexture("leaf_TSHLM_back_t", Textures.leafBackHL);
+		canopy.setShaderProgram(instancedLeafShaderProgram);
 
 		Mesh board = MeshUtils.transform(Trees.leaf, new Matrix4f()
 				.scale(1f, 10f / TREE_SCALE, 1f / TREE_SCALE)
 				.rotate((float) Math.PI / 2, out));
+		board.addTexture("diffuseTexture", Textures.bark);
+		board.addTexture("normalTexture", Textures.barkNormal);
+		board.setShaderProgram(billboardShaderProgram);
+
+		Mesh LODCanopy = new Mesh(canopy);
+		LODCanopy.setShaderProgram(instancedNormalTextureShaderProgram);
 		List<Mesh> billboard = List.of(
 				new Mesh(board),
 				MeshUtils.transform(board, new Matrix4f().rotate((float) Math.PI / 2, up)),
-				new Mesh(canopy)
+				LODCanopy
 		);
 
 		return Map.of(
-				LevelOfDetail.HIGH, List.of(branches, canopy),
+				LevelOfDetail.HIGH, List.of(new Mesh(branches), new Mesh(canopy)),
 				LevelOfDetail.LOW, billboard);
 	}
 
@@ -153,18 +174,4 @@ public class Trees extends InstancedGroundObject {
 				));
 	}
 
-	@Override
-	Map<LevelOfDetail, List<Texture2D>> getDiffuseTextures() {
-		return Map.of(
-				LevelOfDetail.HIGH, List.of(Textures.bark, Textures.leaf),
-				LevelOfDetail.LOW, List.of(Textures.bark, Textures.bark, Textures.leaf)
-		);
-	}
-
-	@Override
-	Map<LevelOfDetail, List<Texture2D>> getNormalTextures() {
-		return Map.of(
-				LevelOfDetail.HIGH, List.of(Textures.barkNormal, Textures.leafNormal),
-				LevelOfDetail.LOW, List.of(Textures.barkNormal, Textures.barkNormal, Textures.leafNormal));
-	}
 }

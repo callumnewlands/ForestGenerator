@@ -3,11 +3,11 @@ package sceneobjects;
 import java.util.List;
 import java.util.Map;
 
+import static rendering.ShaderPrograms.instancedNormalTextureShaderProgram;
 import static sceneobjects.Trees.LEAF_SCALE;
 
 import generation.TerrainQuadtree;
 import modeldata.meshdata.Mesh;
-import modeldata.meshdata.Texture2D;
 import org.joml.Vector2f;
 import rendering.LevelOfDetail;
 import rendering.Textures;
@@ -30,17 +30,11 @@ public class FallenLeaves extends InstancedGroundObject {
 
 	@Override
 	Map<LevelOfDetail, List<Mesh>> getMeshes() {
-		return Map.of(LevelOfDetail.LOW, List.of(Trees.leaf));
-	}
-
-	@Override
-	Map<LevelOfDetail, List<Texture2D>> getDiffuseTextures() {
-		return Map.of(LevelOfDetail.LOW, List.of(Textures.leaf));
-	}
-
-	@Override
-	Map<LevelOfDetail, List<Texture2D>> getNormalTextures() {
-		return Map.of(LevelOfDetail.LOW, List.of(Textures.leafNormal));
+		Mesh leafMesh = new Mesh(Trees.leaf);
+		leafMesh.addTexture("diffuseTexture", Textures.leaf);
+		leafMesh.addTexture("normalTexture", Textures.leafNormal);
+		leafMesh.setShaderProgram(instancedNormalTextureShaderProgram);
+		return Map.of(LevelOfDetail.LOW, List.of(leafMesh));
 	}
 
 }

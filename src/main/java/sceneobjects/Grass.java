@@ -3,9 +3,11 @@ package sceneobjects;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+
+import static rendering.ShaderPrograms.billboardShaderProgram;
+
 import generation.TerrainQuadtree;
 import modeldata.meshdata.Mesh;
-import modeldata.meshdata.Texture2D;
 import org.joml.Matrix4f;
 import org.joml.Vector2f;
 import org.joml.Vector3f;
@@ -35,12 +37,10 @@ public class Grass extends InstancedGroundObject {
 	@Override
 	Map<LevelOfDetail, List<Mesh>> getMeshes() {
 		Mesh grass = MeshUtils.transform(Trees.leaf, new Matrix4f().rotate((float) Math.PI / 2, out));
+		grass.addTexture("diffuseTexture", Textures.grass);
+		grass.setShaderProgram(billboardShaderProgram);
 		return Map.of(LevelOfDetail.LOW,
 				List.of(new Mesh(grass), MeshUtils.transform(grass, new Matrix4f().rotate((float) Math.PI / 2, up))));
 	}
 
-	@Override
-	Map<LevelOfDetail, List<Texture2D>> getDiffuseTextures() {
-		return Map.of(LevelOfDetail.LOW, List.of(Textures.grass, Textures.grass));
-	}
 }

@@ -55,15 +55,23 @@ import static org.lwjgl.opengl.GL11.glClear;
 import static org.lwjgl.opengl.GL11.glClearColor;
 import static org.lwjgl.opengl.GL11.glDisable;
 import static org.lwjgl.opengl.GL11.glEnable;
+import static org.lwjgl.opengl.GL11C.GL_BLEND;
 import static org.lwjgl.opengl.GL11C.GL_FRONT_AND_BACK;
 import static org.lwjgl.opengl.GL11C.GL_LINE;
+import static org.lwjgl.opengl.GL11C.GL_ONE_MINUS_SRC_ALPHA;
+import static org.lwjgl.opengl.GL11C.GL_SRC_ALPHA;
 import static org.lwjgl.opengl.GL11C.GL_VERSION;
+import static org.lwjgl.opengl.GL11C.glBlendFunc;
 import static org.lwjgl.opengl.GL11C.glGetString;
 import static org.lwjgl.opengl.GL11C.glPolygonMode;
 import static org.lwjgl.opengl.GL13C.GL_MULTISAMPLE;
+import static org.lwjgl.opengl.GL13C.GL_SAMPLE_ALPHA_TO_COVERAGE;
+import static org.lwjgl.opengl.GL13C.GL_SAMPLE_ALPHA_TO_ONE;
 import static org.lwjgl.opengl.GL30.GL_FRAMEBUFFER_SRGB;
 import static org.lwjgl.system.MemoryUtil.NULL;
 import static rendering.ShaderPrograms.billboardShaderProgram;
+import static rendering.ShaderPrograms.instancedLeafShaderProgram;
+import static rendering.ShaderPrograms.leafShaderProgram;
 import static rendering.ShaderPrograms.skyboxShaderProgram;
 
 import generation.TerrainQuadtree;
@@ -138,10 +146,10 @@ public class App {
 
 		glEnable(GL_DEPTH_TEST);
 		glEnable(GL_MULTISAMPLE);
-//		glEnable(GL_BLEND);
-//		glEnable(GL_SAMPLE_ALPHA_TO_COVERAGE);
-//		glEnable(GL_SAMPLE_ALPHA_TO_ONE);
-//		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		glEnable(GL_BLEND);
+		glEnable(GL_SAMPLE_ALPHA_TO_COVERAGE);
+		glEnable(GL_SAMPLE_ALPHA_TO_ONE);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 		initShaders();
 		initScene();
@@ -220,7 +228,6 @@ public class App {
 				Textures.ground
 		);
 		quadtree.setSeedPoint(new Vector2f(camera.getPosition().x, camera.getPosition().z));
-
 	}
 
 	private void initLighting() {
@@ -248,11 +255,13 @@ public class App {
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		ShaderPrograms.forAll(sp -> sp.setUniform("view", camera.getViewMatrix()));
 		billboardShaderProgram.setUniform("viewPos", camera.getPosition());
+		leafShaderProgram.setUniform("viewPos", camera.getPosition());
+		instancedLeafShaderProgram.setUniform("viewPos", camera.getPosition());
 
 		quadtree.render(useNormalMapping, camera.getViewMatrix().mulLocal(projection));
 
 		skyboxShaderProgram.setUniform("view", new Matrix4f(new Matrix3f(camera.getViewMatrix())));
-		skybox.render(skyboxShaderProgram);
+		skybox.render();
 	}
 
 	private void updateDeltaTime() {

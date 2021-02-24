@@ -6,6 +6,7 @@ import java.util.Random;
 
 import static lsystems.modules.DefinedModules.LB;
 import static lsystems.modules.DefinedModules.RB;
+import static rendering.ShaderPrograms.instancedNormalTextureShaderProgram;
 
 import generation.TerrainQuadtree;
 import generation.TurtleInterpreter;
@@ -17,7 +18,6 @@ import lsystems.modules.ParametricExpressionModule;
 import lsystems.modules.ParametricParameterModule;
 import lsystems.modules.ParametricValueModule;
 import modeldata.meshdata.Mesh;
-import modeldata.meshdata.Texture2D;
 import org.joml.Matrix4f;
 import org.joml.Vector2f;
 import org.joml.Vector3f;
@@ -49,17 +49,10 @@ public class Twigs extends InstancedGroundObject {
 		List<Module> instructions = twigSystem().performDerivations(new Random().nextInt(2) + 5);
 		twigTurtleInterpreter.interpretInstructions(instructions);
 		Mesh twig = MeshUtils.transform(twigTurtleInterpreter.getMesh(), new Matrix4f().rotate((float) Math.PI / 2, new Vector3f(1, 0, 0)));
+		twig.addTexture("diffuseTexture", Textures.bark);
+		twig.addTexture("normalTexture", Textures.barkNormal);
+		twig.setShaderProgram(instancedNormalTextureShaderProgram);
 		return Map.of(LevelOfDetail.HIGH, List.of(twig));
-	}
-
-	@Override
-	Map<LevelOfDetail, List<Texture2D>> getDiffuseTextures() {
-		return Map.of(LevelOfDetail.HIGH, List.of(Textures.bark));
-	}
-
-	@Override
-	Map<LevelOfDetail, List<Texture2D>> getNormalTextures() {
-		return Map.of(LevelOfDetail.HIGH, List.of(Textures.barkNormal));
 	}
 
 	private LSystem twigSystem() {

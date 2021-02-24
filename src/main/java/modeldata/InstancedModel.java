@@ -6,7 +6,6 @@ import modeldata.meshdata.Mesh;
 import modeldata.meshdata.VertexAttribute;
 import modeldata.meshdata.VertexBuffer;
 import org.joml.Matrix4f;
-import rendering.ShaderProgram;
 
 public class InstancedModel extends SingleModel {
 	private final int numberOfInstances;
@@ -42,9 +41,9 @@ public class InstancedModel extends SingleModel {
 	}
 
 	@Override
-	public void render(ShaderProgram shaderProgram) {
+	public void render() {
 		for (Mesh mesh : meshes) {
-			mesh.render(shaderProgram, numberOfInstances);
+			mesh.render(numberOfInstances);
 		}
 	}
 }

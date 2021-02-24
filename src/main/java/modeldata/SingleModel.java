@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import modeldata.meshdata.Mesh;
 import modeldata.meshdata.Texture;
+import org.joml.Matrix4f;
 import rendering.ShaderProgram;
 
 @AllArgsConstructor
@@ -12,9 +13,9 @@ public class SingleModel implements Model {
 	@Getter
 	protected List<Mesh> meshes;
 
-	public void render(ShaderProgram shaderProgram) {
+	public void render() {
 		for (Mesh mesh : meshes) {
-			mesh.render(shaderProgram);
+			mesh.render();
 		}
 	}
 
@@ -29,6 +30,16 @@ public class SingleModel implements Model {
 			}
 			meshes.get(i).addTexture(uniform, texture);
 		}
+	}
+
+	@Override
+	public void setModelMatrix(Matrix4f model) {
+		meshes.forEach(m -> m.setModel(model));
+	}
+
+	@Override
+	public void setShaderProgram(ShaderProgram shaderProgram) {
+		meshes.forEach(m -> m.setShaderProgram(shaderProgram));
 	}
 
 	@Override

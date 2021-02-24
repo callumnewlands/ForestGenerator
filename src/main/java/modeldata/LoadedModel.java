@@ -18,6 +18,7 @@ import modeldata.meshdata.Mesh;
 import modeldata.meshdata.Texture;
 import modeldata.meshdata.Vertex;
 import modeldata.meshdata.VertexAttribute;
+import org.joml.Matrix4f;
 import org.joml.Vector2f;
 import org.joml.Vector3f;
 import org.joml.Vector4f;
@@ -333,12 +334,22 @@ public class LoadedModel implements Model {
 		return indices;
 	}
 
-	public void render(ShaderProgram shaderProgram) {
-		model.render(shaderProgram);
+	public void render() {
+		model.render();
 	}
 
 	public void addTextures(String uniform, List<? extends Texture> textures) {
 		model.addTextures(uniform, textures);
+	}
+
+	@Override
+	public void setModelMatrix(Matrix4f model) {
+		this.model.setModelMatrix(model);
+	}
+
+	@Override
+	public void setShaderProgram(ShaderProgram shaderProgram) {
+		model.setShaderProgram(shaderProgram);
 	}
 
 	@Override

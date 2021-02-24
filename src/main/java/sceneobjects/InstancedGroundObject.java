@@ -10,12 +10,10 @@ import modeldata.InstancedLODModel;
 import modeldata.InstancedLODModelBuilder;
 import modeldata.SingleModel;
 import modeldata.meshdata.Mesh;
-import modeldata.meshdata.Texture2D;
 import org.joml.Matrix4f;
 import org.joml.Vector2f;
 import org.joml.Vector3f;
 import rendering.LevelOfDetail;
-import rendering.ShaderProgram;
 
 public abstract class InstancedGroundObject {
 
@@ -24,17 +22,17 @@ public abstract class InstancedGroundObject {
 	public InstancedGroundObject(int numberOfTypes, int numberOfInstances, Vector2f regionCentre, float regionWidth, TerrainQuadtree quadtree, boolean yRotationOnly) {
 		for (int i = 0; i < numberOfTypes; i++) {
 			Map<LevelOfDetail, List<Mesh>> lodMeshes = getMeshes();
-			Map<LevelOfDetail, List<Texture2D>> diffuseTextures = getDiffuseTextures();
-			Map<LevelOfDetail, List<Texture2D>> normalTextures = getNormalTextures();
+//			Map<LevelOfDetail, List<Texture2D>> diffuseTextures = getDiffuseTextures();
+//			Map<LevelOfDetail, List<Texture2D>> normalTextures = getNormalTextures();
 			InstancedLODModelBuilder modelBuilder = new InstancedLODModelBuilder();
 			// For each LOD, construct the lod representation for type i
 			for (LevelOfDetail lod : lodMeshes.keySet()) {
 				List<Mesh> meshes = lodMeshes.get(lod).stream().map(mesh -> new Mesh(mesh, true)).collect(Collectors.toList());
 				SingleModel model = new SingleModel(meshes);
-				model.addTextures("diffuseTexture", diffuseTextures.get(lod));
-				if (normalTextures != null) {
-					model.addTextures("normalTexture", normalTextures.get(lod));
-				}
+//				model.addTextures("diffuseTexture", diffuseTextures.get(lod));
+//				if (normalTextures != null) {
+//					model.addTextures("normalTexture", normalTextures.get(lod));
+//				}
 				model.setIsInstanced(true);
 				modelBuilder.withLODModel(lod, model);
 			}
@@ -73,15 +71,15 @@ public abstract class InstancedGroundObject {
 
 	abstract Map<LevelOfDetail, List<Mesh>> getMeshes();
 
-	abstract Map<LevelOfDetail, List<Texture2D>> getDiffuseTextures();
+//	abstract Map<LevelOfDetail, List<Texture2D>> getDiffuseTextures();
+//
+//	Map<LevelOfDetail, List<Texture2D>> getNormalTextures() {
+//		return null;
+//	}
 
-	Map<LevelOfDetail, List<Texture2D>> getNormalTextures() {
-		return null;
-	}
-
-	public void render(ShaderProgram shaderProgram, LevelOfDetail levelOfDetail) {
+	public void render(LevelOfDetail levelOfDetail) {
 		for (InstancedLODModel model : models) {
-			model.render(shaderProgram, levelOfDetail);
+			model.render(levelOfDetail);
 		}
 	}
 }

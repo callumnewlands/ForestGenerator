@@ -11,6 +11,10 @@ public final class ShaderPrograms {
 	public static ShaderProgram instancedNormalTextureShaderProgram;
 	public static ShaderProgram billboardShaderProgram;
 	public static ShaderProgram skyboxShaderProgram;
+	public static ShaderProgram instancedLeafShaderProgram;
+	public static ShaderProgram leafShaderProgram;
+
+	// TODO separate ShaderPrograms for differen meshes (e.g. billboard trunks and leaves) - maybe do sim. to textures
 
 	static {
 		try {
@@ -21,6 +25,8 @@ public final class ShaderPrograms {
 			instancedNormalTextureShaderProgram = new ShaderProgram("/instTextureShader.vert", "/normTextureShader.frag");
 			billboardShaderProgram = new ShaderProgram("/instTextureShader.vert", "/billboardTextureShader.frag");
 			skyboxShaderProgram = new ShaderProgram("/skyboxShader.vert", "/skyboxShader.frag");
+			instancedLeafShaderProgram = new ShaderProgram("/instTextureShader.vert", "/leafShader.frag");
+			leafShaderProgram = new ShaderProgram("/textureShader.vert", "/leafShader.frag");
 		} catch (IOException e) {
 			throw new RuntimeException("Unable to load 1 or more shader programs");
 		}
@@ -34,6 +40,8 @@ public final class ShaderPrograms {
 		function.accept(instancedNormalTextureShaderProgram);
 		function.accept(billboardShaderProgram);
 		function.accept(skyboxShaderProgram);
+		function.accept(instancedLeafShaderProgram);
+		function.accept(leafShaderProgram);
 	}
 
 	private ShaderPrograms() {

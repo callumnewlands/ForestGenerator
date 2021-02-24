@@ -7,18 +7,18 @@ import java.util.stream.IntStream;
 import static org.lwjgl.opengl.GL11C.GL_LEQUAL;
 import static org.lwjgl.opengl.GL11C.GL_LESS;
 import static org.lwjgl.opengl.GL11C.glDepthFunc;
+import static rendering.ShaderPrograms.skyboxShaderProgram;
 
 import modeldata.SingleModel;
 import modeldata.meshdata.Mesh;
 import modeldata.meshdata.Vertex;
 import modeldata.meshdata.VertexAttribute;
 import org.joml.Vector3f;
-import rendering.ShaderProgram;
 import rendering.Textures;
 
 public class Skybox {
 
-	private SingleModel model;
+	private final SingleModel model;
 
 	public Skybox() {
 		List<Vector3f> positions = List.of(
@@ -70,11 +70,12 @@ public class Skybox {
 		Mesh mesh = new Mesh(vertices, indices, List.of(VertexAttribute.POSITION));
 		model = new SingleModel(List.of(mesh));
 		model.addTextures("skyboxTexture", List.of(Textures.skybox3));
+		model.setShaderProgram(skyboxShaderProgram);
 	}
 
-	public void render(ShaderProgram shaderProgram) {
+	public void render() {
 		glDepthFunc(GL_LEQUAL);
-		model.render(shaderProgram);
+		model.render();
 		glDepthFunc(GL_LESS);
 	}
 }

@@ -6,8 +6,6 @@ import java.util.Random;
 import java.util.stream.Collectors;
 
 import static rendering.ShaderPrograms.instancedNormalTextureShaderProgram;
-import static rendering.ShaderPrograms.instancedTextureShaderProgram;
-import static rendering.ShaderPrograms.normalTextureShaderProgram;
 import static rendering.ShaderPrograms.textureShaderProgram;
 
 import modeldata.meshdata.Mesh;
@@ -16,8 +14,6 @@ import org.joml.Matrix4f;
 import org.joml.Vector2f;
 import org.joml.Vector3f;
 import rendering.LevelOfDetail;
-import rendering.ShaderProgram;
-import rendering.ShaderPrograms;
 import sceneobjects.FallenLeaves;
 import sceneobjects.Grass;
 import sceneobjects.Rocks;
@@ -90,6 +86,7 @@ public class TerrainQuadtree {
 			this.width = width;
 			this.depth = depth;
 			this.mesh = terrainGenerator.getGroundTile(centre, width, verticesPerTile, textureWidth, texture);
+			this.mesh.setShaderProgram(textureShaderProgram);
 		}
 
 		private boolean containsSeedPoint() {
@@ -153,7 +150,7 @@ public class TerrainQuadtree {
 		private List<SceneObjects> getSceneObjects() {
 
 			if (children == null) {
-				return List.of(sceneObjects);
+				return sceneObjects != null ? List.of(sceneObjects) : List.of();
 			}
 			return children.stream().flatMap(q -> q.getSceneObjects().stream()).collect(Collectors.toList());
 		}
@@ -161,7 +158,7 @@ public class TerrainQuadtree {
 
 		public void render(Boolean useNormalMapping) {
 
-			mesh.render(ShaderPrograms.textureShaderProgram);
+			mesh.render();
 
 			LevelOfDetail levelOfDetail;
 			if (depth > (maxDepth + 1) / 2) {
@@ -203,21 +200,16 @@ public class TerrainQuadtree {
 
 			private void render(Boolean useNormalMapping, LevelOfDetail levelOfDetail) {
 
-				ShaderProgram textureProgram = useNormalMapping ? normalTextureShaderProgram : textureShaderProgram;
-				ShaderProgram instanceProgram = useNormalMapping ? instancedNormalTextureShaderProgram : instancedTextureShaderProgram;
+				trees.render(levelOfDetail);
 
-				trees.render(instanceProgram, levelOfDetail);
-
-				twigs.render(instanceProgram, levelOfDetail);
-				rocks.render(instancedTextureShaderProgram, levelOfDetail);
-				grass.render(ShaderPrograms.billboardShaderProgram, levelOfDetail);
+				twigs.render(levelOfDetail);
+				rocks.render(levelOfDetail);
+				grass.render(levelOfDetail);
 
 				// TODO replace with different shader uniform for texture colouring and add variation to leaves on model
-				Vector3f lightCol = new Vector3f(0.74f, 0.37f, 0.27f);
-				instanceProgram.setUniform("lightColour", lightCol);
-				leaves.render(instanceProgram, levelOfDetail);
-				lightCol = new Vector3f(0.9f);
-				instanceProgram.setUniform("lightColour", lightCol);
+				instancedNormalTextureShaderProgram.setUniform("lightColour", new Vector3f(0.74f, 0.37f, 0.27f));
+				leaves.render(levelOfDetail);
+				instancedNormalTextureShaderProgram.setUniform("lightColour", new Vector3f(0.9f));
 			}
 
 		}
