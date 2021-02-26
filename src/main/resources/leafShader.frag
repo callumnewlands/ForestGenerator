@@ -5,6 +5,7 @@ in vec3 normal;
 in mat3 TBN;
 in vec2 textureCoord;
 
+uniform float ambientStrength;
 uniform vec3 modelColour;
 uniform vec3 lightPos;
 uniform vec3 viewPos;
@@ -43,9 +44,6 @@ float F(float n, float c)
     return (0.5f) * (pow((g - c), 2) / pow((g + c), 2)) * (1 + pow((c * (g + c) - 1), 2) / pow((c * (g - c) + 1), 2));
 }
 
-// TODO the issues might be to be with the conversions between tangent space and world space.
-//  Try rendering just back or just front
-
 void main() {
     vec4 front = texture(leaf_front, textureCoord);
     if (front.a < 0.01) {
@@ -58,7 +56,6 @@ void main() {
     vec3 normalDir = normalize(normal);
 
     // ambient
-    float ambientStrength = 0.5f;
     vec3 ambient = ambientStrength * lightColour;
 
     vec4 col;
@@ -86,17 +83,15 @@ void main() {
         float specular = (rough / dot(norm, lightDir)) * max(0, (G(norm, halfwayDir, viewDir, lightDir) / dot(norm, viewDir)) * fresnel/3.14);
 
         vec4 front_t = texture(leaf_transl_front, textureCoord);
-        col.xyz = (front.xyz*(max(0, diff)+ambient)+ front_t.xyz*(max(0, diff_t))) * lightColour;// + specular;
+        col.xyz = (front.xyz*(max(0, diff)+ambient)+ front_t.xyz*(max(0, diff_t))) * lightColour;// TODO + specular;
         col.w = front.w;
-
-        //        col.xyz = vec3(diff);
     } else {
         vec3 mapNormal = (texture(leaf_TSNM_back, textureCoord).rgb * 2.0 - 1.0);
         vec3 norm = normalize(TBN * mapNormal);// TBN maps from tangent space to world space
         norm.x = -norm.x;
         norm.y = -norm.y;
 
-        float diff = max(dot(norm, lightDir), 0.0f);
+        float diff = max(dot(norm, -lightDir), 0.0f);
         vec3 mapHalflife = normalize(TBN * texture(leaf_TSHLM_back_t, textureCoord).rgb);
 
         float diff_t = dot(lightDir, TBN * vec3(-SQRT6, -SQRT2, -SQRT3)) * mapHalflife.x +
@@ -106,10 +101,7 @@ void main() {
         vec4 back = texture(leaf_back, textureCoord);
         vec4 back_t = texture(leaf_transl_back, textureCoord);
         col.xyz = (back.xyz*(max(0, diff)+ambient) + back_t.xyz*(max(0, diff_t))) * lightColour;
-        //        col.xyz = back_t.xyz*(max(0, diff_t));
         col.w = back.w;
-
-        //        col.xyz = vec3(diff);
     }
     fragColour = col;
 }

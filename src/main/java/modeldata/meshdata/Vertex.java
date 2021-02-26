@@ -17,10 +17,14 @@ public class Vertex {
 		this.position = position;
 	}
 
-
 	public Vertex(Vector3f position, Vector3f normal) {
 		this.position = position;
 		this.normal = normal;
+	}
+
+	public Vertex(Vector3f position, Vector2f texCoord) {
+		this.position = position;
+		this.texCoord = texCoord;
 	}
 
 	public Vertex(Vector3f position, Vector3f normal, Vector2f texCoord) {

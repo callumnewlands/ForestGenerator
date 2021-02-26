@@ -3,7 +3,6 @@ package modeldata.meshdata;
 import java.io.IOException;
 import java.util.List;
 
-import static org.lwjgl.opengl.GL11.GL_RGBA;
 import static org.lwjgl.opengl.GL11.GL_UNSIGNED_BYTE;
 import static org.lwjgl.opengl.GL11.glBindTexture;
 import static org.lwjgl.opengl.GL11.glTexParameteri;
@@ -18,6 +17,7 @@ import static org.lwjgl.opengl.GL12C.GL_TEXTURE_WRAP_R;
 import static org.lwjgl.opengl.GL13C.GL_TEXTURE_CUBE_MAP;
 import static org.lwjgl.opengl.GL13C.GL_TEXTURE_CUBE_MAP_POSITIVE_X;
 import static org.lwjgl.opengl.GL13C.glActiveTexture;
+import static org.lwjgl.opengl.GL21C.GL_SRGB_ALPHA;
 
 import org.joml.Vector3f;
 
@@ -25,12 +25,11 @@ public class CubemapTexture extends Texture {
 
 	public CubemapTexture(List<String> paths, Vector3f colour, int textureUnit) {
 		super(colour, textureUnit, GL_LINEAR);
-		// TODO load faces
 		for (int i = 0; i < paths.size(); i++) {
 			String path = paths.get(i);
 			try {
 				LoadedImage image = loadTextureFromFile(path, false);
-				glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGBA, image.width, image.height,
+				glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_SRGB_ALPHA, image.width, image.height,
 						0, image.format, GL_UNSIGNED_BYTE, image.imageData);
 			} catch (IOException e) {
 				e.printStackTrace();

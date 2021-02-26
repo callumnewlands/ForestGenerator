@@ -13,6 +13,7 @@ public final class ShaderPrograms {
 	public static ShaderProgram skyboxShaderProgram;
 	public static ShaderProgram instancedLeafShaderProgram;
 	public static ShaderProgram leafShaderProgram;
+	public static ShaderProgram hdrShaderProgram;
 
 	// TODO separate ShaderPrograms for differen meshes (e.g. billboard trunks and leaves) - maybe do sim. to textures
 
@@ -27,6 +28,7 @@ public final class ShaderPrograms {
 			skyboxShaderProgram = new ShaderProgram("/skyboxShader.vert", "/skyboxShader.frag");
 			instancedLeafShaderProgram = new ShaderProgram("/instTextureShader.vert", "/leafShader.frag");
 			leafShaderProgram = new ShaderProgram("/textureShader.vert", "/leafShader.frag");
+			hdrShaderProgram = new ShaderProgram("/hdr.vert", "/hdr.frag");
 		} catch (IOException e) {
 			throw new RuntimeException("Unable to load 1 or more shader programs");
 		}
@@ -42,6 +44,7 @@ public final class ShaderPrograms {
 		function.accept(skyboxShaderProgram);
 		function.accept(instancedLeafShaderProgram);
 		function.accept(leafShaderProgram);
+		function.accept(hdrShaderProgram);
 	}
 
 	private ShaderPrograms() {

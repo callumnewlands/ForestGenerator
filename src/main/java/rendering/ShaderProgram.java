@@ -21,6 +21,7 @@ import static org.lwjgl.opengl.GL20C.glGetShaderi;
 import static org.lwjgl.opengl.GL20C.glGetUniformLocation;
 import static org.lwjgl.opengl.GL20C.glLinkProgram;
 import static org.lwjgl.opengl.GL20C.glShaderSource;
+import static org.lwjgl.opengl.GL20C.glUniform1f;
 import static org.lwjgl.opengl.GL20C.glUniform1i;
 import static org.lwjgl.opengl.GL20C.glUniform3f;
 import static org.lwjgl.opengl.GL20C.glUniformMatrix3fv;
@@ -109,5 +110,17 @@ public class ShaderProgram {
 		this.use();
 		int location = glGetUniformLocation(this.handle, name);
 		glUniform1i(location, value);
+	}
+
+	public void setUniform(String name, boolean value) {
+		this.use();
+		int location = glGetUniformLocation(this.handle, name);
+		glUniform1i(location, value ? 1 : 0);
+	}
+
+	public void setUniform(String name, float value) {
+		this.use();
+		int location = glGetUniformLocation(this.handle, name);
+		glUniform1f(location, value);
 	}
 }

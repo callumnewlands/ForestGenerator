@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 
 import static org.lwjgl.opengl.GL11.GL_LINEAR;
-import static org.lwjgl.opengl.GL11.GL_RGBA;
 import static org.lwjgl.opengl.GL11.GL_TEXTURE_2D;
 import static org.lwjgl.opengl.GL11.GL_TEXTURE_MIN_FILTER;
 import static org.lwjgl.opengl.GL11.GL_UNSIGNED_BYTE;
@@ -17,6 +16,7 @@ import static org.lwjgl.opengl.GL11C.GL_TEXTURE_WRAP_S;
 import static org.lwjgl.opengl.GL11C.GL_TEXTURE_WRAP_T;
 import static org.lwjgl.opengl.GL11C.glTexImage2D;
 import static org.lwjgl.opengl.GL13C.glActiveTexture;
+import static org.lwjgl.opengl.GL21C.GL_SRGB_ALPHA;
 import static org.lwjgl.opengl.GL30C.glGenerateMipmap;
 
 import org.joml.Vector3f;
@@ -25,15 +25,11 @@ import org.lwjgl.BufferUtils;
 public class Texture2D extends Texture {
 
 
-	public Texture2D(final String path, final Vector3f colour, final int textureUnit) {
-		this(path, colour, textureUnit, GL_REPEAT);
-	}
-
-	public Texture2D(final String path, final Vector3f colour, final int textureUnit, final int textureWrap) {
+	public Texture2D(final String path, final Vector3f colour, final int textureUnit, final int internalFormat, final int textureWrap) {
 		super(colour, textureUnit, textureWrap);
 		try {
 			LoadedImage image = loadTextureFromFile(path);
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image.width, image.height, 0, image.format,
+			glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, image.width, image.height, 0, image.format,
 					GL_UNSIGNED_BYTE, image.imageData);
 			glGenerateMipmap(GL_TEXTURE_2D);
 		} catch (IOException e) {
@@ -53,7 +49,7 @@ public class Texture2D extends Texture {
 			}
 		}
 		image.flip();
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_SRGB_ALPHA, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
 		glGenerateMipmap(GL_TEXTURE_2D);
 	}
 

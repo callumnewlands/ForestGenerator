@@ -4,6 +4,7 @@ in vec3 worldPos;
 in mat3 TBN;
 in vec2 textureCoord;
 
+uniform float ambientStrength;
 uniform vec3 modelColour;
 uniform vec3 lightPos;
 uniform vec3 viewPos;
@@ -16,7 +17,6 @@ out vec4 fragColour;
 void main() {
 
     // ambient
-    float ambientStrength = 0.5f;
     vec3 ambient = ambientStrength * lightColour;
 
     // diffuse
@@ -28,7 +28,7 @@ void main() {
 
     vec4 vertexCol = texture(diffuseTexture, textureCoord);
     vec3 viewDir = normalize(viewPos - worldPos);
-    float alpha = pow(abs(dot(viewDir, norm)), 2);
+    float alpha = pow(abs(dot(viewDir, norm)), 1.2);
     if (vertexCol.a < 0.01 || alpha < 0.01) {
         discard;
     }

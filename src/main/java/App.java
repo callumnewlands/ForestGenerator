@@ -1,4 +1,3 @@
-import java.io.IOException;
 import java.util.Objects;
 
 import static org.lwjgl.glfw.Callbacks.glfwFreeCallbacks;
@@ -38,6 +37,7 @@ import static org.lwjgl.glfw.GLFW.glfwPollEvents;
 import static org.lwjgl.glfw.GLFW.glfwSetCursorPos;
 import static org.lwjgl.glfw.GLFW.glfwSetCursorPosCallback;
 import static org.lwjgl.glfw.GLFW.glfwSetErrorCallback;
+import static org.lwjgl.glfw.GLFW.glfwSetFramebufferSizeCallback;
 import static org.lwjgl.glfw.GLFW.glfwSetInputMode;
 import static org.lwjgl.glfw.GLFW.glfwSetKeyCallback;
 import static org.lwjgl.glfw.GLFW.glfwSetWindowShouldClose;
@@ -51,25 +51,45 @@ import static org.lwjgl.opengl.GL11.GL_COLOR_BUFFER_BIT;
 import static org.lwjgl.opengl.GL11.GL_DEPTH_BUFFER_BIT;
 import static org.lwjgl.opengl.GL11.GL_DEPTH_TEST;
 import static org.lwjgl.opengl.GL11.GL_FILL;
+import static org.lwjgl.opengl.GL11.GL_LINEAR;
+import static org.lwjgl.opengl.GL11.GL_RGBA;
+import static org.lwjgl.opengl.GL11.GL_TEXTURE_2D;
+import static org.lwjgl.opengl.GL11.GL_TEXTURE_MIN_FILTER;
+import static org.lwjgl.opengl.GL11.glBindTexture;
 import static org.lwjgl.opengl.GL11.glClear;
 import static org.lwjgl.opengl.GL11.glClearColor;
-import static org.lwjgl.opengl.GL11.glDisable;
 import static org.lwjgl.opengl.GL11.glEnable;
-import static org.lwjgl.opengl.GL11C.GL_BLEND;
+import static org.lwjgl.opengl.GL11.glGenTextures;
+import static org.lwjgl.opengl.GL11.glTexParameteri;
+import static org.lwjgl.opengl.GL11C.GL_DEPTH_COMPONENT;
+import static org.lwjgl.opengl.GL11C.GL_FLOAT;
 import static org.lwjgl.opengl.GL11C.GL_FRONT_AND_BACK;
 import static org.lwjgl.opengl.GL11C.GL_LINE;
-import static org.lwjgl.opengl.GL11C.GL_ONE_MINUS_SRC_ALPHA;
-import static org.lwjgl.opengl.GL11C.GL_SRC_ALPHA;
+import static org.lwjgl.opengl.GL11C.GL_TEXTURE_MAG_FILTER;
 import static org.lwjgl.opengl.GL11C.GL_VERSION;
-import static org.lwjgl.opengl.GL11C.glBlendFunc;
 import static org.lwjgl.opengl.GL11C.glGetString;
 import static org.lwjgl.opengl.GL11C.glPolygonMode;
+import static org.lwjgl.opengl.GL11C.glTexImage2D;
 import static org.lwjgl.opengl.GL13C.GL_MULTISAMPLE;
-import static org.lwjgl.opengl.GL13C.GL_SAMPLE_ALPHA_TO_COVERAGE;
-import static org.lwjgl.opengl.GL13C.GL_SAMPLE_ALPHA_TO_ONE;
-import static org.lwjgl.opengl.GL30.GL_FRAMEBUFFER_SRGB;
+import static org.lwjgl.opengl.GL13C.GL_TEXTURE0;
+import static org.lwjgl.opengl.GL13C.glActiveTexture;
+import static org.lwjgl.opengl.GL30.GL_COLOR_ATTACHMENT0;
+import static org.lwjgl.opengl.GL30.GL_DEPTH_ATTACHMENT;
+import static org.lwjgl.opengl.GL30.GL_FRAMEBUFFER;
+import static org.lwjgl.opengl.GL30.GL_FRAMEBUFFER_COMPLETE;
+import static org.lwjgl.opengl.GL30.GL_RENDERBUFFER;
+import static org.lwjgl.opengl.GL30.GL_RGBA16F;
+import static org.lwjgl.opengl.GL30.glBindFramebuffer;
+import static org.lwjgl.opengl.GL30.glBindRenderbuffer;
+import static org.lwjgl.opengl.GL30.glCheckFramebufferStatus;
+import static org.lwjgl.opengl.GL30.glFramebufferRenderbuffer;
+import static org.lwjgl.opengl.GL30.glFramebufferTexture2D;
+import static org.lwjgl.opengl.GL30.glGenFramebuffers;
+import static org.lwjgl.opengl.GL30.glGenRenderbuffers;
+import static org.lwjgl.opengl.GL30.glRenderbufferStorage;
 import static org.lwjgl.system.MemoryUtil.NULL;
 import static rendering.ShaderPrograms.billboardShaderProgram;
+import static rendering.ShaderPrograms.hdrShaderProgram;
 import static rendering.ShaderPrograms.instancedLeafShaderProgram;
 import static rendering.ShaderPrograms.leafShaderProgram;
 import static rendering.ShaderPrograms.skyboxShaderProgram;
@@ -86,6 +106,7 @@ import org.lwjgl.opengl.GL;
 import rendering.Camera;
 import rendering.ShaderPrograms;
 import rendering.Textures;
+import sceneobjects.Quad;
 import sceneobjects.Skybox;
 
 public class App {
@@ -93,14 +114,14 @@ public class App {
 	public static final float GROUND_WIDTH = TerrainQuadtree.GROUND_WIDTH;
 	private static final int MAJOR_VERSION = 4;
 	private static final int MINOR_VERSION = 6;
-	private static final String VERTEX_SHADER_PATH = "/shader.vert";
-	private static final String FRAGMENT_SHADER_PATH = "/shader.frag";
 
 	private float sunStrength = 1f;
 	private int WINDOW_WIDTH;
 	private int WINDOW_HEIGHT;
 
 	private long window;
+	private int hdrFrameBuffer;
+	private int colourBuffer;
 	private Camera camera;
 	private Boolean useNormalMapping = true;
 
@@ -115,11 +136,11 @@ public class App {
 	private float lastY;
 	private Matrix4f projection;
 
-	public static void main(String[] args) throws IOException {
+	public static void main(String[] args) {
 		new App().run();
 	}
 
-	public void run() throws IOException {
+	public void run() {
 		System.out.println("Running LWJGL " + Version.getVersion());
 
 		init();
@@ -134,7 +155,7 @@ public class App {
 		Objects.requireNonNull(glfwSetErrorCallback(null)).free();
 	}
 
-	private void init() throws IOException {
+	private void init() {
 		GLFWErrorCallback.createPrint(System.err).set();
 		if (!glfwInit()) {
 			throw new IllegalStateException("Unable to initialize GLFW");
@@ -146,10 +167,10 @@ public class App {
 
 		glEnable(GL_DEPTH_TEST);
 		glEnable(GL_MULTISAMPLE);
-		glEnable(GL_BLEND);
-		glEnable(GL_SAMPLE_ALPHA_TO_COVERAGE);
-		glEnable(GL_SAMPLE_ALPHA_TO_ONE);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+//		glEnable(GL_BLEND);
+//		glEnable(GL_SAMPLE_ALPHA_TO_COVERAGE);
+//		glEnable(GL_SAMPLE_ALPHA_TO_ONE);
+//		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 		initShaders();
 		initScene();
@@ -183,7 +204,7 @@ public class App {
 		return window;
 	}
 
-	private void initShaders() throws IOException {
+	private void initShaders() {
 		final Vector3f cameraPosition = new Vector3f(0, 3.30f, 0);
 		final float cameraYaw = -90.0f;
 		final float cameraPitch = 0.0f;
@@ -205,12 +226,38 @@ public class App {
 		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 		glfwSetCursorPos(window, lastX, lastY);
 
+		glfwSetFramebufferSizeCallback(window, (window, height, width) -> {
+			WINDOW_WIDTH = width;
+			WINDOW_HEIGHT = height;
+		});
+
 		final float perspectiveAngle = (float) Math.toRadians(45.0f);
 		final float nearPlane = 0.1f;
 		final float farPlane = 300.0f;
 		projection = new Matrix4f()
 				.perspective(perspectiveAngle, (float) WINDOW_WIDTH / WINDOW_HEIGHT, nearPlane, farPlane);
 		ShaderPrograms.forAll(sp -> sp.setUniform("projection", projection));
+
+		hdrFrameBuffer = glGenFramebuffers();
+		colourBuffer = glGenTextures();
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, colourBuffer);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, WINDOW_WIDTH, WINDOW_HEIGHT, 0, GL_RGBA, GL_FLOAT, NULL);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+		int renderBuffer = glGenRenderbuffers();
+		glBindRenderbuffer(GL_RENDERBUFFER, renderBuffer);
+		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, WINDOW_WIDTH, WINDOW_HEIGHT);
+		// attach buffers
+		glBindFramebuffer(GL_FRAMEBUFFER, hdrFrameBuffer);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, colourBuffer, 0);
+		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, renderBuffer);
+		if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+			System.err.println("Framebuffer not complete");
+		}
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
 		initLighting();
 	}
 
@@ -236,6 +283,7 @@ public class App {
 
 		ShaderPrograms.forAll(sp -> sp.setUniform("lightPos", lightPos));
 		ShaderPrograms.forAll(sp -> sp.setUniform("lightColour", lightCol));
+		ShaderPrograms.forAll(sp -> sp.setUniform("ambientStrength", 0.15f));
 	}
 
 	private void loop() {
@@ -244,7 +292,18 @@ public class App {
 			stepper += deltaTime / 10;
 			stepper -= (int) stepper;
 //			System.out.println(1 / deltaTime + " fps");
+
+			glBindFramebuffer(GL_FRAMEBUFFER, hdrFrameBuffer);
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 			renderScene();
+			glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+			hdrShaderProgram.setUniform("hdrBuffer", 0);
+			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_2D, colourBuffer);
+			(new Quad()).render();
+
 			glfwSwapBuffers(window);
 			pollKeys();
 			glfwPollEvents();
@@ -257,6 +316,9 @@ public class App {
 		billboardShaderProgram.setUniform("viewPos", camera.getPosition());
 		leafShaderProgram.setUniform("viewPos", camera.getPosition());
 		instancedLeafShaderProgram.setUniform("viewPos", camera.getPosition());
+
+//		sunStrength = (float)Math.sin(stepper * Math.PI * 2);
+//		ShaderPrograms.forAll(sp -> sp.setUniform("lightColour", new Vector3f(sunStrength)));
 
 		quadtree.render(useNormalMapping, camera.getViewMatrix().mulLocal(projection));
 
@@ -310,11 +372,10 @@ public class App {
 			useNormalMapping = true;
 		}
 		if (glfwGetKey(window, GLFW_KEY_3) == GLFW_PRESS) {
-			// TODO investigate gamma correction and washed out
-			glEnable(GL_FRAMEBUFFER_SRGB);
+			hdrShaderProgram.setUniform("hdrEnabled", true);
 		}
 		if (glfwGetKey(window, GLFW_KEY_3) == GLFW_RELEASE) {
-			glDisable(GL_FRAMEBUFFER_SRGB);
+			hdrShaderProgram.setUniform("hdrEnabled", false);
 		}
 	}
 

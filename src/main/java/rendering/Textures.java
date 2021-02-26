@@ -4,6 +4,9 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static org.lwjgl.opengl.GL11.GL_CLAMP;
+import static org.lwjgl.opengl.GL11C.GL_REPEAT;
+import static org.lwjgl.opengl.GL11C.GL_RGBA;
+import static org.lwjgl.opengl.GL21C.GL_SRGB_ALPHA;
 
 import modeldata.meshdata.CubemapTexture;
 import modeldata.meshdata.Texture2D;
@@ -15,44 +18,57 @@ public final class Textures {
 			ShaderProgram.RESOURCES_PATH + "/textures/Leaf2_front_rotated.tga",
 			new Vector3f(0.1f, 0.3f, 0.1f),
 			0,
+			GL_SRGB_ALPHA,
 			GL_CLAMP);
 
 	public static Texture2D leafNormal = new Texture2D(
 			ShaderProgram.RESOURCES_PATH + "/textures/Leaf2_normals_front_rotated.tga",
 			new Vector3f(0.1f, 0.3f, 0.1f),
 			1,
+			GL_RGBA,
 			GL_CLAMP);
 
 	public static Texture2D bark = new Texture2D(
 			ShaderProgram.RESOURCES_PATH + "/textures/Bark_Pine_baseColor.jpg",
 			new Vector3f(0.34f, 0.17f, 0.07f),
-			2);
+			2,
+			GL_SRGB_ALPHA,
+			GL_REPEAT);
 
 	public static Texture2D ground = new Texture2D(
 			ShaderProgram.RESOURCES_PATH + "/textures/floor2.png",
 			new Vector3f(0.34f, 0.17f, 0.07f),
-			3);
+			3,
+			GL_SRGB_ALPHA,
+			GL_REPEAT);
 
 	public static Texture2D barkNormal = new Texture2D(
 			ShaderProgram.RESOURCES_PATH + "/textures/Bark_Pine_normal.jpg",
 			new Vector3f(0.34f, 0.17f, 0.07f),
-			4);
+			4,
+			GL_RGBA,
+			GL_REPEAT);
 
 	public static Texture2D grass = new Texture2D(
 			ShaderProgram.RESOURCES_PATH + "/textures/grass.png",
 			new Vector3f(0.1f, 0.3f, 0.1f),
 			5,
+			GL_SRGB_ALPHA,
 			GL_CLAMP);
 
 	public static Texture2D rock = new Texture2D(
 			ShaderProgram.RESOURCES_PATH + "/textures/Mossy_rock_01_2K_Base_Color.png",
 			new Vector3f(0.3f, 0.3f, 0.3f),
-			6);
+			6,
+			GL_SRGB_ALPHA,
+			GL_REPEAT);
 
 	public static Texture2D rockNormal = new Texture2D(
 			ShaderProgram.RESOURCES_PATH + "/textures/Mossy_rock_01_2K_Normal.png",
 			new Vector3f(0.3f, 0.3f, 0.3f),
-			7);
+			7,
+			GL_RGBA,
+			GL_REPEAT);
 
 	public static CubemapTexture skybox = new CubemapTexture(
 			List.of("right.jpg",
@@ -92,41 +108,49 @@ public final class Textures {
 			ShaderProgram.RESOURCES_PATH + "/textures/Leaf2/Leaf2_front.tga",
 			new Vector3f(0.1f, 0.3f, 0.1f),
 			9,
+			GL_SRGB_ALPHA,
 			GL_CLAMP);
 	public static Texture2D leafFrontT = new Texture2D(
 			ShaderProgram.RESOURCES_PATH + "/textures/Leaf2/Leaf2_front_t.tga",
 			new Vector3f(0.1f, 0.3f, 0.1f),
 			10,
+			GL_SRGB_ALPHA,
 			GL_CLAMP);
 	public static Texture2D leafBack = new Texture2D(
 			ShaderProgram.RESOURCES_PATH + "/textures/Leaf2/Leaf2_back.tga",
 			new Vector3f(0.1f, 0.3f, 0.1f),
 			11,
+			GL_SRGB_ALPHA,
 			GL_CLAMP);
 	public static Texture2D leafBackT = new Texture2D(
 			ShaderProgram.RESOURCES_PATH + "/textures/Leaf2/Leaf2_back_T.tga",
 			new Vector3f(0.1f, 0.3f, 0.1f),
 			12,
+			GL_SRGB_ALPHA,
 			GL_CLAMP);
 	public static Texture2D leafFrontHL = new Texture2D(
 			ShaderProgram.RESOURCES_PATH + "/textures/Leaf2/Leaf2_halflife_front_t.tga",
 			new Vector3f(0.1f, 0.3f, 0.1f),
 			13,
+			GL_RGBA,
 			GL_CLAMP);
 	public static Texture2D leafFrontNorm = new Texture2D(
 			ShaderProgram.RESOURCES_PATH + "/textures/Leaf2/Leaf2_normals_front.tga",
 			new Vector3f(0.1f, 0.3f, 0.1f),
 			14,
+			GL_RGBA,
 			GL_CLAMP);
 	public static Texture2D leafBackHL = new Texture2D(
 			ShaderProgram.RESOURCES_PATH + "/textures/Leaf2/Leaf2_halflife_back_t.tga",
 			new Vector3f(0.1f, 0.3f, 0.1f),
 			15,
+			GL_RGBA,
 			GL_CLAMP);
 	public static Texture2D leafBackNorm = new Texture2D(
 			ShaderProgram.RESOURCES_PATH + "/textures/Leaf2/Leaf2_normals_back.tga",
 			new Vector3f(0.1f, 0.3f, 0.1f),
 			16,
+			GL_RGBA,
 			GL_CLAMP);
 
 	private Textures() {

@@ -7,6 +7,7 @@ in vec2 textureCoord;
 
 uniform vec3 modelColour;
 uniform vec3 lightPos;
+uniform float ambientStrength;
 uniform vec3 lightColour;
 uniform sampler2D diffuseTexture;
 
@@ -20,7 +21,6 @@ void main()
         discard;
     }
     // ambient
-    float ambientStrength = 0.5f;
     vec3 ambient = ambientStrength * lightColour;
 
     // diffuse

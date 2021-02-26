@@ -3,6 +3,7 @@ in vec3 position;
 in vec3 worldPos;
 in vec3 normal;
 
+uniform float ambientStrength;
 uniform vec3 modelColour;
 uniform vec3 lightPos;
 uniform vec3 lightColour;
@@ -13,7 +14,6 @@ void main()
 {
 
     // ambient
-    float ambientStrength = 0.5f;
     vec3 ambient = ambientStrength * lightColour;
 
     // diffuse
