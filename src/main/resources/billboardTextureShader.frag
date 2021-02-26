@@ -1,6 +1,7 @@
 #version 330 core
 in vec3 position;
 in vec3 worldPos;
+in vec3 normal;
 in mat3 TBN;
 in vec2 textureCoord;
 
@@ -26,9 +27,10 @@ void main() {
     float diff = max(dot(norm, lightDir), 0.0f);
     vec3 diffuse = diff * lightColour;
 
+    // TODO - this in the gBufferLighting.frag shader - probably need forward shading
     vec4 vertexCol = texture(diffuseTexture, textureCoord);
     vec3 viewDir = normalize(viewPos - worldPos);
-    float alpha = pow(abs(dot(viewDir, norm)), 1.2);
+    float alpha = pow(abs(dot(viewDir, normalize(normal))), 1.2);
     if (vertexCol.a < 0.01 || alpha < 0.01) {
         discard;
     }

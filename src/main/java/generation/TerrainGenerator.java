@@ -3,6 +3,9 @@ package generation;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.IntStream;
+
+import static utils.MathsUtils.lerp;
+
 import modeldata.meshdata.Mesh;
 import modeldata.meshdata.Texture2D;
 import modeldata.meshdata.Vertex;
@@ -24,13 +27,6 @@ public class TerrainGenerator {
 
 	public TerrainGenerator() {
 		noiseGenerator = new PerlinNoiseGenerator(0);
-	}
-
-	/**
-	 * Linear interpolation between x0 and x1 with factor p (in [0, 1])
-	 */
-	private float lerp(float x0, float x1, float p) {
-		return x0 + p * (x1 - x0);
 	}
 
 	private float round(float f) {

@@ -1,4 +1,8 @@
+import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
+import java.util.Random;
 
 import static org.lwjgl.glfw.Callbacks.glfwFreeCallbacks;
 import static org.lwjgl.glfw.GLFW.GLFW_CONTEXT_VERSION_MAJOR;
@@ -9,6 +13,7 @@ import static org.lwjgl.glfw.GLFW.GLFW_FALSE;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_1;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_2;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_3;
+import static org.lwjgl.glfw.GLFW.GLFW_KEY_4;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_A;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_D;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE;
@@ -32,7 +37,6 @@ import static org.lwjgl.glfw.GLFW.glfwGetTime;
 import static org.lwjgl.glfw.GLFW.glfwGetVideoMode;
 import static org.lwjgl.glfw.GLFW.glfwInit;
 import static org.lwjgl.glfw.GLFW.glfwMakeContextCurrent;
-import static org.lwjgl.glfw.GLFW.glfwMaximizeWindow;
 import static org.lwjgl.glfw.GLFW.glfwPollEvents;
 import static org.lwjgl.glfw.GLFW.glfwSetCursorPos;
 import static org.lwjgl.glfw.GLFW.glfwSetCursorPosCallback;
@@ -51,10 +55,11 @@ import static org.lwjgl.opengl.GL11.GL_COLOR_BUFFER_BIT;
 import static org.lwjgl.opengl.GL11.GL_DEPTH_BUFFER_BIT;
 import static org.lwjgl.opengl.GL11.GL_DEPTH_TEST;
 import static org.lwjgl.opengl.GL11.GL_FILL;
-import static org.lwjgl.opengl.GL11.GL_LINEAR;
+import static org.lwjgl.opengl.GL11.GL_NEAREST;
 import static org.lwjgl.opengl.GL11.GL_RGBA;
 import static org.lwjgl.opengl.GL11.GL_TEXTURE_2D;
 import static org.lwjgl.opengl.GL11.GL_TEXTURE_MIN_FILTER;
+import static org.lwjgl.opengl.GL11.GL_UNSIGNED_BYTE;
 import static org.lwjgl.opengl.GL11.glBindTexture;
 import static org.lwjgl.opengl.GL11.glClear;
 import static org.lwjgl.opengl.GL11.glClearColor;
@@ -65,20 +70,33 @@ import static org.lwjgl.opengl.GL11C.GL_DEPTH_COMPONENT;
 import static org.lwjgl.opengl.GL11C.GL_FLOAT;
 import static org.lwjgl.opengl.GL11C.GL_FRONT_AND_BACK;
 import static org.lwjgl.opengl.GL11C.GL_LINE;
+import static org.lwjgl.opengl.GL11C.GL_RED;
+import static org.lwjgl.opengl.GL11C.GL_REPEAT;
+import static org.lwjgl.opengl.GL11C.GL_RGB;
 import static org.lwjgl.opengl.GL11C.GL_TEXTURE_MAG_FILTER;
+import static org.lwjgl.opengl.GL11C.GL_TEXTURE_WRAP_S;
+import static org.lwjgl.opengl.GL11C.GL_TEXTURE_WRAP_T;
 import static org.lwjgl.opengl.GL11C.GL_VERSION;
 import static org.lwjgl.opengl.GL11C.glGetString;
 import static org.lwjgl.opengl.GL11C.glPolygonMode;
 import static org.lwjgl.opengl.GL11C.glTexImage2D;
+import static org.lwjgl.opengl.GL12C.GL_CLAMP_TO_EDGE;
+import static org.lwjgl.opengl.GL13.GL_TEXTURE1;
+import static org.lwjgl.opengl.GL13.GL_TEXTURE2;
 import static org.lwjgl.opengl.GL13C.GL_MULTISAMPLE;
 import static org.lwjgl.opengl.GL13C.GL_TEXTURE0;
+import static org.lwjgl.opengl.GL13C.GL_TEXTURE3;
 import static org.lwjgl.opengl.GL13C.glActiveTexture;
+import static org.lwjgl.opengl.GL20C.glDrawBuffers;
 import static org.lwjgl.opengl.GL30.GL_COLOR_ATTACHMENT0;
+import static org.lwjgl.opengl.GL30.GL_COLOR_ATTACHMENT1;
+import static org.lwjgl.opengl.GL30.GL_COLOR_ATTACHMENT2;
 import static org.lwjgl.opengl.GL30.GL_DEPTH_ATTACHMENT;
 import static org.lwjgl.opengl.GL30.GL_FRAMEBUFFER;
 import static org.lwjgl.opengl.GL30.GL_FRAMEBUFFER_COMPLETE;
 import static org.lwjgl.opengl.GL30.GL_RENDERBUFFER;
 import static org.lwjgl.opengl.GL30.GL_RGBA16F;
+import static org.lwjgl.opengl.GL30.GL_RGBA32F;
 import static org.lwjgl.opengl.GL30.glBindFramebuffer;
 import static org.lwjgl.opengl.GL30.glBindRenderbuffer;
 import static org.lwjgl.opengl.GL30.glCheckFramebufferStatus;
@@ -89,16 +107,19 @@ import static org.lwjgl.opengl.GL30.glGenRenderbuffers;
 import static org.lwjgl.opengl.GL30.glRenderbufferStorage;
 import static org.lwjgl.system.MemoryUtil.NULL;
 import static rendering.ShaderPrograms.billboardShaderProgram;
-import static rendering.ShaderPrograms.hdrShaderProgram;
 import static rendering.ShaderPrograms.instancedLeafShaderProgram;
-import static rendering.ShaderPrograms.leafShaderProgram;
+import static rendering.ShaderPrograms.lightingPassShader;
 import static rendering.ShaderPrograms.skyboxShaderProgram;
+import static rendering.ShaderPrograms.ssaoBlurShader;
+import static rendering.ShaderPrograms.ssaoShader;
+import static utils.MathsUtils.lerp;
 
 import generation.TerrainQuadtree;
 import org.joml.Matrix3f;
 import org.joml.Matrix4f;
 import org.joml.Vector2f;
 import org.joml.Vector3f;
+import org.lwjgl.BufferUtils;
 import org.lwjgl.Version;
 import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.glfw.GLFWVidMode;
@@ -116,14 +137,19 @@ public class App {
 	private static final int MINOR_VERSION = 6;
 
 	private float sunStrength = 1f;
+	private static final int SSAO_KERNEL_SIZE = 32;
 	private int WINDOW_WIDTH;
 	private int WINDOW_HEIGHT;
 
 	private long window;
-	private int hdrFrameBuffer;
-	private int colourBuffer;
+	private int gBuffer, ssaoBuffer, ssaoBlurBuffer;
+	private int gNormal, gAlbedoSpecular, gPosition;
+	private int ssaoColorBuffer, ssaoColorBufferBlur;
+	private int ssaoNoiseTexture;
 	private Camera camera;
 	private Boolean useNormalMapping = true;
+
+	private List<Vector3f> ssaoKernel;
 
 	private TerrainQuadtree quadtree;
 	private Skybox skybox;
@@ -167,6 +193,7 @@ public class App {
 
 		glEnable(GL_DEPTH_TEST);
 		glEnable(GL_MULTISAMPLE);
+		// TODO reincorporate this using combined forward and deferred shading
 //		glEnable(GL_BLEND);
 //		glEnable(GL_SAMPLE_ALPHA_TO_COVERAGE);
 //		glEnable(GL_SAMPLE_ALPHA_TO_ONE);
@@ -190,14 +217,12 @@ public class App {
 		if (videoMode == null) {
 			throw new RuntimeException("Failed to get primary monitor");
 		}
-		WINDOW_WIDTH = videoMode.width();
-		WINDOW_HEIGHT = videoMode.height();
+		WINDOW_WIDTH = videoMode.width() - 100;
+		WINDOW_HEIGHT = videoMode.height() - 100;
 		long window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Forest Simulator 2021", NULL, NULL);
 		if (window == NULL) {
 			throw new RuntimeException("Failed to create the GLFW window");
 		}
-
-		glfwMaximizeWindow(window);
 
 		glfwMakeContextCurrent(window);
 		glfwSwapInterval(1);
@@ -227,6 +252,7 @@ public class App {
 		glfwSetCursorPos(window, lastX, lastY);
 
 		glfwSetFramebufferSizeCallback(window, (window, height, width) -> {
+			System.out.printf("Framebuffer size callback: width = %d, height = %d%n", width, height);
 			WINDOW_WIDTH = width;
 			WINDOW_HEIGHT = height;
 		});
@@ -238,23 +264,71 @@ public class App {
 				.perspective(perspectiveAngle, (float) WINDOW_WIDTH / WINDOW_HEIGHT, nearPlane, farPlane);
 		ShaderPrograms.forAll(sp -> sp.setUniform("projection", projection));
 
-		hdrFrameBuffer = glGenFramebuffers();
-		colourBuffer = glGenTextures();
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, colourBuffer);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, WINDOW_WIDTH, WINDOW_HEIGHT, 0, GL_RGBA, GL_FLOAT, NULL);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		gBuffer = glGenFramebuffers();
+		glBindFramebuffer(GL_FRAMEBUFFER, gBuffer);
 
-		int renderBuffer = glGenRenderbuffers();
-		glBindRenderbuffer(GL_RENDERBUFFER, renderBuffer);
+		gPosition = glGenTextures();
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, gPosition);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, WINDOW_WIDTH, WINDOW_HEIGHT, 0, GL_RGBA, GL_FLOAT, NULL);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, gPosition, 0);
+
+		gNormal = glGenTextures();
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, gNormal);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, WINDOW_WIDTH, WINDOW_HEIGHT, 0, GL_RGBA, GL_FLOAT, NULL);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, gNormal, 0);
+
+		gAlbedoSpecular = glGenTextures();
+		glActiveTexture(GL_TEXTURE2);
+		glBindTexture(GL_TEXTURE_2D, gAlbedoSpecular);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, WINDOW_WIDTH, WINDOW_HEIGHT, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, gAlbedoSpecular, 0);
+
+		glDrawBuffers(new int[] {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2});
+
+		int gRenderBuffer = glGenRenderbuffers();
+		glBindRenderbuffer(GL_RENDERBUFFER, gRenderBuffer);
 		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, WINDOW_WIDTH, WINDOW_HEIGHT);
-		// attach buffers
-		glBindFramebuffer(GL_FRAMEBUFFER, hdrFrameBuffer);
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, colourBuffer, 0);
-		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, renderBuffer);
+		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, gRenderBuffer);
 		if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-			System.err.println("Framebuffer not complete");
+			System.err.println("Deferred rendering framebuffer not complete");
+		}
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+		ssaoBuffer = glGenFramebuffers();
+		glBindFramebuffer(GL_FRAMEBUFFER, ssaoBuffer);
+		ssaoColorBuffer = glGenTextures();
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, ssaoColorBuffer);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, WINDOW_WIDTH, WINDOW_HEIGHT, 0, GL_RED, GL_FLOAT, NULL);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, ssaoColorBuffer, 0);
+		if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+			System.err.println("SSAO framebuffer not complete");
+		}
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+		ssaoBlurBuffer = glGenFramebuffers();
+		glBindFramebuffer(GL_FRAMEBUFFER, ssaoBlurBuffer);
+		ssaoColorBufferBlur = glGenTextures();
+		glActiveTexture(GL_TEXTURE3);
+		glBindTexture(GL_TEXTURE_2D, ssaoColorBufferBlur);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, WINDOW_WIDTH, WINDOW_HEIGHT, 0, GL_RED, GL_FLOAT, NULL);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, ssaoColorBufferBlur, 0);
+		if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+			System.err.println("SSAO blur framebuffer not complete");
 		}
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
@@ -262,11 +336,14 @@ public class App {
 	}
 
 	private void initScene() {
-		glClearColor(.529f, .808f, .922f, 0f);
+//		glClearColor(.529f, .808f, .922f, 0f);
+
+		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		skybox = new Skybox();
 
-		int QUADTREE_DEPTH = 3; // 4 causes out of heap space exception
+		int QUADTREE_DEPTH = 2; // was 3 // 4 causes out of heap space exception
 		quadtree = new TerrainQuadtree(
 				new Vector2f(0, 0),
 				GROUND_WIDTH,
@@ -284,6 +361,37 @@ public class App {
 		ShaderPrograms.forAll(sp -> sp.setUniform("lightPos", lightPos));
 		ShaderPrograms.forAll(sp -> sp.setUniform("lightColour", lightCol));
 		ShaderPrograms.forAll(sp -> sp.setUniform("ambientStrength", 0.15f));
+
+		lightingPassShader.setUniform("hdrEnabled", true);
+		lightingPassShader.setUniform("aoEnabled", true);
+
+		ssaoKernel = new ArrayList<>();
+		Random r = new Random();
+
+		for (int i = 0; i < SSAO_KERNEL_SIZE; i++) {
+			float scale = i / (float) SSAO_KERNEL_SIZE;
+			scale = lerp(0.1f, 1.0f, scale * scale);
+			Vector3f sample = new Vector3f(r.nextFloat() * 2.0f - 1.0f, r.nextFloat() * 2.0f - 1.0f, r.nextFloat())
+					.normalize()
+					.mul(r.nextFloat() * scale);
+			ssaoKernel.add(sample);
+		}
+
+		ssaoNoiseTexture = glGenTextures();
+		ByteBuffer image = BufferUtils.createByteBuffer(16 * 3);
+		for (int i = 0; i < 16; i++) {
+			image.put((byte) (r.nextFloat() * 2.0f - 1.0f));
+			image.put((byte) (r.nextFloat() * 2.0f - 1.0f));
+			image.put((byte) 0.0f);
+		}
+		image.flip();
+		glActiveTexture(GL_TEXTURE3);
+		glBindTexture(GL_TEXTURE_2D, ssaoNoiseTexture);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, 4, 4, 0, GL_RGB, GL_FLOAT, image);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 	}
 
 	private void loop() {
@@ -293,16 +401,57 @@ public class App {
 			stepper -= (int) stepper;
 //			System.out.println(1 / deltaTime + " fps");
 
-			glBindFramebuffer(GL_FRAMEBUFFER, hdrFrameBuffer);
+			// Geometry Pass
+			glBindFramebuffer(GL_FRAMEBUFFER, gBuffer);
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 			renderScene();
 			glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-			hdrShaderProgram.setUniform("hdrBuffer", 0);
+			// SSAO pass
+			glBindFramebuffer(GL_FRAMEBUFFER, ssaoBuffer);
+			glClear(GL_COLOR_BUFFER_BIT);
+			ssaoShader.setUniform("samples", ssaoKernel);
+			ssaoShader.setUniform("noiseScale", new Vector2f(WINDOW_WIDTH / 4f, WINDOW_HEIGHT / 4f));
+			ssaoShader.setUniform("kernelSize", SSAO_KERNEL_SIZE);
+			ssaoShader.setUniform("radius", 0.5f);
+			ssaoShader.setUniform("bias", 0.025f);
+			ssaoShader.setUniform("gPosition", 0);
 			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_2D, colourBuffer);
-			(new Quad()).render();
+			glBindTexture(GL_TEXTURE_2D, gPosition);
+			ssaoShader.setUniform("gNormal", 1);
+			glActiveTexture(GL_TEXTURE1);
+			glBindTexture(GL_TEXTURE_2D, gNormal);
+			ssaoShader.setUniform("texNoise", 3);
+			glActiveTexture(GL_TEXTURE3);
+			glBindTexture(GL_TEXTURE_2D, ssaoNoiseTexture);
+			(new Quad(ssaoShader)).render();
+			glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+			// SSAO blur pass
+			glBindFramebuffer(GL_FRAMEBUFFER, ssaoBlurBuffer);
+			glClear(GL_COLOR_BUFFER_BIT);
+			ssaoBlurShader.setUniform("ssaoInput", 0);
+			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_2D, ssaoColorBuffer);
+			(new Quad(ssaoBlurShader)).render();
+			glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+			// Lighting pass
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+			lightingPassShader.use();
+			lightingPassShader.setUniform("gPosition", 0);
+			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_2D, gPosition);
+			lightingPassShader.setUniform("gNormal", 1);
+			glActiveTexture(GL_TEXTURE1);
+			glBindTexture(GL_TEXTURE_2D, gNormal);
+			lightingPassShader.setUniform("gAlbedoSpec", 2);
+			glActiveTexture(GL_TEXTURE2);
+			glBindTexture(GL_TEXTURE_2D, gAlbedoSpecular);
+			lightingPassShader.setUniform("ssao", 3);
+			glActiveTexture(GL_TEXTURE3);
+			glBindTexture(GL_TEXTURE_2D, ssaoColorBufferBlur);
+			(new Quad(lightingPassShader)).render();
 
 			glfwSwapBuffers(window);
 			pollKeys();
@@ -314,7 +463,7 @@ public class App {
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		ShaderPrograms.forAll(sp -> sp.setUniform("view", camera.getViewMatrix()));
 		billboardShaderProgram.setUniform("viewPos", camera.getPosition());
-		leafShaderProgram.setUniform("viewPos", camera.getPosition());
+//		leafShaderProgram.setUniform("viewPos", camera.getPosition());
 		instancedLeafShaderProgram.setUniform("viewPos", camera.getPosition());
 
 //		sunStrength = (float)Math.sin(stepper * Math.PI * 2);
@@ -323,6 +472,7 @@ public class App {
 		quadtree.render(useNormalMapping, camera.getViewMatrix().mulLocal(projection));
 
 		skyboxShaderProgram.setUniform("view", new Matrix4f(new Matrix3f(camera.getViewMatrix())));
+		// TODO ensure skybox is being drawn correctly
 		skybox.render();
 	}
 
@@ -372,10 +522,16 @@ public class App {
 			useNormalMapping = true;
 		}
 		if (glfwGetKey(window, GLFW_KEY_3) == GLFW_PRESS) {
-			hdrShaderProgram.setUniform("hdrEnabled", true);
+			lightingPassShader.setUniform("hdrEnabled", false);
 		}
 		if (glfwGetKey(window, GLFW_KEY_3) == GLFW_RELEASE) {
-			hdrShaderProgram.setUniform("hdrEnabled", false);
+			lightingPassShader.setUniform("hdrEnabled", true);
+		}
+		if (glfwGetKey(window, GLFW_KEY_4) == GLFW_PRESS) {
+			lightingPassShader.setUniform("aoEnabled", false);
+		}
+		if (glfwGetKey(window, GLFW_KEY_4) == GLFW_RELEASE) {
+			lightingPassShader.setUniform("aoEnabled", true);
 		}
 	}
 

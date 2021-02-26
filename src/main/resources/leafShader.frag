@@ -45,6 +45,9 @@ float F(float n, float c)
 }
 
 void main() {
+
+    // TODO - this in the gBufferLighting.frag shader
+
     vec4 front = texture(leaf_front, textureCoord);
     if (front.a < 0.01) {
         discard;

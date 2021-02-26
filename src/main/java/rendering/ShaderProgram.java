@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.nio.FloatBuffer;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.List;
 
 import static org.lwjgl.opengl.GL11C.GL_FALSE;
 import static org.lwjgl.opengl.GL20C.GL_COMPILE_STATUS;
@@ -23,6 +24,7 @@ import static org.lwjgl.opengl.GL20C.glLinkProgram;
 import static org.lwjgl.opengl.GL20C.glShaderSource;
 import static org.lwjgl.opengl.GL20C.glUniform1f;
 import static org.lwjgl.opengl.GL20C.glUniform1i;
+import static org.lwjgl.opengl.GL20C.glUniform2f;
 import static org.lwjgl.opengl.GL20C.glUniform3f;
 import static org.lwjgl.opengl.GL20C.glUniformMatrix3fv;
 import static org.lwjgl.opengl.GL20C.glUniformMatrix4fv;
@@ -30,6 +32,7 @@ import static org.lwjgl.opengl.GL20C.glUseProgram;
 
 import org.joml.Matrix3f;
 import org.joml.Matrix4f;
+import org.joml.Vector2f;
 import org.joml.Vector3f;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.system.NativeType;
@@ -43,11 +46,12 @@ public class ShaderProgram {
 		String vertexShaderSourceCode = new String(Files.readAllBytes(Paths.get(RESOURCES_PATH + vertexShaderPath)));
 		String fragmentShaderSourceCode = new String(Files.readAllBytes(Paths.get(RESOURCES_PATH + fragmentShaderPath)));
 
-		int vertexShader = compileShader(vertexShaderSourceCode, GL_VERTEX_SHADER);
-		int fragmentShader = compileShader(fragmentShaderSourceCode, GL_FRAGMENT_SHADER);
+		int vertexShader = compileShader(vertexShaderSourceCode, vertexShaderPath, GL_VERTEX_SHADER);
+		int fragmentShader = compileShader(fragmentShaderSourceCode, fragmentShaderPath, GL_FRAGMENT_SHADER);
 		this.attachShaders(vertexShader, fragmentShader);
 	}
-	private int compileShader(final String source, final @NativeType("GLenum") int type) {
+
+	private int compileShader(final String source, final String path, final @NativeType("GLenum") int type) {
 		int shaderHandle = glCreateShader(type);
 		glShaderSource(shaderHandle, source);
 		glCompileShader(shaderHandle);
@@ -57,7 +61,7 @@ public class ShaderProgram {
 			String infoLog = glGetShaderInfoLog(shaderHandle);
 			throw new RuntimeException("ERROR : SHADER : "
 					+ (type == GL_VERTEX_SHADER ? "VERTEX" : "FRAGMENT")
-					+ " - COMPILATION FAILED\n" + infoLog);
+					+ " - COMPILATION FAILED in file:" + path + "\n" + infoLog);
 		}
 		return shaderHandle;
 	}
@@ -86,6 +90,12 @@ public class ShaderProgram {
 		this.use();
 		int location = glGetUniformLocation(this.handle, name);
 		glUniform3f(location, value.x, value.y, value.z);
+	}
+
+	public void setUniform(String name, Vector2f value) {
+		this.use();
+		int location = glGetUniformLocation(this.handle, name);
+		glUniform2f(location, value.x, value.y);
 	}
 
 	public void setUniform(final String name, final Matrix4f value) {
@@ -122,5 +132,11 @@ public class ShaderProgram {
 		this.use();
 		int location = glGetUniformLocation(this.handle, name);
 		glUniform1f(location, value);
+	}
+
+	public void setUniform(String name, List<Vector3f> values) {
+		for (int i = 0; i < values.size(); i++) {
+			setUniform(String.format("%s[%d]", name, i), values.get(i));
+		}
 	}
 }
