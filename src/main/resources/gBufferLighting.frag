@@ -52,6 +52,6 @@ void main() {
         fragColour = vec4(result, 1.0);
     }
 
-    // TODO work out why the random texture pattern is visible here and why deferred rendered textures drop down the screen -> probably something to do with screen/framebuffer size
-    //    fragColour = vec4(vec3(ambientOcclusion), 1.0f);
+    // TODO fix SSAO
+    fragColour = vec4(vec3(ambientOcclusion), 1.0f);
 }

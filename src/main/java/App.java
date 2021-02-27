@@ -1,4 +1,3 @@
-import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -96,7 +95,6 @@ import static org.lwjgl.opengl.GL30.GL_FRAMEBUFFER;
 import static org.lwjgl.opengl.GL30.GL_FRAMEBUFFER_COMPLETE;
 import static org.lwjgl.opengl.GL30.GL_RENDERBUFFER;
 import static org.lwjgl.opengl.GL30.GL_RGBA16F;
-import static org.lwjgl.opengl.GL30.GL_RGBA32F;
 import static org.lwjgl.opengl.GL30.glBindFramebuffer;
 import static org.lwjgl.opengl.GL30.glBindRenderbuffer;
 import static org.lwjgl.opengl.GL30.glCheckFramebufferStatus;
@@ -119,7 +117,6 @@ import org.joml.Matrix3f;
 import org.joml.Matrix4f;
 import org.joml.Vector2f;
 import org.joml.Vector3f;
-import org.lwjgl.BufferUtils;
 import org.lwjgl.Version;
 import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.glfw.GLFWVidMode;
@@ -378,16 +375,15 @@ public class App {
 		}
 
 		ssaoNoiseTexture = glGenTextures();
-		ByteBuffer image = BufferUtils.createByteBuffer(16 * 3);
+		float[] image = new float[16 * 3];
 		for (int i = 0; i < 16; i++) {
-			image.put((byte) (r.nextFloat() * 2.0f - 1.0f));
-			image.put((byte) (r.nextFloat() * 2.0f - 1.0f));
-			image.put((byte) 0.0f);
+			image[i * 3] = r.nextFloat() * 2.0f - 1.0f;
+			image[i * 3 + 1] = r.nextFloat() * 2.0f - 1.0f;
+			image[i * 3 + 2] = 0.0f;
 		}
-		image.flip();
 		glActiveTexture(GL_TEXTURE3);
 		glBindTexture(GL_TEXTURE_2D, ssaoNoiseTexture);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, 4, 4, 0, GL_RGB, GL_FLOAT, image);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, 4, 4, 0, GL_RGB, GL_FLOAT, image);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
@@ -450,7 +446,7 @@ public class App {
 			glBindTexture(GL_TEXTURE_2D, gAlbedoSpecular);
 			lightingPassShader.setUniform("ssao", 3);
 			glActiveTexture(GL_TEXTURE3);
-			glBindTexture(GL_TEXTURE_2D, ssaoColorBufferBlur);
+			glBindTexture(GL_TEXTURE_2D, ssaoColorBufferBlur); //ssaoColorBufferBlur
 			(new Quad(lightingPassShader)).render();
 
 			glfwSwapBuffers(window);
@@ -473,7 +469,7 @@ public class App {
 
 		skyboxShaderProgram.setUniform("view", new Matrix4f(new Matrix3f(camera.getViewMatrix())));
 		// TODO ensure skybox is being drawn correctly
-		skybox.render();
+//		skybox.render();
 	}
 
 	private void updateDeltaTime() {
