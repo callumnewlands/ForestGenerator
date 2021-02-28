@@ -10,6 +10,7 @@ uniform sampler2D gPosition;
 uniform sampler2D gNormal;
 uniform sampler2D gAlbedoSpec;
 uniform sampler2D ssao;
+uniform mat4 projection;
 
 out vec4 fragColour;
 
@@ -51,7 +52,4 @@ void main() {
         vec3 result = pow(hdrColor, vec3(1.0 / gamma));
         fragColour = vec4(result, 1.0);
     }
-
-    // TODO fix SSAO
-    fragColour = vec4(vec3(ambientOcclusion), 1.0f);
 }

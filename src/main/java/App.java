@@ -79,6 +79,7 @@ import static org.lwjgl.opengl.GL11C.GL_VERSION;
 import static org.lwjgl.opengl.GL11C.glGetString;
 import static org.lwjgl.opengl.GL11C.glPolygonMode;
 import static org.lwjgl.opengl.GL11C.glTexImage2D;
+import static org.lwjgl.opengl.GL11C.glViewport;
 import static org.lwjgl.opengl.GL12C.GL_CLAMP_TO_EDGE;
 import static org.lwjgl.opengl.GL13.GL_TEXTURE1;
 import static org.lwjgl.opengl.GL13.GL_TEXTURE2;
@@ -195,6 +196,8 @@ public class App {
 //		glEnable(GL_SAMPLE_ALPHA_TO_COVERAGE);
 //		glEnable(GL_SAMPLE_ALPHA_TO_ONE);
 //		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+		glViewport(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
 
 		initShaders();
 		initScene();
@@ -357,7 +360,7 @@ public class App {
 
 		ShaderPrograms.forAll(sp -> sp.setUniform("lightPos", lightPos));
 		ShaderPrograms.forAll(sp -> sp.setUniform("lightColour", lightCol));
-		ShaderPrograms.forAll(sp -> sp.setUniform("ambientStrength", 0.15f));
+		ShaderPrograms.forAll(sp -> sp.setUniform("ambientStrength", 0.3f));
 
 		lightingPassShader.setUniform("hdrEnabled", true);
 		lightingPassShader.setUniform("aoEnabled", true);
@@ -459,17 +462,13 @@ public class App {
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		ShaderPrograms.forAll(sp -> sp.setUniform("view", camera.getViewMatrix()));
 		billboardShaderProgram.setUniform("viewPos", camera.getPosition());
-//		leafShaderProgram.setUniform("viewPos", camera.getPosition());
 		instancedLeafShaderProgram.setUniform("viewPos", camera.getPosition());
-
-//		sunStrength = (float)Math.sin(stepper * Math.PI * 2);
-//		ShaderPrograms.forAll(sp -> sp.setUniform("lightColour", new Vector3f(sunStrength)));
 
 		quadtree.render(useNormalMapping, camera.getViewMatrix().mulLocal(projection));
 
 		skyboxShaderProgram.setUniform("view", new Matrix4f(new Matrix3f(camera.getViewMatrix())));
-		// TODO ensure skybox is being drawn correctly
-//		skybox.render();
+		// TODO draw skybox without SSAO or lighting
+		skybox.render();
 	}
 
 	private void updateDeltaTime() {
