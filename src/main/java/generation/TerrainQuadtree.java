@@ -22,10 +22,11 @@ import sceneobjects.Twigs;
 
 public class TerrainQuadtree {
 
-	public static final float GROUND_WIDTH = 100f;
+	public static final float GROUND_WIDTH = 300f;
 	public static final boolean RENDER_OBJECTS = true;
 	public static final float DISTANCE_COEFF = 1.7f;
-	private static final int NUM_OF_INSTANCED_TREES = (int) (GROUND_WIDTH * GROUND_WIDTH * 0.025);
+	private static final float TREE_DENSITY = 1f; //1
+	private static final int NUM_OF_INSTANCED_TREES = (int) (GROUND_WIDTH * GROUND_WIDTH * 0.025 * TREE_DENSITY);
 	private static final int NUM_OF_TWIG_TYPES = 10;
 	private static final int NUM_OF_INSTANCED_TWIGS = (int) (GROUND_WIDTH * GROUND_WIDTH * 0.04);
 	private static final int NUM_OF_INSTANCED_ROCKS = (int) (GROUND_WIDTH * GROUND_WIDTH * 0.01);

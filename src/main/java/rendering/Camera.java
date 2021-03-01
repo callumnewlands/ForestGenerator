@@ -1,9 +1,11 @@
 package rendering;
 
+import lombok.Getter;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import utils.VectorUtils;
 
+@Getter
 public class Camera {
 
 	public enum MovementDirection {
@@ -92,10 +94,6 @@ public class Camera {
 		}
 
 		updateVectorsFromAngles();
-	}
-
-	public Vector3f getPosition() {
-		return position;
 	}
 
 }

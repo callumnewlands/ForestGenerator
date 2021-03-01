@@ -111,6 +111,7 @@ import static rendering.ShaderPrograms.lightingPassShader;
 import static rendering.ShaderPrograms.skyboxShaderProgram;
 import static rendering.ShaderPrograms.ssaoBlurShader;
 import static rendering.ShaderPrograms.ssaoShader;
+import static rendering.ShaderPrograms.sunShader;
 import static utils.MathsUtils.lerp;
 
 import generation.TerrainQuadtree;
@@ -125,6 +126,7 @@ import org.lwjgl.opengl.GL;
 import rendering.Camera;
 import rendering.ShaderPrograms;
 import rendering.Textures;
+import sceneobjects.Polygon;
 import sceneobjects.Quad;
 import sceneobjects.Skybox;
 
@@ -135,6 +137,7 @@ public class App {
 	private static final int MINOR_VERSION = 6;
 
 	private float sunStrength = 1f;
+	private Vector3f lightPos = new Vector3f(5f, 100f, -20f);
 	private static final int SSAO_KERNEL_SIZE = 32;
 	private int WINDOW_WIDTH;
 	private int WINDOW_HEIGHT;
@@ -151,6 +154,7 @@ public class App {
 
 	private TerrainQuadtree quadtree;
 	private Skybox skybox;
+	private Polygon sun;
 
 	private double lastFrame = 0.0;
 	private double deltaTime = 0.0;
@@ -343,7 +347,9 @@ public class App {
 
 		skybox = new Skybox();
 
-		int QUADTREE_DEPTH = 2; // was 3 // 4 causes out of heap space exception
+		sun = new Polygon(10, sunShader);
+
+		int QUADTREE_DEPTH = 3; // 3 // 4 causes out of heap space exception
 		quadtree = new TerrainQuadtree(
 				new Vector2f(0, 0),
 				GROUND_WIDTH,
@@ -355,7 +361,6 @@ public class App {
 	}
 
 	private void initLighting() {
-		Vector3f lightPos = new Vector3f(5f, 100f, -20f);
 		Vector3f lightCol = new Vector3f(sunStrength);
 
 		ShaderPrograms.forAll(sp -> sp.setUniform("lightPos", lightPos));
@@ -465,6 +470,13 @@ public class App {
 		instancedLeafShaderProgram.setUniform("viewPos", camera.getPosition());
 
 		quadtree.render(useNormalMapping, camera.getViewMatrix().mulLocal(projection));
+
+		sun.setModelMatrix(new Matrix4f()
+				.translate(lightPos)
+				.rotateTowards(new Vector3f(camera.getDirection()).negate(), camera.getUp())
+				.rotate((float) Math.PI / 2, new Vector3f(-1, 0, 0))
+				.scale(20f));
+		sun.render();
 
 		skyboxShaderProgram.setUniform("view", new Matrix4f(new Matrix3f(camera.getViewMatrix())));
 		// TODO draw skybox without SSAO or lighting

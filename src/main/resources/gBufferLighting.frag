@@ -22,9 +22,9 @@ void main() {
     float specular = texture(gAlbedoSpec, textureCoord).a;
     float ambientOcclusion = texture(ssao, textureCoord).r;
 
+    vec3 hdrColor;
     vec3 norm = normalize(normal);
     vec3 lightDir = normalize(lightPos - worldPos);
-    vec3 hdrColor;
     if (aoEnabled) {
         vec3 ambient =  vec3(ambientStrength * diffuse * ambientOcclusion);
         vec3 diff = max(dot(norm, lightDir), 0.0f) * diffuse * lightColour;
