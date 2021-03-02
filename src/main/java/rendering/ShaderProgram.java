@@ -39,6 +39,7 @@ import org.lwjgl.system.NativeType;
 
 public class ShaderProgram {
 
+	// TODO probably use classLoader.getResources() instead
 	public static final String RESOURCES_PATH = "src/main/resources";
 	private int handle;
 

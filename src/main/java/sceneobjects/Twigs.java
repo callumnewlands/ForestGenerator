@@ -21,6 +21,7 @@ import modeldata.meshdata.Mesh;
 import org.joml.Matrix4f;
 import org.joml.Vector2f;
 import org.joml.Vector3f;
+import params.ParameterLoader;
 import rendering.LevelOfDetail;
 import rendering.Textures;
 import utils.MeshUtils;
@@ -43,7 +44,7 @@ public class Twigs extends InstancedGroundObject {
 
 	@Override
 	Map<LevelOfDetail, List<Mesh>> getMeshes() {
-		int numEdges = 5;
+		int numEdges = ParameterLoader.getParameters().sceneObjects.twigs.numSides;
 		TurtleInterpreter twigTurtleInterpreter = new TurtleInterpreter(numEdges);
 		twigTurtleInterpreter.setIgnored(List.of('A', 'B', 'C'));
 		List<Module> instructions = twigSystem().performDerivations(new Random().nextInt(2) + 5);

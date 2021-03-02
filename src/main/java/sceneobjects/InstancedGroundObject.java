@@ -22,17 +22,11 @@ public abstract class InstancedGroundObject {
 	public InstancedGroundObject(int numberOfTypes, int numberOfInstances, Vector2f regionCentre, float regionWidth, TerrainQuadtree quadtree, boolean yRotationOnly) {
 		for (int i = 0; i < numberOfTypes; i++) {
 			Map<LevelOfDetail, List<Mesh>> lodMeshes = getMeshes();
-//			Map<LevelOfDetail, List<Texture2D>> diffuseTextures = getDiffuseTextures();
-//			Map<LevelOfDetail, List<Texture2D>> normalTextures = getNormalTextures();
 			InstancedLODModelBuilder modelBuilder = new InstancedLODModelBuilder();
 			// For each LOD, construct the lod representation for type i
 			for (LevelOfDetail lod : lodMeshes.keySet()) {
 				List<Mesh> meshes = lodMeshes.get(lod).stream().map(mesh -> new Mesh(mesh, true)).collect(Collectors.toList());
 				SingleModel model = new SingleModel(meshes);
-//				model.addTextures("diffuseTexture", diffuseTextures.get(lod));
-//				if (normalTextures != null) {
-//					model.addTextures("normalTexture", normalTextures.get(lod));
-//				}
 				model.setIsInstanced(true);
 				modelBuilder.withLODModel(lod, model);
 			}

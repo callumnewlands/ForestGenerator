@@ -13,6 +13,8 @@ import modeldata.meshdata.Texture2D;
 import org.joml.Matrix4f;
 import org.joml.Vector2f;
 import org.joml.Vector3f;
+import params.ParameterLoader;
+import params.Parameters;
 import rendering.LevelOfDetail;
 import sceneobjects.FallenLeaves;
 import sceneobjects.Grass;
@@ -22,16 +24,16 @@ import sceneobjects.Twigs;
 
 public class TerrainQuadtree {
 
-	public static final float GROUND_WIDTH = 300f;
-	public static final boolean RENDER_OBJECTS = true;
-	public static final float DISTANCE_COEFF = 1.7f;
-	private static final float TREE_DENSITY = 1f; //1
-	private static final int NUM_OF_INSTANCED_TREES = (int) (GROUND_WIDTH * GROUND_WIDTH * 0.025 * TREE_DENSITY);
-	private static final int NUM_OF_TWIG_TYPES = 10;
-	private static final int NUM_OF_INSTANCED_TWIGS = (int) (GROUND_WIDTH * GROUND_WIDTH * 0.04);
-	private static final int NUM_OF_INSTANCED_ROCKS = (int) (GROUND_WIDTH * GROUND_WIDTH * 0.01);
-	private static final int NUM_OF_INSTANCED_GRASS = (int) (GROUND_WIDTH * GROUND_WIDTH * 2.30);
-	private static final int NUM_OF_INSTANCED_LEAVES = (int) (GROUND_WIDTH * GROUND_WIDTH * 1.30);
+	private static final Parameters parameters = ParameterLoader.getParameters();
+	private static final float GROUND_WIDTH = parameters.terrain.width;
+	//	public static final boolean RENDER_OBJECTS = true;
+//	public static final float DISTANCE_COEFF = 1.7f;
+//	private static final float TREE_DENSITY = 1f; //1
+	private static final int NUM_OF_INSTANCED_TREES = (int) (GROUND_WIDTH * GROUND_WIDTH * 0.025 * parameters.sceneObjects.trees.density);
+	private static final int NUM_OF_INSTANCED_TWIGS = (int) (GROUND_WIDTH * GROUND_WIDTH * 0.04 * parameters.sceneObjects.twigs.density);
+	private static final int NUM_OF_INSTANCED_ROCKS = (int) (GROUND_WIDTH * GROUND_WIDTH * 0.01 * parameters.sceneObjects.rocks.density);
+	private static final int NUM_OF_INSTANCED_GRASS = (int) (GROUND_WIDTH * GROUND_WIDTH * 2.30 * parameters.sceneObjects.grass.density);
+	private static final int NUM_OF_INSTANCED_LEAVES = (int) (GROUND_WIDTH * GROUND_WIDTH * 1.30 * parameters.sceneObjects.fallenLeaves.density);
 
 	private final Quad quad;
 	private final int maxDepth;
@@ -137,8 +139,8 @@ public class TerrainQuadtree {
 
 		private List<Quad> getVisibleQuads(Matrix4f MVP) {
 
-			if (Math.abs(centre.x - seedPoint.x) > DISTANCE_COEFF * width ||
-					Math.abs(centre.y - seedPoint.y) > DISTANCE_COEFF * width ||
+			if (Math.abs(centre.x - seedPoint.x) > parameters.quadtree.thresholdCoefficient * width ||
+					Math.abs(centre.y - seedPoint.y) > parameters.quadtree.thresholdCoefficient * width ||
 					this.children == null) {
 				if (isOutsideView(MVP)) {
 					return List.of();
@@ -168,7 +170,7 @@ public class TerrainQuadtree {
 				levelOfDetail = LevelOfDetail.LOW;
 			}
 
-			if (RENDER_OBJECTS) {
+			if (parameters.sceneObjects.display) {
 				for (SceneObjects objects : getSceneObjects()) {
 					objects.render(useNormalMapping, levelOfDetail);
 				}
@@ -192,9 +194,9 @@ public class TerrainQuadtree {
 			private final Grass grass;
 
 			public SceneObjects() {
-				trees = new Trees(1, getNumber(NUM_OF_INSTANCED_TREES), centre, width, TerrainQuadtree.this, true);
+				trees = new Trees(parameters.sceneObjects.trees.typesPerQuad, getNumber(NUM_OF_INSTANCED_TREES), centre, width, TerrainQuadtree.this, true);
 				leaves = new FallenLeaves(1, getNumber(NUM_OF_INSTANCED_LEAVES), centre, width, TerrainQuadtree.this, false);
-				twigs = new Twigs(NUM_OF_TWIG_TYPES, getNumber(NUM_OF_INSTANCED_TWIGS), centre, width, TerrainQuadtree.this, false);
+				twigs = new Twigs(parameters.sceneObjects.twigs.typesPerQuad, getNumber(NUM_OF_INSTANCED_TWIGS), centre, width, TerrainQuadtree.this, false);
 				rocks = new Rocks(1, getNumber(NUM_OF_INSTANCED_ROCKS), centre, width, TerrainQuadtree.this, false);
 				grass = new Grass(1, getNumber(NUM_OF_INSTANCED_GRASS), centre, width, TerrainQuadtree.this, false);
 			}

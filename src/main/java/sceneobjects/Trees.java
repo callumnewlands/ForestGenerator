@@ -26,6 +26,7 @@ import modeldata.meshdata.VertexAttribute;
 import org.joml.Matrix4f;
 import org.joml.Vector2f;
 import org.joml.Vector3f;
+import params.ParameterLoader;
 import rendering.LevelOfDetail;
 import rendering.Textures;
 import utils.MeshUtils;
@@ -67,7 +68,7 @@ public class Trees extends InstancedGroundObject {
 
 	@Override
 	Map<LevelOfDetail, List<Mesh>> getMeshes() {
-		int numEdges = 6;
+		int numEdges = ParameterLoader.getParameters().sceneObjects.trees.numSides;
 		TurtleInterpreter turtleInterpreter = new TurtleInterpreter(numEdges);
 		turtleInterpreter.setSubModels(List.of(MeshUtils.transform(leaf, new Matrix4f().scale(LEAF_SCALE / TREE_SCALE))));
 		turtleInterpreter.setIgnored(List.of('A'));

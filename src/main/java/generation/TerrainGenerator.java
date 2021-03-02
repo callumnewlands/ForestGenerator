@@ -13,17 +13,20 @@ import modeldata.meshdata.VertexAttribute;
 import org.j3d.texture.procedural.PerlinNoiseGenerator;
 import org.joml.Vector2f;
 import org.joml.Vector3f;
+import params.ParameterLoader;
+import params.Parameters;
 import utils.VectorUtils;
 
 public class TerrainGenerator {
 
 	private final PerlinNoiseGenerator noiseGenerator;
 
-	private static final int NO_OF_OCTAVES = 8; //4
-	private static final float PERSISTANCE = 0.5f;
-	private static final float LACUNARITY = 2.0f;
+	private static final Parameters parameters = ParameterLoader.getParameters();
+	private static final int NO_OF_OCTAVES = parameters.terrain.noise.octaves;
+	private static final float PERSISTENCE = parameters.terrain.noise.persistence;
+	private static final float LACUNARITY = parameters.terrain.noise.lacunarity;
 	// TODO horizontal scale
-	private static final float NOISE_SCALE = 9.0f;
+	private static final float NOISE_SCALE = parameters.terrain.noise.scale;
 
 	public TerrainGenerator() {
 		noiseGenerator = new PerlinNoiseGenerator(0);
@@ -43,7 +46,7 @@ public class TerrainGenerator {
 			float scaledX = x / NOISE_SCALE * frequency;
 			float scaledY = y / NOISE_SCALE * frequency;
 			totalValue += noiseGenerator.noise2(scaledX, scaledY) * amplitude;
-			amplitude *= PERSISTANCE;
+			amplitude *= PERSISTENCE;
 			frequency *= LACUNARITY;
 		}
 		return totalValue;

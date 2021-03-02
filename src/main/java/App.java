@@ -1,3 +1,4 @@
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -123,7 +124,10 @@ import org.lwjgl.Version;
 import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.glfw.GLFWVidMode;
 import org.lwjgl.opengl.GL;
+import params.ParameterLoader;
+import params.Parameters;
 import rendering.Camera;
+import rendering.ShaderProgram;
 import rendering.ShaderPrograms;
 import rendering.Textures;
 import sceneobjects.Polygon;
@@ -132,15 +136,11 @@ import sceneobjects.Skybox;
 
 public class App {
 
-	public static final float GROUND_WIDTH = TerrainQuadtree.GROUND_WIDTH;
 	private static final int MAJOR_VERSION = 4;
 	private static final int MINOR_VERSION = 6;
 
-	private float sunStrength = 1f;
-	private Vector3f lightPos = new Vector3f(5f, 100f, -20f);
-	private static final int SSAO_KERNEL_SIZE = 32;
-	private int WINDOW_WIDTH;
-	private int WINDOW_HEIGHT;
+	private int windowWidth;
+	private int windowHeight;
 
 	private long window;
 	private int gBuffer, ssaoBuffer, ssaoBlurBuffer;
@@ -152,6 +152,7 @@ public class App {
 
 	private List<Vector3f> ssaoKernel;
 
+	private final Parameters parameters = ParameterLoader.getParameters();
 	private TerrainQuadtree quadtree;
 	private Skybox skybox;
 	private Polygon sun;
@@ -164,7 +165,14 @@ public class App {
 	private float lastY;
 	private Matrix4f projection;
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws IOException {
+		if (args.length == 0) {
+			ParameterLoader.loadParameters(ShaderProgram.RESOURCES_PATH + "/defaults.yaml");
+		} else if (args.length == 1) {
+			ParameterLoader.loadParameters(ShaderProgram.RESOURCES_PATH + "/" + args[0]);
+		} else {
+			throw new RuntimeException("Usage: java -jar ForestGenerator.jar [params.yaml]");
+		}
 		new App().run();
 	}
 
@@ -201,7 +209,7 @@ public class App {
 //		glEnable(GL_SAMPLE_ALPHA_TO_ONE);
 //		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-		glViewport(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
+		glViewport(0, 0, windowWidth, windowHeight);
 
 		initShaders();
 		initScene();
@@ -221,9 +229,9 @@ public class App {
 		if (videoMode == null) {
 			throw new RuntimeException("Failed to get primary monitor");
 		}
-		WINDOW_WIDTH = videoMode.width() - 100;
-		WINDOW_HEIGHT = videoMode.height() - 100;
-		long window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Forest Simulator 2021", NULL, NULL);
+		windowWidth = videoMode.width() - 100;
+		windowHeight = videoMode.height() - 100;
+		long window = glfwCreateWindow(windowWidth, windowHeight, "Forest Simulator 2021", NULL, NULL);
 		if (window == NULL) {
 			throw new RuntimeException("Failed to create the GLFW window");
 		}
@@ -234,7 +242,7 @@ public class App {
 	}
 
 	private void initShaders() {
-		final Vector3f cameraPosition = new Vector3f(0, 3.30f, 0);
+		final Vector3f cameraPosition = new Vector3f(parameters.camera.startPosition);
 		final float cameraYaw = -90.0f;
 		final float cameraPitch = 0.0f;
 		camera = new Camera(cameraPosition, cameraYaw, cameraPitch);
@@ -257,15 +265,15 @@ public class App {
 
 		glfwSetFramebufferSizeCallback(window, (window, height, width) -> {
 			System.out.printf("Framebuffer size callback: width = %d, height = %d%n", width, height);
-			WINDOW_WIDTH = width;
-			WINDOW_HEIGHT = height;
+			windowWidth = width;
+			windowHeight = height;
 		});
 
 		final float perspectiveAngle = (float) Math.toRadians(45.0f);
 		final float nearPlane = 0.1f;
 		final float farPlane = 300.0f;
 		projection = new Matrix4f()
-				.perspective(perspectiveAngle, (float) WINDOW_WIDTH / WINDOW_HEIGHT, nearPlane, farPlane);
+				.perspective(perspectiveAngle, (float) windowWidth / windowHeight, nearPlane, farPlane);
 		ShaderPrograms.forAll(sp -> sp.setUniform("projection", projection));
 
 		gBuffer = glGenFramebuffers();
@@ -274,7 +282,7 @@ public class App {
 		gPosition = glGenTextures();
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, gPosition);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, WINDOW_WIDTH, WINDOW_HEIGHT, 0, GL_RGBA, GL_FLOAT, NULL);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, windowWidth, windowHeight, 0, GL_RGBA, GL_FLOAT, NULL);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -284,7 +292,7 @@ public class App {
 		gNormal = glGenTextures();
 		glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_2D, gNormal);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, WINDOW_WIDTH, WINDOW_HEIGHT, 0, GL_RGBA, GL_FLOAT, NULL);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, windowWidth, windowHeight, 0, GL_RGBA, GL_FLOAT, NULL);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, gNormal, 0);
@@ -292,7 +300,7 @@ public class App {
 		gAlbedoSpecular = glGenTextures();
 		glActiveTexture(GL_TEXTURE2);
 		glBindTexture(GL_TEXTURE_2D, gAlbedoSpecular);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, WINDOW_WIDTH, WINDOW_HEIGHT, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, windowWidth, windowHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, gAlbedoSpecular, 0);
@@ -301,7 +309,7 @@ public class App {
 
 		int gRenderBuffer = glGenRenderbuffers();
 		glBindRenderbuffer(GL_RENDERBUFFER, gRenderBuffer);
-		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, WINDOW_WIDTH, WINDOW_HEIGHT);
+		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, windowWidth, windowHeight);
 		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, gRenderBuffer);
 		if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
 			System.err.println("Deferred rendering framebuffer not complete");
@@ -313,7 +321,7 @@ public class App {
 		ssaoColorBuffer = glGenTextures();
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, ssaoColorBuffer);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, WINDOW_WIDTH, WINDOW_HEIGHT, 0, GL_RED, GL_FLOAT, NULL);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, windowWidth, windowHeight, 0, GL_RED, GL_FLOAT, NULL);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, ssaoColorBuffer, 0);
@@ -327,7 +335,7 @@ public class App {
 		ssaoColorBufferBlur = glGenTextures();
 		glActiveTexture(GL_TEXTURE3);
 		glBindTexture(GL_TEXTURE_2D, ssaoColorBufferBlur);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, WINDOW_WIDTH, WINDOW_HEIGHT, 0, GL_RED, GL_FLOAT, NULL);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, windowWidth, windowHeight, 0, GL_RED, GL_FLOAT, NULL);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, ssaoColorBufferBlur, 0);
@@ -340,41 +348,41 @@ public class App {
 	}
 
 	private void initScene() {
-//		glClearColor(.529f, .808f, .922f, 0f);
-
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		skybox = new Skybox();
 
-		sun = new Polygon(10, sunShader);
+		sun = new Polygon(parameters.lighting.sun.numSides, sunShader);
 
-		int QUADTREE_DEPTH = 3; // 3 // 4 causes out of heap space exception
+		int quadtreeDepth = parameters.quadtree.levels;
 		quadtree = new TerrainQuadtree(
 				new Vector2f(0, 0),
-				GROUND_WIDTH,
-				QUADTREE_DEPTH,
-				(int) (GROUND_WIDTH / 2 * Math.pow(2, Math.max((5 - QUADTREE_DEPTH), 0))),
+				parameters.terrain.width,
+				quadtreeDepth,
+				(int) (parameters.terrain.width / 2 *
+						Math.pow(2, Math.max((5 - quadtreeDepth), 0)) *
+						parameters.terrain.vertexDensity),
 				Textures.ground
 		);
 		quadtree.setSeedPoint(new Vector2f(camera.getPosition().x, camera.getPosition().z));
 	}
 
 	private void initLighting() {
-		Vector3f lightCol = new Vector3f(sunStrength);
+		Vector3f lightCol = new Vector3f(parameters.lighting.sun.strength);
 
-		ShaderPrograms.forAll(sp -> sp.setUniform("lightPos", lightPos));
+		ShaderPrograms.forAll(sp -> sp.setUniform("lightPos", parameters.lighting.sun.position));
 		ShaderPrograms.forAll(sp -> sp.setUniform("lightColour", lightCol));
-		ShaderPrograms.forAll(sp -> sp.setUniform("ambientStrength", 0.3f));
+		ShaderPrograms.forAll(sp -> sp.setUniform("ambientStrength", parameters.lighting.ambientStrength));
 
-		lightingPassShader.setUniform("hdrEnabled", true);
-		lightingPassShader.setUniform("aoEnabled", true);
+		lightingPassShader.setUniform("hdrEnabled", parameters.lighting.hdrEnabled);
+		lightingPassShader.setUniform("aoEnabled", parameters.lighting.ssao.enabled);
 
 		ssaoKernel = new ArrayList<>();
 		Random r = new Random();
 
-		for (int i = 0; i < SSAO_KERNEL_SIZE; i++) {
-			float scale = i / (float) SSAO_KERNEL_SIZE;
+		for (int i = 0; i < parameters.lighting.ssao.kernelSize; i++) {
+			float scale = i / (float) parameters.lighting.ssao.kernelSize;
 			scale = lerp(0.1f, 1.0f, scale * scale);
 			Vector3f sample = new Vector3f(r.nextFloat() * 2.0f - 1.0f, r.nextFloat() * 2.0f - 1.0f, r.nextFloat())
 					.normalize()
@@ -415,10 +423,10 @@ public class App {
 			glBindFramebuffer(GL_FRAMEBUFFER, ssaoBuffer);
 			glClear(GL_COLOR_BUFFER_BIT);
 			ssaoShader.setUniform("samples", ssaoKernel);
-			ssaoShader.setUniform("noiseScale", new Vector2f(WINDOW_WIDTH / 4f, WINDOW_HEIGHT / 4f));
-			ssaoShader.setUniform("kernelSize", SSAO_KERNEL_SIZE);
-			ssaoShader.setUniform("radius", 0.5f);
-			ssaoShader.setUniform("bias", 0.025f);
+			ssaoShader.setUniform("noiseScale", new Vector2f(windowWidth / 4f, windowHeight / 4f));
+			ssaoShader.setUniform("kernelSize", parameters.lighting.ssao.kernelSize);
+			ssaoShader.setUniform("radius", parameters.lighting.ssao.radius);
+			ssaoShader.setUniform("bias", parameters.lighting.ssao.bias);
 			ssaoShader.setUniform("gPosition", 0);
 			glActiveTexture(GL_TEXTURE0);
 			glBindTexture(GL_TEXTURE_2D, gPosition);
@@ -471,12 +479,14 @@ public class App {
 
 		quadtree.render(useNormalMapping, camera.getViewMatrix().mulLocal(projection));
 
-		sun.setModelMatrix(new Matrix4f()
-				.translate(lightPos)
-				.rotateTowards(new Vector3f(camera.getDirection()).negate(), camera.getUp())
-				.rotate((float) Math.PI / 2, new Vector3f(-1, 0, 0))
-				.scale(20f));
-		sun.render();
+		if (parameters.lighting.sun.display) {
+			sun.setModelMatrix(new Matrix4f()
+					.translate(parameters.lighting.sun.position)
+					.rotateTowards(new Vector3f(camera.getDirection()).negate(), camera.getUp())
+					.rotate((float) Math.PI / 2, new Vector3f(-1, 0, 0))
+					.scale(20f)); // TODO param
+			sun.render();
+		}
 
 		skyboxShaderProgram.setUniform("view", new Matrix4f(new Matrix3f(camera.getViewMatrix())));
 		// TODO draw skybox without SSAO or lighting
@@ -529,16 +539,16 @@ public class App {
 			useNormalMapping = true;
 		}
 		if (glfwGetKey(window, GLFW_KEY_3) == GLFW_PRESS) {
-			lightingPassShader.setUniform("hdrEnabled", false);
+			lightingPassShader.setUniform("hdrEnabled", !parameters.lighting.hdrEnabled);
 		}
 		if (glfwGetKey(window, GLFW_KEY_3) == GLFW_RELEASE) {
-			lightingPassShader.setUniform("hdrEnabled", true);
+			lightingPassShader.setUniform("hdrEnabled", parameters.lighting.hdrEnabled);
 		}
 		if (glfwGetKey(window, GLFW_KEY_4) == GLFW_PRESS) {
-			lightingPassShader.setUniform("aoEnabled", false);
+			lightingPassShader.setUniform("aoEnabled", !parameters.lighting.ssao.enabled);
 		}
 		if (glfwGetKey(window, GLFW_KEY_4) == GLFW_RELEASE) {
-			lightingPassShader.setUniform("aoEnabled", true);
+			lightingPassShader.setUniform("aoEnabled", parameters.lighting.ssao.enabled);
 		}
 	}
 

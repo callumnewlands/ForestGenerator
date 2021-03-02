@@ -1,0 +1,48 @@
+# TODO random seeding
+window:
+  fullscreen: true
+  width: 800
+  height: 600
+camera:
+  startPosition: [ 0.0, 3.3, 0.0 ]
+  verticalMovement: true
+terrain:
+  width: 100.0
+  noise:
+    scale: 9.0
+    octaves: 6
+    persistence: 0.5
+    lacunarity: 2.0
+  vertexDensity: 1.0
+quadtree:
+  levels: 2
+  thresholdCoefficient: 1.7
+sceneObjects:
+  display: true
+  trees:
+    typesPerQuad: 1
+    numSides: 6
+    density: 1.0
+  twigs:
+    typesPerQuad: 2
+    numSides: 5
+    density: 1.0
+  rocks:
+    density: 1.0
+  grass:
+    density: 1.0
+  fallenLeaves:
+    density: 1.0
+lighting:
+  hdrEnabled: true
+  ambientStrength: 0.3
+  sun:
+    display: true
+    numSides: 10
+    strength: 1.0
+    position: [ 100.0, 300.0, -200.0 ]
+  ssao:
+    enabled: true
+    kernelSize: 32
+    radius: 0.5
+    bias: 0.025
