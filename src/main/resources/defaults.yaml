@@ -40,7 +40,7 @@ lighting:
     display: true
     numSides: 10
     strength: 1.0
-    position: [ 100.0, 300.0, -200.0 ]
+    position: [ 50.0, 200.0, -50.0 ]
   ssao:
     enabled: true
     kernelSize: 32

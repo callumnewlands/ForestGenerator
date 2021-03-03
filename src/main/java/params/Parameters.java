@@ -97,7 +97,7 @@ public class Parameters {
 			public int numSides = 10;
 			public float strength = 1f;
 			@JsonDeserialize(using = ParameterLoader.Vec3Deserializer.class)
-			public Vector3f position = new Vector3f(100.0f, 300.0f, -200.0f);
+			public Vector3f position = new Vector3f(50.0f, 200.0f, -50.0f);
 		}
 
 		@NoArgsConstructor

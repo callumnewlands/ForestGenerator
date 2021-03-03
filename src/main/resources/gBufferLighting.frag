@@ -7,13 +7,16 @@ uniform sampler2D gAlbedoSpec;
 uniform sampler2D ssao;
 uniform sampler2D occlusion;
 uniform sampler2D scatter;
+uniform sampler2D gDepth;
 
 uniform bool hdrEnabled;
 uniform bool aoEnabled;
+uniform bool renderDepth;
 
 uniform float ambientStrength;
 uniform vec3 lightPos;
 uniform vec3 lightColour;
+uniform mat4 view;
 uniform mat4 projection;
 
 out vec4 fragColour;
@@ -22,12 +25,24 @@ out vec4 fragColour;
 void main() {
 
     vec3 worldPos = texture(gPosition, textureCoord).rgb;
+    //    vec3 viewPos = vec3(view * vec4(worldPos, 1.0f));
     vec3 normal = texture(gNormal, textureCoord).rgb;
     vec3 diffuse = texture(gAlbedoSpec, textureCoord).rgb;
     float specular = texture(gAlbedoSpec, textureCoord).a;
     float ambientOcclusion = texture(ssao, textureCoord).r;
     vec3 occ = texture(occlusion, textureCoord).rgb;
     vec3 scattering = texture(scatter, textureCoord).rgb;
+    float depth = texture(gDepth, textureCoord).r;
+
+    if (renderDepth) {
+        float z = depth * 2.0 - 1.0;// nonlinear in [-1, 1]
+        const float far = 300;
+        const float near = 0.1;
+        z = (2.0 * near * far) / (far + near - z * (far - near));// linear in [far, near]
+        const float max = 20;
+        fragColour = vec4(vec3(z / max), 1.0);
+        return;
+    }
 
     vec3 hdrColor;
     vec3 norm = normalize(normal);
@@ -53,5 +68,5 @@ void main() {
     const float gamma = 2.2;
     vec3 gammaCorrected = pow(screenColour, vec3(1.0 / gamma));
     fragColour = vec4(gammaCorrected, 1.0);
-    //    fragColour = vec4(occ, 1.0f);
+
 }

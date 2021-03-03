@@ -14,6 +14,7 @@ import static org.lwjgl.glfw.GLFW.GLFW_KEY_1;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_2;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_3;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_4;
+import static org.lwjgl.glfw.GLFW.GLFW_KEY_5;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_A;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_D;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE;
@@ -89,6 +90,7 @@ import static org.lwjgl.opengl.GL13C.GL_TEXTURE0;
 import static org.lwjgl.opengl.GL13C.GL_TEXTURE3;
 import static org.lwjgl.opengl.GL13C.GL_TEXTURE4;
 import static org.lwjgl.opengl.GL13C.GL_TEXTURE5;
+import static org.lwjgl.opengl.GL13C.GL_TEXTURE6;
 import static org.lwjgl.opengl.GL13C.glActiveTexture;
 import static org.lwjgl.opengl.GL20C.glDrawBuffers;
 import static org.lwjgl.opengl.GL30.GL_COLOR_ATTACHMENT0;
@@ -98,16 +100,11 @@ import static org.lwjgl.opengl.GL30.GL_COLOR_ATTACHMENT3;
 import static org.lwjgl.opengl.GL30.GL_DEPTH_ATTACHMENT;
 import static org.lwjgl.opengl.GL30.GL_FRAMEBUFFER;
 import static org.lwjgl.opengl.GL30.GL_FRAMEBUFFER_COMPLETE;
-import static org.lwjgl.opengl.GL30.GL_RENDERBUFFER;
 import static org.lwjgl.opengl.GL30.GL_RGBA16F;
 import static org.lwjgl.opengl.GL30.glBindFramebuffer;
-import static org.lwjgl.opengl.GL30.glBindRenderbuffer;
 import static org.lwjgl.opengl.GL30.glCheckFramebufferStatus;
-import static org.lwjgl.opengl.GL30.glFramebufferRenderbuffer;
 import static org.lwjgl.opengl.GL30.glFramebufferTexture2D;
 import static org.lwjgl.opengl.GL30.glGenFramebuffers;
-import static org.lwjgl.opengl.GL30.glGenRenderbuffers;
-import static org.lwjgl.opengl.GL30.glRenderbufferStorage;
 import static org.lwjgl.system.MemoryUtil.NULL;
 import static rendering.ShaderPrograms.billboardShaderProgram;
 import static rendering.ShaderPrograms.instancedLeafShaderProgram;
@@ -148,7 +145,7 @@ public class App {
 
 	private long window;
 	private int gBuffer, ssaoBuffer, ssaoBlurBuffer, scatterBuffer;
-	private int gNormal, gAlbedoSpecular, gPosition, gOcclusion;
+	private int gNormal, gAlbedoSpecular, gPosition, gOcclusion, gDepth;
 	private int ssaoColor, ssaoColorBlur;
 	private int scatterColor;
 	private int ssaoNoiseTexture;
@@ -310,6 +307,7 @@ public class App {
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, gAlbedoSpecular, 0);
 
+		// TODO maybe stencil buffer?
 		gOcclusion = glGenTextures();
 		glActiveTexture(GL_TEXTURE5);
 		glBindTexture(GL_TEXTURE_2D, gOcclusion);
@@ -317,17 +315,25 @@ public class App {
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, GL_TEXTURE_2D, gOcclusion, 0);
-
+//		glDrawBuffers(new int[] {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3});
+//
+		gDepth = glGenTextures();
+		glActiveTexture(GL_TEXTURE6);
+		glBindTexture(GL_TEXTURE_2D, gDepth);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, windowWidth, windowHeight, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, gDepth, 0);
 		glDrawBuffers(new int[] {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3});
 
-		int gRenderBuffer = glGenRenderbuffers();
-		glBindRenderbuffer(GL_RENDERBUFFER, gRenderBuffer);
-		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, windowWidth, windowHeight);
-		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, gRenderBuffer);
-		if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-			System.err.println("Deferred rendering framebuffer not complete");
-		}
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+//		int gRenderBuffer = glGenRenderbuffers();
+//		glBindRenderbuffer(GL_RENDERBUFFER, gRenderBuffer);
+//		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, windowWidth, windowHeight);
+//		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, gRenderBuffer);
+//		if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+//			System.err.println("Deferred rendering framebuffer not complete");
+//		}
+//		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 		ssaoBuffer = glGenFramebuffers();
 		glBindFramebuffer(GL_FRAMEBUFFER, ssaoBuffer);
@@ -404,6 +410,7 @@ public class App {
 
 		lightingPassShader.setUniform("hdrEnabled", parameters.lighting.hdrEnabled);
 		lightingPassShader.setUniform("aoEnabled", parameters.lighting.ssao.enabled);
+		lightingPassShader.setUniform("renderDepth", false);
 
 		ssaoKernel = new ArrayList<>();
 		Random r = new Random();
@@ -506,15 +513,19 @@ public class App {
 
 			lightingPassShader.setUniform("ssao", 3);
 			glActiveTexture(GL_TEXTURE3);
-			glBindTexture(GL_TEXTURE_2D, ssaoColorBlur); //ssaoColorBlur
+			glBindTexture(GL_TEXTURE_2D, ssaoColorBlur);
 
 			lightingPassShader.setUniform("scatter", 4);
 			glActiveTexture(GL_TEXTURE4);
-			glBindTexture(GL_TEXTURE_2D, scatterColor); //scatterColor
+			glBindTexture(GL_TEXTURE_2D, scatterColor);
 
 			lightingPassShader.setUniform("occlusion", 5);
 			glActiveTexture(GL_TEXTURE5);
 			glBindTexture(GL_TEXTURE_2D, gOcclusion);
+
+			lightingPassShader.setUniform("gDepth", 6);
+			glActiveTexture(GL_TEXTURE6);
+			glBindTexture(GL_TEXTURE_2D, gDepth);
 
 			(new Quad(lightingPassShader)).render();
 
@@ -602,6 +613,12 @@ public class App {
 		}
 		if (glfwGetKey(window, GLFW_KEY_4) == GLFW_RELEASE) {
 			lightingPassShader.setUniform("aoEnabled", parameters.lighting.ssao.enabled);
+		}
+		if (glfwGetKey(window, GLFW_KEY_5) == GLFW_PRESS) {
+			lightingPassShader.setUniform("renderDepth", true);
+		}
+		if (glfwGetKey(window, GLFW_KEY_5) == GLFW_RELEASE) {
+			lightingPassShader.setUniform("renderDepth", false);
 		}
 	}
 
