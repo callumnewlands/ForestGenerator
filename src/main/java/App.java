@@ -87,11 +87,14 @@ import static org.lwjgl.opengl.GL13.GL_TEXTURE2;
 import static org.lwjgl.opengl.GL13C.GL_MULTISAMPLE;
 import static org.lwjgl.opengl.GL13C.GL_TEXTURE0;
 import static org.lwjgl.opengl.GL13C.GL_TEXTURE3;
+import static org.lwjgl.opengl.GL13C.GL_TEXTURE4;
+import static org.lwjgl.opengl.GL13C.GL_TEXTURE5;
 import static org.lwjgl.opengl.GL13C.glActiveTexture;
 import static org.lwjgl.opengl.GL20C.glDrawBuffers;
 import static org.lwjgl.opengl.GL30.GL_COLOR_ATTACHMENT0;
 import static org.lwjgl.opengl.GL30.GL_COLOR_ATTACHMENT1;
 import static org.lwjgl.opengl.GL30.GL_COLOR_ATTACHMENT2;
+import static org.lwjgl.opengl.GL30.GL_COLOR_ATTACHMENT3;
 import static org.lwjgl.opengl.GL30.GL_DEPTH_ATTACHMENT;
 import static org.lwjgl.opengl.GL30.GL_FRAMEBUFFER;
 import static org.lwjgl.opengl.GL30.GL_FRAMEBUFFER_COMPLETE;
@@ -109,6 +112,7 @@ import static org.lwjgl.system.MemoryUtil.NULL;
 import static rendering.ShaderPrograms.billboardShaderProgram;
 import static rendering.ShaderPrograms.instancedLeafShaderProgram;
 import static rendering.ShaderPrograms.lightingPassShader;
+import static rendering.ShaderPrograms.scatteringShader;
 import static rendering.ShaderPrograms.skyboxShaderProgram;
 import static rendering.ShaderPrograms.ssaoBlurShader;
 import static rendering.ShaderPrograms.ssaoShader;
@@ -143,9 +147,10 @@ public class App {
 	private int windowHeight;
 
 	private long window;
-	private int gBuffer, ssaoBuffer, ssaoBlurBuffer;
-	private int gNormal, gAlbedoSpecular, gPosition;
-	private int ssaoColorBuffer, ssaoColorBufferBlur;
+	private int gBuffer, ssaoBuffer, ssaoBlurBuffer, scatterBuffer;
+	private int gNormal, gAlbedoSpecular, gPosition, gOcclusion;
+	private int ssaoColor, ssaoColorBlur;
+	private int scatterColor;
 	private int ssaoNoiseTexture;
 	private Camera camera;
 	private Boolean useNormalMapping = true;
@@ -305,7 +310,15 @@ public class App {
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, gAlbedoSpecular, 0);
 
-		glDrawBuffers(new int[] {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2});
+		gOcclusion = glGenTextures();
+		glActiveTexture(GL_TEXTURE5);
+		glBindTexture(GL_TEXTURE_2D, gOcclusion);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, windowWidth, windowHeight, 0, GL_RGBA, GL_FLOAT, NULL);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, GL_TEXTURE_2D, gOcclusion, 0);
+
+		glDrawBuffers(new int[] {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3});
 
 		int gRenderBuffer = glGenRenderbuffers();
 		glBindRenderbuffer(GL_RENDERBUFFER, gRenderBuffer);
@@ -318,13 +331,13 @@ public class App {
 
 		ssaoBuffer = glGenFramebuffers();
 		glBindFramebuffer(GL_FRAMEBUFFER, ssaoBuffer);
-		ssaoColorBuffer = glGenTextures();
+		ssaoColor = glGenTextures();
 		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, ssaoColorBuffer);
+		glBindTexture(GL_TEXTURE_2D, ssaoColor);
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, windowWidth, windowHeight, 0, GL_RED, GL_FLOAT, NULL);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, ssaoColorBuffer, 0);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, ssaoColor, 0);
 		if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
 			System.err.println("SSAO framebuffer not complete");
 		}
@@ -332,15 +345,29 @@ public class App {
 
 		ssaoBlurBuffer = glGenFramebuffers();
 		glBindFramebuffer(GL_FRAMEBUFFER, ssaoBlurBuffer);
-		ssaoColorBufferBlur = glGenTextures();
+		ssaoColorBlur = glGenTextures();
 		glActiveTexture(GL_TEXTURE3);
-		glBindTexture(GL_TEXTURE_2D, ssaoColorBufferBlur);
+		glBindTexture(GL_TEXTURE_2D, ssaoColorBlur);
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, windowWidth, windowHeight, 0, GL_RED, GL_FLOAT, NULL);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, ssaoColorBufferBlur, 0);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, ssaoColorBlur, 0);
 		if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
 			System.err.println("SSAO blur framebuffer not complete");
+		}
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+		scatterBuffer = glGenFramebuffers();
+		glBindFramebuffer(GL_FRAMEBUFFER, scatterBuffer);
+		scatterColor = glGenTextures();
+		glActiveTexture(GL_TEXTURE4);
+		glBindTexture(GL_TEXTURE_2D, scatterColor);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, windowWidth, windowHeight, 0, GL_RGBA, GL_FLOAT, NULL);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, scatterColor, 0);
+		if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+			System.err.println("Scatter framebuffer not complete");
 		}
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
@@ -427,15 +454,19 @@ public class App {
 			ssaoShader.setUniform("kernelSize", parameters.lighting.ssao.kernelSize);
 			ssaoShader.setUniform("radius", parameters.lighting.ssao.radius);
 			ssaoShader.setUniform("bias", parameters.lighting.ssao.bias);
+
 			ssaoShader.setUniform("gPosition", 0);
 			glActiveTexture(GL_TEXTURE0);
 			glBindTexture(GL_TEXTURE_2D, gPosition);
+
 			ssaoShader.setUniform("gNormal", 1);
 			glActiveTexture(GL_TEXTURE1);
 			glBindTexture(GL_TEXTURE_2D, gNormal);
+
 			ssaoShader.setUniform("texNoise", 3);
 			glActiveTexture(GL_TEXTURE3);
 			glBindTexture(GL_TEXTURE_2D, ssaoNoiseTexture);
+
 			(new Quad(ssaoShader)).render();
 			glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
@@ -444,25 +475,47 @@ public class App {
 			glClear(GL_COLOR_BUFFER_BIT);
 			ssaoBlurShader.setUniform("ssaoInput", 0);
 			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_2D, ssaoColorBuffer);
+			glBindTexture(GL_TEXTURE_2D, ssaoColor);
 			(new Quad(ssaoBlurShader)).render();
+			glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+			// Light scattering pass
+			glBindFramebuffer(GL_FRAMEBUFFER, scatterBuffer);
+			glClear(GL_COLOR_BUFFER_BIT);
+			scatteringShader.setUniform("occlusion", 5);
+			glActiveTexture(GL_TEXTURE5);
+			glBindTexture(GL_TEXTURE_2D, gOcclusion);
+			(new Quad(scatteringShader)).render();
 			glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 			// Lighting pass
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 			lightingPassShader.use();
+
 			lightingPassShader.setUniform("gPosition", 0);
 			glActiveTexture(GL_TEXTURE0);
 			glBindTexture(GL_TEXTURE_2D, gPosition);
+
 			lightingPassShader.setUniform("gNormal", 1);
 			glActiveTexture(GL_TEXTURE1);
 			glBindTexture(GL_TEXTURE_2D, gNormal);
+
 			lightingPassShader.setUniform("gAlbedoSpec", 2);
 			glActiveTexture(GL_TEXTURE2);
 			glBindTexture(GL_TEXTURE_2D, gAlbedoSpecular);
+
 			lightingPassShader.setUniform("ssao", 3);
 			glActiveTexture(GL_TEXTURE3);
-			glBindTexture(GL_TEXTURE_2D, ssaoColorBufferBlur); //ssaoColorBufferBlur
+			glBindTexture(GL_TEXTURE_2D, ssaoColorBlur); //ssaoColorBlur
+
+			lightingPassShader.setUniform("scatter", 4);
+			glActiveTexture(GL_TEXTURE4);
+			glBindTexture(GL_TEXTURE_2D, scatterColor); //scatterColor
+
+			lightingPassShader.setUniform("occlusion", 5);
+			glActiveTexture(GL_TEXTURE5);
+			glBindTexture(GL_TEXTURE_2D, gOcclusion);
+
 			(new Quad(lightingPassShader)).render();
 
 			glfwSwapBuffers(window);
