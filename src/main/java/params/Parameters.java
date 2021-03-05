@@ -93,7 +93,7 @@ public class Parameters {
 		@NoArgsConstructor
 		@Setter
 		public static class Sun {
-			public boolean display = true;
+			public boolean display = false;
 			public int numSides = 10;
 			public float strength = 1f;
 			@JsonDeserialize(using = ParameterLoader.Vec3Deserializer.class)

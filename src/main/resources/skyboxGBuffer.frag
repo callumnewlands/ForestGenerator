@@ -16,5 +16,9 @@ void main() {
     gNormal = textureCoord;
     gAlbedoSpec.rgb = fragColour.rgb;
     gAlbedoSpec.a = 1.0f;
-    gOcclusion = fragColour.rgb;
+
+    // TODO should the scattered values be in hdr or sdr colour space?
+    const float exposure = 1f;
+    vec3 screenColour = vec3(1.0) - exp(-fragColour.rgb * exposure);
+    gOcclusion = screenColour;
 }

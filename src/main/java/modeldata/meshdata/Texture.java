@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.file.Paths;
@@ -15,6 +16,7 @@ import static org.lwjgl.opengl.GL11C.GL_RGB;
 import static org.lwjgl.opengl.GL13C.GL_TEXTURE0;
 import static org.lwjgl.stb.STBImage.stbi_failure_reason;
 import static org.lwjgl.stb.STBImage.stbi_load_from_memory;
+import static org.lwjgl.stb.STBImage.stbi_loadf_from_memory;
 import static org.lwjgl.stb.STBImage.stbi_set_flip_vertically_on_load;
 import static org.lwjgl.system.MemoryStack.stackPush;
 
@@ -57,11 +59,11 @@ public abstract class Texture {
 
 	protected abstract void setHints(int textureWrap);
 
-	protected LoadedImage loadTextureFromFile(final String path) throws IOException {
-		return loadTextureFromFile(path, true);
+	protected LoadedByteImage loadByteTextureFromFile(final String path) throws IOException {
+		return loadByteTextureFromFile(path, true);
 	}
 
-	protected LoadedImage loadTextureFromFile(final String path, final boolean flip) throws IOException {
+	protected LoadedByteImage loadByteTextureFromFile(final String path, final boolean flip) throws IOException {
 		ByteBuffer rawImageData;
 		ByteBuffer image;
 
@@ -100,7 +102,52 @@ public abstract class Texture {
 					+ numberOfComponents);
 		}
 
-		return new LoadedImage(image, format, width, height);
+		return new LoadedByteImage(image, format, width, height);
+	}
+
+	protected LoadedFloatImage loadFloatTextureFromFile(final String path) throws IOException {
+		return loadFloatTextureFromFile(path, true);
+	}
+
+	protected LoadedFloatImage loadFloatTextureFromFile(final String path, final boolean flip) throws IOException {
+		ByteBuffer rawImageData;
+		FloatBuffer image;
+
+		rawImageData = readFileToByteBuffer(path);
+
+		int width;
+		int height;
+		int numberOfComponents;
+		try (MemoryStack stack = stackPush()) {
+			IntBuffer widthBuffer = stack.mallocInt(1);
+			IntBuffer heightBuffer = stack.mallocInt(1);
+			IntBuffer numberOfComponentsBuffer = stack.mallocInt(1);
+
+			stbi_set_flip_vertically_on_load(flip);
+
+			image = stbi_loadf_from_memory(rawImageData, widthBuffer, heightBuffer, numberOfComponentsBuffer, 0);
+			if (image == null) {
+				throw new RuntimeException("Failed to load image: " + stbi_failure_reason());
+			}
+
+			width = widthBuffer.get(0);
+			height = heightBuffer.get(0);
+			numberOfComponents = numberOfComponentsBuffer.get(0);
+		}
+
+		int format;
+		if (numberOfComponents == RGBA_NO_OF_COMPONENTS) {
+			format = GL_RGBA;
+		} else if (numberOfComponents == RGB_NO_OF_COMPONENTS) {
+			format = GL_RGB;
+		} else if (numberOfComponents == SINGLE_COMPONENT) {
+			format = GL_RED;
+		} else {
+			throw new IllegalArgumentException("Unsupported number of colour channels in Texture Class: "
+					+ numberOfComponents);
+		}
+
+		return new LoadedFloatImage(image, format, width, height);
 	}
 
 	abstract public void bind();
@@ -117,9 +164,26 @@ public abstract class Texture {
 
 	@AllArgsConstructor
 	static class LoadedImage {
-		final ByteBuffer imageData;
 		final int format;
 		final int width;
 		final int height;
+	}
+
+	static class LoadedByteImage extends LoadedImage {
+		final ByteBuffer imageData;
+
+		public LoadedByteImage(ByteBuffer imageData, int format, int width, int height) {
+			super(format, width, height);
+			this.imageData = imageData;
+		}
+	}
+
+	static class LoadedFloatImage extends LoadedImage {
+		final FloatBuffer imageData;
+
+		public LoadedFloatImage(FloatBuffer imageData, int format, int width, int height) {
+			super(format, width, height);
+			this.imageData = imageData;
+		}
 	}
 }

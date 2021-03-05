@@ -117,6 +117,8 @@ import static rendering.ShaderPrograms.sunShader;
 import static utils.MathsUtils.lerp;
 
 import generation.TerrainQuadtree;
+import modeldata.meshdata.HDRTexture;
+import modeldata.meshdata.Texture;
 import org.joml.Matrix3f;
 import org.joml.Matrix4f;
 import org.joml.Vector2f;
@@ -139,10 +141,9 @@ public class App {
 
 	private static final int MAJOR_VERSION = 4;
 	private static final int MINOR_VERSION = 6;
-
+	private final Parameters parameters = ParameterLoader.getParameters();
 	private int windowWidth;
 	private int windowHeight;
-
 	private long window;
 	private int gBuffer, ssaoBuffer, ssaoBlurBuffer, scatterBuffer;
 	private int gNormal, gAlbedoSpecular, gPosition, gOcclusion, gDepth;
@@ -151,10 +152,7 @@ public class App {
 	private int ssaoNoiseTexture;
 	private Camera camera;
 	private Boolean useNormalMapping = true;
-
 	private List<Vector3f> ssaoKernel;
-
-	private final Parameters parameters = ParameterLoader.getParameters();
 	private TerrainQuadtree quadtree;
 	private Skybox skybox;
 	private Polygon sun;
@@ -211,11 +209,11 @@ public class App {
 //		glEnable(GL_SAMPLE_ALPHA_TO_ONE);
 //		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-		glViewport(0, 0, windowWidth, windowHeight);
 
 		initShaders();
 		initScene();
 
+		glViewport(0, 0, windowWidth, windowHeight);
 	}
 
 	private long initWindow() {
@@ -315,8 +313,8 @@ public class App {
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, GL_TEXTURE_2D, gOcclusion, 0);
-//		glDrawBuffers(new int[] {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3});
-//
+		glDrawBuffers(new int[] {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3});
+
 		gDepth = glGenTextures();
 		glActiveTexture(GL_TEXTURE6);
 		glBindTexture(GL_TEXTURE_2D, gDepth);
@@ -324,16 +322,6 @@ public class App {
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, gDepth, 0);
-		glDrawBuffers(new int[] {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3});
-
-//		int gRenderBuffer = glGenRenderbuffers();
-//		glBindRenderbuffer(GL_RENDERBUFFER, gRenderBuffer);
-//		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, windowWidth, windowHeight);
-//		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, gRenderBuffer);
-//		if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-//			System.err.println("Deferred rendering framebuffer not complete");
-//		}
-//		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 		ssaoBuffer = glGenFramebuffers();
 		glBindFramebuffer(GL_FRAMEBUFFER, ssaoBuffer);
@@ -385,6 +373,9 @@ public class App {
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		skybox = new Skybox();
+		Texture skyboxTexture = new HDRTexture(ShaderProgram.RESOURCES_PATH + "/textures/noon_grass_8k.hdr", 2048, new Vector3f(.529f, .808f, .922f), 8);
+		skybox.addTexture("skyboxTexture", skyboxTexture);
+		System.out.println("Skybox HDR loaded");
 
 		sun = new Polygon(parameters.lighting.sun.numSides, sunShader);
 
@@ -553,7 +544,6 @@ public class App {
 		}
 
 		skyboxShaderProgram.setUniform("view", new Matrix4f(new Matrix3f(camera.getViewMatrix())));
-		// TODO draw skybox without SSAO or lighting
 		skybox.render();
 	}
 

@@ -8,10 +8,9 @@ uniform mat4 view;
 uniform mat4 projection;
 
 const int NUM_SCATTERING_SAMPLES = 100;
-const float density = 0.74f;// sample density
-//const float weight = 1f; // intensity of each sample
-const float decay = 1.0f;// light fall-off
-const float exposure = 0.0034f;// light ray intensity
+const float density = 0.85f;//0.74f // sample density
+const float decay = 1f;// light fall-off
+const float exposure = 0.008f;// 0.0034f // light ray intensity
 
 out vec3 fragColor;
 

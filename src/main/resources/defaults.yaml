@@ -37,7 +37,7 @@ lighting:
   hdrEnabled: true
   ambientStrength: 0.3
   sun:
-    display: true
+    display: false
     numSides: 10
     strength: 1.0
     position: [ 50.0, 200.0, -50.0 ]

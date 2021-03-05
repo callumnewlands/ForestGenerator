@@ -23,12 +23,16 @@ import org.joml.Vector3f;
 
 public class CubemapTexture extends Texture {
 
-	public CubemapTexture(List<String> paths, Vector3f colour, int textureUnit) {
+	public CubemapTexture(Vector3f colour, int textureUnit) {
 		super(colour, textureUnit, GL_LINEAR);
+	}
+
+	public CubemapTexture(List<String> paths, Vector3f colour, int textureUnit) {
+		this(colour, textureUnit);
 		for (int i = 0; i < paths.size(); i++) {
 			String path = paths.get(i);
 			try {
-				LoadedImage image = loadTextureFromFile(path, false);
+				LoadedByteImage image = loadByteTextureFromFile(path, false);
 				glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_SRGB_ALPHA, image.width, image.height,
 						0, image.format, GL_UNSIGNED_BYTE, image.imageData);
 			} catch (IOException e) {

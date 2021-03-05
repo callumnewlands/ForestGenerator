@@ -25,7 +25,6 @@ out vec4 fragColour;
 void main() {
 
     vec3 worldPos = texture(gPosition, textureCoord).rgb;
-    //    vec3 viewPos = vec3(view * vec4(worldPos, 1.0f));
     vec3 normal = texture(gNormal, textureCoord).rgb;
     vec3 diffuse = texture(gAlbedoSpec, textureCoord).rgb;
     float specular = texture(gAlbedoSpec, textureCoord).a;
@@ -57,12 +56,18 @@ void main() {
             vec3 diff = max(dot(norm, lightDir), 0.0f) * lightColour;
             hdrColor = (ambient + diff) * diffuse + scattering;
         }
+
     } else {
-        hdrColor = occ;
+        hdrColor = diffuse;
     }
 
-    // Reinhard tone mapping
-    vec3 screenColour = hdrEnabled ? hdrColor / (hdrColor + vec3(1.0)) : hdrColor;
+    ////     Reinhard tone mapping
+    //    vec3 screenColour = hdrEnabled ? hdrColor / (hdrColor + vec3(1.0)) : hdrColor;
+
+    //     Exposure tone mapping
+    // TODO uniform
+    const float exposure = 1f;
+    vec3 screenColour = hdrEnabled ? vec3(1.0) - exp(-hdrColor * exposure) : hdrColor;
 
     // gamma correction
     const float gamma = 2.2;

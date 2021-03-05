@@ -14,6 +14,7 @@ public final class ShaderPrograms {
 	public static ShaderProgram ssaoBlurShader;
 	public static ShaderProgram sunShader;
 	public static ShaderProgram scatteringShader;
+	public static ShaderProgram hdrToCubemapShader;
 
 	static {
 		try {
@@ -27,6 +28,7 @@ public final class ShaderPrograms {
 			ssaoBlurShader = new ShaderProgram("/gBufferLighting.vert", "/ssaoBlur.frag");
 			sunShader = new ShaderProgram("/sun.vert", "/sun.frag");
 			scatteringShader = new ShaderProgram("/gBufferLighting.vert", "/scatter.frag");
+			hdrToCubemapShader = new ShaderProgram("/hdrToCubemapShader.vert", "/hdrToCubemapShader.frag");
 		} catch (IOException e) {
 			throw new RuntimeException("Unable to load 1 or more shader programs:" + e.getMessage());
 		}
@@ -47,6 +49,7 @@ public final class ShaderPrograms {
 		function.accept(ssaoBlurShader);
 		function.accept(sunShader);
 		function.accept(scatteringShader);
+		function.accept(hdrToCubemapShader);
 	}
 
 }

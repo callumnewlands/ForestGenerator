@@ -3,6 +3,7 @@ package modeldata.meshdata;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
+import static org.lwjgl.opengl.GL11.GL_FLOAT;
 import static org.lwjgl.opengl.GL11.GL_LINEAR;
 import static org.lwjgl.opengl.GL11.GL_TEXTURE_2D;
 import static org.lwjgl.opengl.GL11.GL_TEXTURE_MIN_FILTER;
@@ -24,13 +25,23 @@ import org.lwjgl.BufferUtils;
 
 public class Texture2D extends Texture {
 
-
 	public Texture2D(final String path, final Vector3f colour, final int textureUnit, final int internalFormat, final int textureWrap) {
+		this(path, colour, textureUnit, internalFormat, textureWrap, false);
+	}
+
+	public Texture2D(final String path, final Vector3f colour, final int textureUnit, final int internalFormat, final int textureWrap, final boolean loadAsFloat) {
 		super(colour, textureUnit, textureWrap);
 		try {
-			LoadedImage image = loadTextureFromFile(path);
-			glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, image.width, image.height, 0, image.format,
-					GL_UNSIGNED_BYTE, image.imageData);
+			if (loadAsFloat) {
+				LoadedFloatImage image = loadFloatTextureFromFile(path);
+				glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, image.width, image.height, 0, image.format,
+						GL_FLOAT, image.imageData);
+			} else {
+
+				LoadedByteImage image = loadByteTextureFromFile(path);
+				glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, image.width, image.height, 0, image.format,
+						GL_UNSIGNED_BYTE, image.imageData);
+			}
 			glGenerateMipmap(GL_TEXTURE_2D);
 		} catch (IOException e) {
 			e.printStackTrace();
