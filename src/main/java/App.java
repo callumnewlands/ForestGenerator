@@ -15,6 +15,7 @@ import static org.lwjgl.glfw.GLFW.GLFW_KEY_2;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_3;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_4;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_5;
+import static org.lwjgl.glfw.GLFW.GLFW_KEY_6;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_A;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_D;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE;
@@ -52,25 +53,31 @@ import static org.lwjgl.glfw.GLFW.glfwSwapInterval;
 import static org.lwjgl.glfw.GLFW.glfwTerminate;
 import static org.lwjgl.glfw.GLFW.glfwWindowHint;
 import static org.lwjgl.glfw.GLFW.glfwWindowShouldClose;
+import static org.lwjgl.opengl.GL11.GL_BACK;
 import static org.lwjgl.opengl.GL11.GL_COLOR_BUFFER_BIT;
 import static org.lwjgl.opengl.GL11.GL_DEPTH_BUFFER_BIT;
 import static org.lwjgl.opengl.GL11.GL_DEPTH_TEST;
 import static org.lwjgl.opengl.GL11.GL_FILL;
+import static org.lwjgl.opengl.GL11.GL_FRONT;
 import static org.lwjgl.opengl.GL11.GL_NEAREST;
 import static org.lwjgl.opengl.GL11.GL_RGBA;
 import static org.lwjgl.opengl.GL11.GL_TEXTURE_2D;
+import static org.lwjgl.opengl.GL11.GL_TEXTURE_BORDER_COLOR;
 import static org.lwjgl.opengl.GL11.GL_TEXTURE_MIN_FILTER;
 import static org.lwjgl.opengl.GL11.GL_UNSIGNED_BYTE;
 import static org.lwjgl.opengl.GL11.glBindTexture;
 import static org.lwjgl.opengl.GL11.glClear;
 import static org.lwjgl.opengl.GL11.glClearColor;
+import static org.lwjgl.opengl.GL11.glCullFace;
 import static org.lwjgl.opengl.GL11.glEnable;
 import static org.lwjgl.opengl.GL11.glGenTextures;
+import static org.lwjgl.opengl.GL11.glTexParameterfv;
 import static org.lwjgl.opengl.GL11.glTexParameteri;
 import static org.lwjgl.opengl.GL11C.GL_DEPTH_COMPONENT;
 import static org.lwjgl.opengl.GL11C.GL_FLOAT;
 import static org.lwjgl.opengl.GL11C.GL_FRONT_AND_BACK;
 import static org.lwjgl.opengl.GL11C.GL_LINE;
+import static org.lwjgl.opengl.GL11C.GL_NONE;
 import static org.lwjgl.opengl.GL11C.GL_RED;
 import static org.lwjgl.opengl.GL11C.GL_REPEAT;
 import static org.lwjgl.opengl.GL11C.GL_RGB;
@@ -78,19 +85,23 @@ import static org.lwjgl.opengl.GL11C.GL_TEXTURE_MAG_FILTER;
 import static org.lwjgl.opengl.GL11C.GL_TEXTURE_WRAP_S;
 import static org.lwjgl.opengl.GL11C.GL_TEXTURE_WRAP_T;
 import static org.lwjgl.opengl.GL11C.GL_VERSION;
+import static org.lwjgl.opengl.GL11C.glDrawBuffer;
 import static org.lwjgl.opengl.GL11C.glGetString;
 import static org.lwjgl.opengl.GL11C.glPolygonMode;
+import static org.lwjgl.opengl.GL11C.glReadBuffer;
 import static org.lwjgl.opengl.GL11C.glTexImage2D;
 import static org.lwjgl.opengl.GL11C.glViewport;
 import static org.lwjgl.opengl.GL12C.GL_CLAMP_TO_EDGE;
 import static org.lwjgl.opengl.GL13.GL_TEXTURE1;
 import static org.lwjgl.opengl.GL13.GL_TEXTURE2;
+import static org.lwjgl.opengl.GL13C.GL_CLAMP_TO_BORDER;
 import static org.lwjgl.opengl.GL13C.GL_MULTISAMPLE;
 import static org.lwjgl.opengl.GL13C.GL_TEXTURE0;
 import static org.lwjgl.opengl.GL13C.GL_TEXTURE3;
 import static org.lwjgl.opengl.GL13C.GL_TEXTURE4;
 import static org.lwjgl.opengl.GL13C.GL_TEXTURE5;
 import static org.lwjgl.opengl.GL13C.GL_TEXTURE6;
+import static org.lwjgl.opengl.GL13C.GL_TEXTURE7;
 import static org.lwjgl.opengl.GL13C.glActiveTexture;
 import static org.lwjgl.opengl.GL20C.glDrawBuffers;
 import static org.lwjgl.opengl.GL30.GL_COLOR_ATTACHMENT0;
@@ -141,16 +152,20 @@ public class App {
 
 	private static final int MAJOR_VERSION = 4;
 	private static final int MINOR_VERSION = 6;
+	private static final int SHADOW_RESOLUTION = 1024 * 16;
 	private final Parameters parameters = ParameterLoader.getParameters();
 	private int windowWidth;
 	private int windowHeight;
 	private long window;
-	private int gBuffer, ssaoBuffer, ssaoBlurBuffer, scatterBuffer;
+	private int gBuffer, ssaoBuffer, ssaoBlurBuffer, scatterBuffer, shadowBuffer;
 	private int gNormal, gAlbedoSpecular, gPosition, gOcclusion, gDepth;
 	private int ssaoColor, ssaoColorBlur;
 	private int scatterColor;
+	private int shadowMap;
 	private int ssaoNoiseTexture;
+
 	private Camera camera;
+	private Matrix4f lightVP;
 	private Boolean useNormalMapping = true;
 	private List<Vector3f> ssaoKernel;
 	private TerrainQuadtree quadtree;
@@ -212,6 +227,7 @@ public class App {
 
 		initShaders();
 		initScene();
+		renderShadowMap();
 
 		glViewport(0, 0, windowWidth, windowHeight);
 	}
@@ -263,7 +279,7 @@ public class App {
 		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 		glfwSetCursorPos(window, lastX, lastY);
 
-		glfwSetFramebufferSizeCallback(window, (window, height, width) -> {
+		glfwSetFramebufferSizeCallback(window, (window, width, height) -> {
 			System.out.printf("Framebuffer size callback: width = %d, height = %d%n", width, height);
 			windowWidth = width;
 			windowHeight = height;
@@ -323,6 +339,30 @@ public class App {
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, gDepth, 0);
 
+		if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+			System.err.println("Deferred rendering framebuffer not complete");
+		}
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+		shadowBuffer = glGenFramebuffers();
+		glBindFramebuffer(GL_FRAMEBUFFER, shadowBuffer);
+		shadowMap = glGenTextures();
+		glActiveTexture(GL_TEXTURE7);
+		glBindTexture(GL_TEXTURE_2D, shadowMap);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, SHADOW_RESOLUTION, SHADOW_RESOLUTION, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+		glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, new float[] {1f, 1f, 1f, 1f});
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, shadowMap, 0);
+		glDrawBuffer(GL_NONE);
+		glReadBuffer(GL_NONE);
+		if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+			System.err.println("Shadow map framebuffer not complete");
+		}
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
 		ssaoBuffer = glGenFramebuffers();
 		glBindFramebuffer(GL_FRAMEBUFFER, ssaoBuffer);
 		ssaoColor = glGenTextures();
@@ -373,6 +413,8 @@ public class App {
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		skybox = new Skybox();
+		// immenstadter_horn_8k.hdr
+		// noon_grass_8k.hdr
 		Texture skyboxTexture = new HDRTexture(ShaderProgram.RESOURCES_PATH + "/textures/noon_grass_8k.hdr", 2048, new Vector3f(.529f, .808f, .922f), 8);
 		skybox.addTexture("skyboxTexture", skyboxTexture);
 		System.out.println("Skybox HDR loaded");
@@ -402,6 +444,7 @@ public class App {
 		lightingPassShader.setUniform("hdrEnabled", parameters.lighting.hdrEnabled);
 		lightingPassShader.setUniform("aoEnabled", parameters.lighting.ssao.enabled);
 		lightingPassShader.setUniform("renderDepth", false);
+		lightingPassShader.setUniform("shadowsEnabled", true);
 
 		ssaoKernel = new ArrayList<>();
 		Random r = new Random();
@@ -429,6 +472,38 @@ public class App {
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+	}
+
+	private void renderShadowMap() {
+		// Shadow Pass
+		glCullFace(GL_FRONT);
+		glViewport(0, 0, SHADOW_RESOLUTION, SHADOW_RESOLUTION);
+		glBindFramebuffer(GL_FRAMEBUFFER, shadowBuffer);
+		glClear(GL_DEPTH_BUFFER_BIT);
+		//	TODO rework shader system and use much simpler shader to render scene for shadow map depth sampling
+		float shadowMapScale = parameters.terrain.width;
+		Vector3f sunPos = parameters.lighting.sun.position;
+		float farPlane = (float) Math.sqrt(Math.pow(sunPos.y, 2) + Math.pow(parameters.terrain.width, 2)) + 1;
+		Matrix4f lightProjection = new Matrix4f().ortho(-shadowMapScale, shadowMapScale, -shadowMapScale, shadowMapScale, 0.1f, farPlane);
+		Matrix4f lightView = new Matrix4f().lookAt(
+				sunPos,
+				new Vector3f(0),
+				new Vector3f(0, 1, 0));
+		// View matrix for following player when generating dynamic maps
+//		Matrix4f lightView = new Matrix4f().lookAt(
+//				new Vector3f(sunPos.x + pos.x, sunPos.y, sunPos.z + pos.z),
+//				new Vector3f(pos.x, 0, pos.z),
+//				new Vector3f(0, 1, 0));
+		ShaderPrograms.forAll(sp -> sp.setUniform("projection", lightProjection));
+		ShaderPrograms.forAll(sp -> sp.setUniform("view", lightView));
+		lightVP = lightView.mulLocal(lightProjection);
+		// render all shadow casting objects
+		quadtree.render(useNormalMapping, lightVP);
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		glCullFace(GL_BACK);
+
+		System.out.println("Shadow map generated");
 	}
 
 	private void loop() {
@@ -439,8 +514,13 @@ public class App {
 //			System.out.println(1 / deltaTime + " fps");
 
 			// Geometry Pass
+			glViewport(0, 0, windowWidth, windowHeight);
 			glBindFramebuffer(GL_FRAMEBUFFER, gBuffer);
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+			ShaderPrograms.forAll(sp -> sp.setUniform("projection", projection));
+			ShaderPrograms.forAll(sp -> sp.setUniform("view", camera.getViewMatrix()));
+			billboardShaderProgram.setUniform("viewPos", camera.getPosition());
+			instancedLeafShaderProgram.setUniform("viewPos", camera.getPosition());
 			renderScene();
 			glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
@@ -480,6 +560,8 @@ public class App {
 			// Light scattering pass
 			glBindFramebuffer(GL_FRAMEBUFFER, scatterBuffer);
 			glClear(GL_COLOR_BUFFER_BIT);
+			scatteringShader.setUniform("viewPos", camera.getPosition());
+			scatteringShader.setUniform("viewDir", camera.getDirection());
 			scatteringShader.setUniform("occlusion", 5);
 			glActiveTexture(GL_TEXTURE5);
 			glBindTexture(GL_TEXTURE_2D, gOcclusion);
@@ -488,7 +570,7 @@ public class App {
 
 			// Lighting pass
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-			lightingPassShader.use();
+			lightingPassShader.setUniform("lightVP", lightVP);
 
 			lightingPassShader.setUniform("gPosition", 0);
 			glActiveTexture(GL_TEXTURE0);
@@ -518,6 +600,10 @@ public class App {
 			glActiveTexture(GL_TEXTURE6);
 			glBindTexture(GL_TEXTURE_2D, gDepth);
 
+			lightingPassShader.setUniform("shadowMap", 7);
+			glActiveTexture(GL_TEXTURE7);
+			glBindTexture(GL_TEXTURE_2D, shadowMap);
+
 			(new Quad(lightingPassShader)).render();
 
 			glfwSwapBuffers(window);
@@ -527,11 +613,6 @@ public class App {
 	}
 
 	private void renderScene() {
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		ShaderPrograms.forAll(sp -> sp.setUniform("view", camera.getViewMatrix()));
-		billboardShaderProgram.setUniform("viewPos", camera.getPosition());
-		instancedLeafShaderProgram.setUniform("viewPos", camera.getPosition());
-
 		quadtree.render(useNormalMapping, camera.getViewMatrix().mulLocal(projection));
 
 		if (parameters.lighting.sun.display) {
@@ -609,6 +690,12 @@ public class App {
 		}
 		if (glfwGetKey(window, GLFW_KEY_5) == GLFW_RELEASE) {
 			lightingPassShader.setUniform("renderDepth", false);
+		}
+		if (glfwGetKey(window, GLFW_KEY_6) == GLFW_PRESS) {
+			lightingPassShader.setUniform("shadowsEnabled", false);
+		}
+		if (glfwGetKey(window, GLFW_KEY_6) == GLFW_RELEASE) {
+			lightingPassShader.setUniform("shadowsEnabled", true);
 		}
 	}
 
