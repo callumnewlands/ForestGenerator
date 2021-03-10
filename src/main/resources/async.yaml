@@ -1,0 +1,9 @@
+control:
+  manual: false
+terrain:
+  width: 100.0
+quadtree:
+  levels: 2
+sceneObjects:
+  trees:
+    density: 0.5

@@ -27,3 +27,7 @@ target/
 
 # Project exclude paths
 /target/
+/frames/
+
+# Large files
+*.hdr

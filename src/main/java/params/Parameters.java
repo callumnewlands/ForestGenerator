@@ -10,12 +10,19 @@ import org.joml.Vector3f;
 @Setter
 public class Parameters {
 
+	public Control control = new Control();
 	public Window window = new Window();
 	public Camera camera = new Camera();
 	public Terrain terrain = new Terrain();
 	public Quadtree quadtree = new Quadtree();
 	public SceneObjects sceneObjects = new SceneObjects();
 	public Lighting lighting = new Lighting();
+
+	@NoArgsConstructor
+	@Setter
+	public static class Control {
+		public boolean manual = true;
+	}
 
 	@NoArgsConstructor
 	@Setter

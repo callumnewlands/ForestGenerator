@@ -1,0 +1,7 @@
+terrain:
+  width: 300.0
+quadtree:
+  levels: 3
+sceneObjects:
+  trees:
+    density: 0.6

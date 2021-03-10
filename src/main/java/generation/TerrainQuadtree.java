@@ -80,7 +80,7 @@ public class TerrainQuadtree {
 		private final Vector2f centre;
 		private final float width;
 		private final int depth;
-		private final Mesh mesh;
+		private Mesh mesh;
 		private List<Quad> children = null;
 		private SceneObjects sceneObjects = null;
 
@@ -132,6 +132,8 @@ public class TerrainQuadtree {
 					System.out.printf("%.2f%% generated %n", nodeCount / Math.pow(4, depth) * 100);
 				}
 			} else {
+//				mesh = terrainGenerator.getGroundTile(centre, width, verticesPerTile, textureWidth, texture);
+//				mesh.setShaderProgram(textureShaderProgram);
 				sceneObjects = new SceneObjects();
 				children = null;
 			}
@@ -159,9 +161,19 @@ public class TerrainQuadtree {
 		}
 
 
+		private List<Mesh> getMeshes() {
+
+			if (children == null) {
+				return mesh != null ? List.of(mesh) : List.of();
+			}
+			return children.stream().flatMap(q -> q.getMeshes().stream()).collect(Collectors.toList());
+		}
+
 		public void render(Boolean useNormalMapping) {
 
-			mesh.render();
+			for (Mesh mesh : getMeshes()) {
+				mesh.render();
+			}
 
 			LevelOfDetail levelOfDetail;
 			if (depth > (maxDepth + 1) / 2) {

@@ -1,4 +1,8 @@
+import java.awt.image.BufferedImage;
+import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -71,6 +75,7 @@ import static org.lwjgl.opengl.GL11.glClearColor;
 import static org.lwjgl.opengl.GL11.glCullFace;
 import static org.lwjgl.opengl.GL11.glEnable;
 import static org.lwjgl.opengl.GL11.glGenTextures;
+import static org.lwjgl.opengl.GL11.glReadPixels;
 import static org.lwjgl.opengl.GL11.glTexParameterfv;
 import static org.lwjgl.opengl.GL11.glTexParameteri;
 import static org.lwjgl.opengl.GL11C.GL_DEPTH_COMPONENT;
@@ -128,6 +133,7 @@ import static rendering.ShaderPrograms.sunShader;
 import static utils.MathsUtils.lerp;
 
 import generation.TerrainQuadtree;
+import javax.imageio.ImageIO;
 import modeldata.meshdata.HDRTexture;
 import modeldata.meshdata.Texture;
 import org.joml.Matrix3f;
@@ -180,6 +186,9 @@ public class App {
 	private float lastY;
 	private Matrix4f projection;
 
+	private int frame = 0;
+	private BufferedReader inputStream;
+
 	public static void main(String[] args) throws IOException {
 		if (args.length == 0) {
 			ParameterLoader.loadParameters(ShaderProgram.RESOURCES_PATH + "/defaults.yaml");
@@ -191,11 +200,19 @@ public class App {
 		new App().run();
 	}
 
+	public App() {
+		if (!parameters.control.manual) {
+			inputStream = new BufferedReader(new InputStreamReader(System.in));
+		}
+	}
+
 	public void run() {
 		System.out.println("Running LWJGL " + Version.getVersion());
 
 		init();
-		glfwShowWindow(window);
+		if (parameters.control.manual) {
+			glfwShowWindow(window);
+		}
 		loop();
 
 		// Destroy window
@@ -263,21 +280,23 @@ public class App {
 		final float cameraPitch = 0.0f;
 		camera = new Camera(cameraPosition, cameraYaw, cameraPitch);
 
-		glfwSetKeyCallback(window, (windowHandle, key, scancode, action, mods) -> {
-			if (key == GLFW_KEY_ESCAPE && action == GLFW_RELEASE) {
-				exit();
-			}
-		});
+		if (parameters.control.manual) {
+			glfwSetKeyCallback(window, (windowHandle, key, scancode, action, mods) -> {
+				if (key == GLFW_KEY_ESCAPE && action == GLFW_RELEASE) {
+					exit();
+				}
+			});
 
-		glfwSetCursorPosCallback(window, (window, xpos, ypos) -> {
-			float xoffset = (float) xpos - lastX;
-			float yoffset = lastY - (float) ypos;
-			lastX = (float) xpos;
-			lastY = (float) ypos;
-			camera.processMouseMovement(xoffset, yoffset);
-		});
-		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-		glfwSetCursorPos(window, lastX, lastY);
+			glfwSetCursorPosCallback(window, (window, xpos, ypos) -> {
+				float xoffset = (float) xpos - lastX;
+				float yoffset = lastY - (float) ypos;
+				lastX = (float) xpos;
+				lastY = (float) ypos;
+				camera.processMouseMovement(xoffset, yoffset);
+			});
+			glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+			glfwSetCursorPos(window, lastX, lastY);
+		}
 
 		glfwSetFramebufferSizeCallback(window, (window, width, height) -> {
 			System.out.printf("Framebuffer size callback: width = %d, height = %d%n", width, height);
@@ -607,8 +626,13 @@ public class App {
 			(new Quad(lightingPassShader)).render();
 
 			glfwSwapBuffers(window);
-			pollKeys();
-			glfwPollEvents();
+			if (parameters.control.manual) {
+				pollKeys();
+				glfwPollEvents();
+			} else {
+				outputFrame();
+				blockAndProcessInputStream();
+			}
 		}
 	}
 
@@ -629,6 +653,11 @@ public class App {
 	}
 
 	private void updateDeltaTime() {
+		if (!parameters.control.manual) {
+			final int FPS = 30;
+			deltaTime = 1f / FPS;
+			return;
+		}
 		// On first frame
 		if (lastFrame == 0.0) {
 			lastFrame = glfwGetTime();
@@ -697,6 +726,55 @@ public class App {
 		if (glfwGetKey(window, GLFW_KEY_6) == GLFW_RELEASE) {
 			lightingPassShader.setUniform("shadowsEnabled", true);
 		}
+	}
+
+	private void blockAndProcessInputStream() {
+		final int MOUSE_ANGLE = 20;
+		try {
+			String s = inputStream.readLine().toUpperCase();
+			for (char c : s.toCharArray()) {
+				switch (c) {
+					case 'W' -> camera.move(Camera.MovementDirection.FORWARD, (float) deltaTime);
+					case 'A' -> camera.move(Camera.MovementDirection.LEFT, (float) deltaTime);
+					case 'S' -> camera.move(Camera.MovementDirection.BACKWARD, (float) deltaTime);
+					case 'D' -> camera.move(Camera.MovementDirection.RIGHT, (float) deltaTime);
+					case ' ' -> camera.move(Camera.MovementDirection.UP, (float) deltaTime);
+					case '-' -> camera.move(Camera.MovementDirection.DOWN, (float) deltaTime);
+					case 'I' -> camera.processMouseMovement(0, MOUSE_ANGLE);
+					case 'K' -> camera.processMouseMovement(0, -MOUSE_ANGLE);
+					case 'J' -> camera.processMouseMovement(-MOUSE_ANGLE, 0);
+					case 'L' -> camera.processMouseMovement(MOUSE_ANGLE, 0);
+					case 'X' -> exit();
+				}
+				quadtree.setSeedPoint(camera.getPosition().x, camera.getPosition().z);
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	private void outputFrame() {
+		float[] array = new float[windowWidth * windowHeight * 3];
+		glReadBuffer(GL_FRONT);
+		glReadPixels(0, 0, windowWidth, windowHeight, GL_RGB, GL_FLOAT, array);
+
+		BufferedImage image = new BufferedImage(windowWidth, windowHeight, BufferedImage.TYPE_INT_RGB);
+		for (int i = 0; i < array.length / 3; i++) {
+			int r = (int) (array[i * 3] * 255);
+			int g = (int) (array[i * 3 + 1] * 255);
+			int b = (int) (array[i * 3 + 2] * 255);
+			image.setRGB(i % windowWidth, windowHeight - 1 - i / windowWidth, (r << 16) + (g << 8) + b);
+		}
+		try {
+			File dir = new File("./frames");
+			dir.mkdir();
+			File file = new File(String.format("./frames/frame-%d.jpg", frame));
+			file.createNewFile();
+			ImageIO.write(image, "jpg", file);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		frame += 1;
 	}
 
 	private void exit() {

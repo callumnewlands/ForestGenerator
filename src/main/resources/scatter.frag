@@ -10,15 +10,14 @@ uniform mat4 view;
 uniform mat4 projection;
 
 const int NUM_SCATTERING_SAMPLES = 100;
-const float density = 0.85f;//0.74f // sample density
-const float decay = 1f;// light fall-off
-const float exposure = 0.007f;// 0.0034f // light ray intensity
+const float density = 0.9f;//0.74f // sample density
+const float decay = 1f;// 1f // light fall-off
+const float exposure = 0.004f;// 0.006f// 0.0034f // light ray intensity
 
 out vec3 fragColor;
 
 void main()
 {
-
     vec4 lightPosTransformed = (projection * view * vec4(lightPos, 1.0f));
     vec2 lightPosScreen = lightPosTransformed.xy / lightPosTransformed.w * 0.5 + 0.5;;
     // vector between samples in direction of light

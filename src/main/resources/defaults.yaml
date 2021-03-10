@@ -1,4 +1,6 @@
 # TODO random seeding
+control:
+  manual: true
 window:
   fullscreen: true
   width: 800
