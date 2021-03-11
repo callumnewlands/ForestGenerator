@@ -4,6 +4,6 @@ quadtree:
   levels: 2
 sceneObjects:
   trees:
-    density: 0.3
+    density: 0.6
 lighting:
   ambientStrength: 0.2
