@@ -18,17 +18,17 @@ public final class ShaderPrograms {
 
 	static {
 		try {
-			textureShaderProgram = new ShaderProgram("/textureShader.vert", "/textureGBuffer.frag");
-			instancedNormalTextureShaderProgram = new ShaderProgram("/instTextureShader.vert", "/normTextureGBuffer.frag");
-			billboardShaderProgram = new ShaderProgram("/instTextureShader.vert", "/billboardGBuffer.frag");
-			skyboxShaderProgram = new ShaderProgram("/skyboxShader.vert", "/skyboxGBuffer.frag");
-			instancedLeafShaderProgram = new ShaderProgram("/instTextureShader.vert", "/leafGBuffer.frag");
-			lightingPassShader = new ShaderProgram("/gBufferLighting.vert", "/gBufferLighting.frag");
-			ssaoShader = new ShaderProgram("/gBufferLighting.vert", "/ssao.frag");
-			ssaoBlurShader = new ShaderProgram("/gBufferLighting.vert", "/ssaoBlur.frag");
-			sunShader = new ShaderProgram("/sun.vert", "/sun.frag");
-			scatteringShader = new ShaderProgram("/gBufferLighting.vert", "/scatter.frag");
-			hdrToCubemapShader = new ShaderProgram("/hdrToCubemapShader.vert", "/hdrToCubemapShader.frag");
+			textureShaderProgram = new ShaderProgram("/shaders/textureShader.vert", "/shaders/textureGBuffer.frag");
+			instancedNormalTextureShaderProgram = new ShaderProgram("/shaders/instTextureShader.vert", "/shaders/normTextureGBuffer.frag");
+			billboardShaderProgram = new ShaderProgram("/shaders/instTextureShader.vert", "/shaders/billboardGBuffer.frag");
+			skyboxShaderProgram = new ShaderProgram("/shaders/skyboxShader.vert", "/shaders/skyboxGBuffer.frag");
+			instancedLeafShaderProgram = new ShaderProgram("/shaders/instTextureShader.vert", "/shaders/leafGBuffer.frag");
+			lightingPassShader = new ShaderProgram("/shaders/gBufferLighting.vert", "/shaders/gBufferLighting.frag");
+			ssaoShader = new ShaderProgram("/shaders/gBufferLighting.vert", "/shaders/ssao.frag");
+			ssaoBlurShader = new ShaderProgram("/shaders/gBufferLighting.vert", "/shaders/ssaoBlur.frag");
+			sunShader = new ShaderProgram("/shaders/sun.vert", "/shaders/sun.frag");
+			scatteringShader = new ShaderProgram("/shaders/gBufferLighting.vert", "/shaders/scatter.frag");
+			hdrToCubemapShader = new ShaderProgram("/shaders/hdrToCubemapShader.vert", "/shaders/hdrToCubemapShader.frag");
 		} catch (IOException e) {
 			throw new RuntimeException("Unable to load 1 or more shader programs:" + e.getMessage());
 		}

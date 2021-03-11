@@ -104,50 +104,51 @@ public final class Textures {
 			8);
 
 
+	private static final String leafName = "Leaf2";
 	public static Texture2D leafFront = new Texture2D(
-			ShaderProgram.RESOURCES_PATH + "/textures/Leaf2/Leaf2_front.tga",
+			ShaderProgram.RESOURCES_PATH + "/textures/" + leafName + "/" + leafName + "_front.tga",
 			new Vector3f(0.1f, 0.3f, 0.1f),
 			9,
 			GL_SRGB_ALPHA,
 			GL_CLAMP);
 	public static Texture2D leafFrontT = new Texture2D(
-			ShaderProgram.RESOURCES_PATH + "/textures/Leaf2/Leaf2_front_t.tga",
+			ShaderProgram.RESOURCES_PATH + "/textures/" + leafName + "/" + leafName + "_front_t.tga",
 			new Vector3f(0.1f, 0.3f, 0.1f),
 			10,
 			GL_SRGB_ALPHA,
 			GL_CLAMP);
 	public static Texture2D leafBack = new Texture2D(
-			ShaderProgram.RESOURCES_PATH + "/textures/Leaf2/Leaf2_back.tga",
+			ShaderProgram.RESOURCES_PATH + "/textures/" + leafName + "/" + leafName + "_back.tga",
 			new Vector3f(0.1f, 0.3f, 0.1f),
 			11,
 			GL_SRGB_ALPHA,
 			GL_CLAMP);
 	public static Texture2D leafBackT = new Texture2D(
-			ShaderProgram.RESOURCES_PATH + "/textures/Leaf2/Leaf2_back_T.tga",
+			ShaderProgram.RESOURCES_PATH + "/textures/" + leafName + "/" + leafName + "_back_T.tga",
 			new Vector3f(0.1f, 0.3f, 0.1f),
 			12,
 			GL_SRGB_ALPHA,
 			GL_CLAMP);
 	public static Texture2D leafFrontHL = new Texture2D(
-			ShaderProgram.RESOURCES_PATH + "/textures/Leaf2/Leaf2_halflife_front_t.tga",
+			ShaderProgram.RESOURCES_PATH + "/textures/" + leafName + "/" + leafName + "_halflife_front_t.tga",
 			new Vector3f(0.1f, 0.3f, 0.1f),
 			13,
 			GL_RGBA,
 			GL_CLAMP);
 	public static Texture2D leafFrontNorm = new Texture2D(
-			ShaderProgram.RESOURCES_PATH + "/textures/Leaf2/Leaf2_normals_front.tga",
+			ShaderProgram.RESOURCES_PATH + "/textures/" + leafName + "/" + leafName + "_normals_front.tga",
 			new Vector3f(0.1f, 0.3f, 0.1f),
 			14,
 			GL_RGBA,
 			GL_CLAMP);
 	public static Texture2D leafBackHL = new Texture2D(
-			ShaderProgram.RESOURCES_PATH + "/textures/Leaf2/Leaf2_halflife_back_t.tga",
+			ShaderProgram.RESOURCES_PATH + "/textures/" + leafName + "/" + leafName + "_halflife_back_t.tga",
 			new Vector3f(0.1f, 0.3f, 0.1f),
 			15,
 			GL_RGBA,
 			GL_CLAMP);
 	public static Texture2D leafBackNorm = new Texture2D(
-			ShaderProgram.RESOURCES_PATH + "/textures/Leaf2/Leaf2_normals_back.tga",
+			ShaderProgram.RESOURCES_PATH + "/textures/" + leafName + "/" + leafName + "_normals_back.tga",
 			new Vector3f(0.1f, 0.3f, 0.1f),
 			16,
 			GL_RGBA,

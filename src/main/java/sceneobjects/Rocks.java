@@ -16,7 +16,7 @@ import rendering.Textures;
 
 public class Rocks extends InstancedGroundObject {
 
-	private static final Model rock = new LoadedModel(ShaderProgram.RESOURCES_PATH + "/Rock1.obj");
+	private static final Model rock = new LoadedModel(ShaderProgram.RESOURCES_PATH + "/models/Rock1.obj");
 
 	public Rocks(int numberOfTypes, int numberOfInstances, Vector2f regionCentre, float regionWidth, TerrainQuadtree quadtree, boolean yRotationOnly) {
 		super(numberOfTypes, numberOfInstances, regionCentre, regionWidth, quadtree, yRotationOnly);
