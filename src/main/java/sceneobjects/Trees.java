@@ -34,7 +34,7 @@ import utils.MeshUtils;
 public class Trees extends InstancedGroundObject {
 
 	public static final float TREE_SCALE = 0.01f;
-	public static final float LEAF_SCALE = 0.8f;
+	public static final float LEAF_SCALE = 0.7f;
 	private final static Vector3f up = new Vector3f(0f, 1f, 0f);
 	private final static Vector3f out = new Vector3f(0f, 0f, 1f);
 	public final static Mesh leaf = new Mesh(

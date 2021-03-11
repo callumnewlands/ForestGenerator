@@ -20,6 +20,7 @@ import static org.lwjgl.glfw.GLFW.GLFW_KEY_3;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_4;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_5;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_6;
+import static org.lwjgl.glfw.GLFW.GLFW_KEY_7;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_A;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_D;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE;
@@ -63,8 +64,15 @@ import static org.lwjgl.opengl.GL11.GL_DEPTH_BUFFER_BIT;
 import static org.lwjgl.opengl.GL11.GL_DEPTH_TEST;
 import static org.lwjgl.opengl.GL11.GL_FILL;
 import static org.lwjgl.opengl.GL11.GL_FRONT;
+import static org.lwjgl.opengl.GL11.GL_INVALID_ENUM;
+import static org.lwjgl.opengl.GL11.GL_INVALID_OPERATION;
+import static org.lwjgl.opengl.GL11.GL_INVALID_VALUE;
 import static org.lwjgl.opengl.GL11.GL_NEAREST;
+import static org.lwjgl.opengl.GL11.GL_NO_ERROR;
+import static org.lwjgl.opengl.GL11.GL_OUT_OF_MEMORY;
 import static org.lwjgl.opengl.GL11.GL_RGBA;
+import static org.lwjgl.opengl.GL11.GL_STACK_OVERFLOW;
+import static org.lwjgl.opengl.GL11.GL_STACK_UNDERFLOW;
 import static org.lwjgl.opengl.GL11.GL_TEXTURE_2D;
 import static org.lwjgl.opengl.GL11.GL_TEXTURE_BORDER_COLOR;
 import static org.lwjgl.opengl.GL11.GL_TEXTURE_MIN_FILTER;
@@ -75,6 +83,7 @@ import static org.lwjgl.opengl.GL11.glClearColor;
 import static org.lwjgl.opengl.GL11.glCullFace;
 import static org.lwjgl.opengl.GL11.glEnable;
 import static org.lwjgl.opengl.GL11.glGenTextures;
+import static org.lwjgl.opengl.GL11.glGetError;
 import static org.lwjgl.opengl.GL11.glReadPixels;
 import static org.lwjgl.opengl.GL11.glTexParameterfv;
 import static org.lwjgl.opengl.GL11.glTexParameteri;
@@ -99,6 +108,7 @@ import static org.lwjgl.opengl.GL11C.glViewport;
 import static org.lwjgl.opengl.GL12C.GL_CLAMP_TO_EDGE;
 import static org.lwjgl.opengl.GL13.GL_TEXTURE1;
 import static org.lwjgl.opengl.GL13.GL_TEXTURE2;
+import static org.lwjgl.opengl.GL13.GL_TEXTURE8;
 import static org.lwjgl.opengl.GL13C.GL_CLAMP_TO_BORDER;
 import static org.lwjgl.opengl.GL13C.GL_MULTISAMPLE;
 import static org.lwjgl.opengl.GL13C.GL_TEXTURE0;
@@ -113,6 +123,7 @@ import static org.lwjgl.opengl.GL30.GL_COLOR_ATTACHMENT0;
 import static org.lwjgl.opengl.GL30.GL_COLOR_ATTACHMENT1;
 import static org.lwjgl.opengl.GL30.GL_COLOR_ATTACHMENT2;
 import static org.lwjgl.opengl.GL30.GL_COLOR_ATTACHMENT3;
+import static org.lwjgl.opengl.GL30.GL_COLOR_ATTACHMENT4;
 import static org.lwjgl.opengl.GL30.GL_DEPTH_ATTACHMENT;
 import static org.lwjgl.opengl.GL30.GL_FRAMEBUFFER;
 import static org.lwjgl.opengl.GL30.GL_FRAMEBUFFER_COMPLETE;
@@ -121,6 +132,7 @@ import static org.lwjgl.opengl.GL30.glBindFramebuffer;
 import static org.lwjgl.opengl.GL30.glCheckFramebufferStatus;
 import static org.lwjgl.opengl.GL30.glFramebufferTexture2D;
 import static org.lwjgl.opengl.GL30.glGenFramebuffers;
+import static org.lwjgl.opengl.GL30C.GL_INVALID_FRAMEBUFFER_OPERATION;
 import static org.lwjgl.system.MemoryUtil.NULL;
 import static rendering.ShaderPrograms.billboardShaderProgram;
 import static rendering.ShaderPrograms.instancedLeafShaderProgram;
@@ -164,7 +176,7 @@ public class App {
 	private int windowHeight;
 	private long window;
 	private int gBuffer, ssaoBuffer, ssaoBlurBuffer, scatterBuffer, shadowBuffer;
-	private int gNormal, gAlbedoSpecular, gPosition, gOcclusion, gDepth;
+	private int gNormal, gAlbedoSpecular, gPosition, gOcclusion, gTranslucency, gDepth;
 	private int ssaoColor, ssaoColorBlur;
 	private int scatterColor;
 	private int shadowMap;
@@ -189,6 +201,12 @@ public class App {
 	private int frame = 0;
 	private BufferedReader inputStream;
 
+	public App() {
+		if (!parameters.control.manual) {
+			inputStream = new BufferedReader(new InputStreamReader(System.in));
+		}
+	}
+
 	public static void main(String[] args) throws IOException {
 		if (args.length == 0) {
 			ParameterLoader.loadParameters(ShaderProgram.RESOURCES_PATH + "/defaults.yaml");
@@ -198,12 +216,6 @@ public class App {
 			throw new RuntimeException("Usage: java -jar ForestGenerator.jar [params.yaml]");
 		}
 		new App().run();
-	}
-
-	public App() {
-		if (!parameters.control.manual) {
-			inputStream = new BufferedReader(new InputStreamReader(System.in));
-		}
 	}
 
 	public void run() {
@@ -244,8 +256,11 @@ public class App {
 
 		initShaders();
 		initScene();
+		checkError("scene initialisation");
 		renderShadowMap();
+		checkError("shadow map rendering");
 
+		checkError("initialisation");
 		glViewport(0, 0, windowWidth, windowHeight);
 	}
 
@@ -348,7 +363,16 @@ public class App {
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, GL_TEXTURE_2D, gOcclusion, 0);
-		glDrawBuffers(new int[] {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3});
+
+		gTranslucency = glGenTextures();
+		glActiveTexture(GL_TEXTURE8);
+		glBindTexture(GL_TEXTURE_2D, gTranslucency);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, windowWidth, windowHeight, 0, GL_RGBA, GL_FLOAT, NULL);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT4, GL_TEXTURE_2D, gTranslucency, 0);
+
+		glDrawBuffers(new int[] {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3, GL_COLOR_ATTACHMENT4});
 
 		gDepth = glGenTextures();
 		glActiveTexture(GL_TEXTURE6);
@@ -362,6 +386,7 @@ public class App {
 			System.err.println("Deferred rendering framebuffer not complete");
 		}
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		checkError("gBuffer init.");
 
 		shadowBuffer = glGenFramebuffers();
 		glBindFramebuffer(GL_FRAMEBUFFER, shadowBuffer);
@@ -381,6 +406,7 @@ public class App {
 			System.err.println("Shadow map framebuffer not complete");
 		}
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		checkError("shadow buffer init.");
 
 		ssaoBuffer = glGenFramebuffers();
 		glBindFramebuffer(GL_FRAMEBUFFER, ssaoBuffer);
@@ -395,6 +421,7 @@ public class App {
 			System.err.println("SSAO framebuffer not complete");
 		}
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		checkError("SSAO buffer init.");
 
 		ssaoBlurBuffer = glGenFramebuffers();
 		glBindFramebuffer(GL_FRAMEBUFFER, ssaoBlurBuffer);
@@ -409,6 +436,7 @@ public class App {
 			System.err.println("SSAO blur framebuffer not complete");
 		}
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		checkError("SSAO blur buffer init.");
 
 		scatterBuffer = glGenFramebuffers();
 		glBindFramebuffer(GL_FRAMEBUFFER, scatterBuffer);
@@ -423,6 +451,7 @@ public class App {
 			System.err.println("Scatter framebuffer not complete");
 		}
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		checkError("scattering buffer init.");
 
 		initLighting();
 	}
@@ -436,6 +465,7 @@ public class App {
 		// noon_grass_8k.hdr
 		Texture skyboxTexture = new HDRTexture(ShaderProgram.RESOURCES_PATH + "/textures/noon_grass_8k.hdr", 2048, new Vector3f(.529f, .808f, .922f), 8);
 		skybox.addTexture("skyboxTexture", skyboxTexture);
+		checkError("skybox loading");
 		System.out.println("Skybox HDR loaded");
 
 		sun = new Polygon(parameters.lighting.sun.numSides, sunShader);
@@ -464,6 +494,7 @@ public class App {
 		lightingPassShader.setUniform("aoEnabled", parameters.lighting.ssao.enabled);
 		lightingPassShader.setUniform("renderDepth", false);
 		lightingPassShader.setUniform("shadowsEnabled", true);
+		lightingPassShader.setUniform("translucencyEnabled", true);
 
 		ssaoKernel = new ArrayList<>();
 		Random r = new Random();
@@ -492,6 +523,7 @@ public class App {
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
+		checkError("lighting init");
 	}
 
 	private void renderShadowMap() {
@@ -538,6 +570,11 @@ public class App {
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 			ShaderPrograms.forAll(sp -> sp.setUniform("projection", projection));
 			ShaderPrograms.forAll(sp -> sp.setUniform("view", camera.getViewMatrix()));
+
+			ShaderPrograms.forAll(sp -> sp.setUniform("lightPos", parameters.lighting.sun.position));
+			ShaderPrograms.forAll(sp -> sp.setUniform("lightColour", new Vector3f(parameters.lighting.sun.strength)));
+			ShaderPrograms.forAll(sp -> sp.setUniform("ambientStrength", parameters.lighting.ambientStrength));
+
 			billboardShaderProgram.setUniform("viewPos", camera.getPosition());
 			instancedLeafShaderProgram.setUniform("viewPos", camera.getPosition());
 			renderScene();
@@ -623,6 +660,10 @@ public class App {
 			glActiveTexture(GL_TEXTURE7);
 			glBindTexture(GL_TEXTURE_2D, shadowMap);
 
+			lightingPassShader.setUniform("gTranslucency", 8);
+			glActiveTexture(GL_TEXTURE8);
+			glBindTexture(GL_TEXTURE_2D, gTranslucency);
+
 			(new Quad(lightingPassShader)).render();
 
 			glfwSwapBuffers(window);
@@ -633,6 +674,26 @@ public class App {
 				outputFrame();
 				blockAndProcessInputStream();
 			}
+
+			checkError("render loop");
+		}
+	}
+
+	private void checkError(String stage) {
+		int err;
+		while ((err = glGetError()) != GL_NO_ERROR) {
+			String error;
+			switch (err) {
+				case GL_INVALID_ENUM -> error = "INVALID_ENUM";
+				case GL_INVALID_VALUE -> error = "INVALID_VALUE";
+				case GL_INVALID_OPERATION -> error = "INVALID_OPERATION";
+				case GL_STACK_OVERFLOW -> error = "STACK_OVERFLOW";
+				case GL_STACK_UNDERFLOW -> error = "STACK_UNDERFLOW";
+				case GL_OUT_OF_MEMORY -> error = "OUT_OF_MEMORY";
+				case GL_INVALID_FRAMEBUFFER_OPERATION -> error = "INVALID_FRAMEBUFFER_OPERATION";
+				default -> error = "UNKNOWN ERROR";
+			}
+			System.err.println("Error in " + stage + ": " + error);
 		}
 	}
 
@@ -725,6 +786,12 @@ public class App {
 		}
 		if (glfwGetKey(window, GLFW_KEY_6) == GLFW_RELEASE) {
 			lightingPassShader.setUniform("shadowsEnabled", true);
+		}
+		if (glfwGetKey(window, GLFW_KEY_7) == GLFW_PRESS) {
+			lightingPassShader.setUniform("translucencyEnabled", false);
+		}
+		if (glfwGetKey(window, GLFW_KEY_7) == GLFW_RELEASE) {
+			lightingPassShader.setUniform("translucencyEnabled", true);
 		}
 	}
 

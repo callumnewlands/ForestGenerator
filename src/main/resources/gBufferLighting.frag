@@ -6,6 +6,7 @@ uniform sampler2D gNormal;
 uniform sampler2D gAlbedoSpec;
 uniform sampler2D ssao;
 uniform sampler2D occlusion;
+uniform sampler2D gTranslucency;
 uniform sampler2D scatter;
 uniform sampler2D gDepth;
 uniform sampler2D shadowMap;
@@ -13,6 +14,7 @@ uniform sampler2D shadowMap;
 uniform bool hdrEnabled;
 uniform bool aoEnabled;
 uniform bool shadowsEnabled;
+uniform bool translucencyEnabled;
 uniform bool renderDepth;
 
 uniform float ambientStrength;
@@ -66,6 +68,9 @@ void main() {
     vec3 worldPos = texture(gPosition, textureCoord).rgb;
     vec3 normal = texture(gNormal, textureCoord).rgb;
     vec3 diffuse = texture(gAlbedoSpec, textureCoord).rgb;
+    vec3 transl = texture(gTranslucency, textureCoord).rgb;
+    float transl_factor = translucencyEnabled ? texture(gTranslucency, textureCoord).a : 0.0f;
+    //    float transl_factor = texture(gTranslucency, textureCoord).a;
     float specular = texture(gAlbedoSpec, textureCoord).a;
     float ambientOcclusion = texture(ssao, textureCoord).r;
     vec3 occ = texture(occlusion, textureCoord).rgb;
@@ -82,23 +87,25 @@ void main() {
         return;
     }
 
-
-    vec3 hdrColor;
     vec3 norm = normalize(normal);
     vec3 lightDir = normalize(lightPos - worldPos);
     vec4 lightSpacePos = lightVP * vec4(worldPos, 1.0);
     float shadow = shadowsEnabled ? shadowCalculation(lightSpacePos, norm, lightDir) : 0;
-    if (length(occ) < 0.0001) {
-        if (aoEnabled) {
-            vec3 ambient =  vec3(ambientStrength * diffuse * ambientOcclusion);
-            vec3 diff = max(dot(norm, lightDir), 0.0f) * diffuse * lightColour;
-            hdrColor = ambient + (1.0 - shadow) * diff + scattering;
-        } else {
-            vec3 ambient = ambientStrength * lightColour;
-            vec3 diff = max(dot(norm, lightDir), 0.0f) * lightColour;
-            hdrColor = (ambient + (1.0 - shadow) * diff) * diffuse + scattering;
-        }
 
+    vec3 hdrColor;
+    if (length(occ) < 0.0001) {
+        vec3 ambient;
+        if (aoEnabled) {
+            ambient =  ambientStrength * diffuse * ambientOcclusion;
+        } else {
+            ambient = ambientStrength * diffuse;
+        }
+        float diff_factor =  max(dot(norm, lightDir), 0.0f);
+        //        float transl_factor =  max(dot(-norm, lightDir), 0.0f);
+        hdrColor =  ambient +
+        (1.0 - shadow) * diff_factor * lightColour * diffuse +
+        transl * transl_factor * 0.5f * lightColour +
+        scattering;
     } else {
         hdrColor = diffuse;
     }
@@ -116,6 +123,5 @@ void main() {
     vec3 gammaCorrected = pow(screenColour, vec3(1.0 / gamma));
     fragColour = vec4(gammaCorrected, 1.0);
 
-
-    //    fragColour = vec4(vec3(texture(shadowMap, textureCoord).r), 1.0);
+    //    fragColour = vec4((translucencyEnabled ? vec3(transl_factor) : transl), 1.0);
 }

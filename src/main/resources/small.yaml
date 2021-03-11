@@ -5,3 +5,5 @@ quadtree:
 sceneObjects:
   trees:
     density: 0.5
+lighting:
+  ambientStrength: 0.2

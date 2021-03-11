@@ -5,6 +5,7 @@ layout (location = 0) out vec3 gPosition;
 layout (location = 1) out vec3 gNormal;
 layout (location = 2) out vec4 gAlbedoSpec;
 layout (location = 3) out vec3 gOcclusion;
+layout (location = 4) out vec4 gTranslucency;
 
 uniform samplerCube skyboxTexture;
 
@@ -22,4 +23,5 @@ void main() {
     const float exposure = 0.9f;
     vec3 screenColour = vec3(1.0) - exp(-fragColour.rgb * exposure);
     gOcclusion = screenColour;
+    gTranslucency = vec4(0);
 }
