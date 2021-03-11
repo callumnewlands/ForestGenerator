@@ -18,11 +18,11 @@ public final class ShaderPrograms {
 
 	static {
 		try {
-			textureShaderProgram = new ShaderProgram("/shaders/scene/textureShader.vert", "/shaders/scene/textureGBuffer.frag");
-			instancedNormalTextureShaderProgram = new ShaderProgram("/shaders/scene/instTextureShader.vert", "/shaders/scene/normTextureGBuffer.frag");
-			billboardShaderProgram = new ShaderProgram("/shaders/scene/instTextureShader.vert", "/shaders/scene/billboardGBuffer.frag");
-			skyboxShaderProgram = new ShaderProgram("/shaders/scene/skyboxShader.vert", "/shaders/scene/skyboxGBuffer.frag");
-			instancedLeafShaderProgram = new ShaderProgram("/shaders/scene/instTextureShader.vert", "/shaders/scene/leafGBuffer.frag");
+			textureShaderProgram = new ShaderProgram("/shaders/scene/texture.vert", "/shaders/scene/texture.frag");
+			instancedNormalTextureShaderProgram = new ShaderProgram("/shaders/scene/instanceTexture.vert", "/shaders/scene/normalMapped.frag");
+			billboardShaderProgram = new ShaderProgram("/shaders/scene/instanceTexture.vert", "/shaders/scene/billboard.frag");
+			skyboxShaderProgram = new ShaderProgram("/shaders/scene/skybox.vert", "/shaders/scene/skybox.frag");
+			instancedLeafShaderProgram = new ShaderProgram("/shaders/scene/instanceTexture.vert", "/shaders/scene/leaf.frag");
 			lightingPassShader = new ShaderProgram("/shaders/processing/gBufferLighting.vert", "/shaders/processing/gBufferLighting.frag");
 			ssaoShader = new ShaderProgram("/shaders/processing/gBufferLighting.vert", "/shaders/processing/ssao.frag");
 			ssaoBlurShader = new ShaderProgram("/shaders/processing/gBufferLighting.vert", "/shaders/processing/ssaoBlur.frag");
