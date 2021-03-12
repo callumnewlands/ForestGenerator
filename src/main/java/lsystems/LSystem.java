@@ -7,6 +7,7 @@ import lsystems.modules.AxiomaticModule;
 import lsystems.modules.Module;
 import org.apache.commons.math3.distribution.EnumeratedDistribution;
 import org.apache.commons.math3.util.Pair;
+import params.ParameterLoader;
 
 public class LSystem {
 
@@ -83,6 +84,8 @@ public class LSystem {
 		}
 		EnumeratedDistribution<Production> dist = new EnumeratedDistribution<>(
 				matches.stream().map(p -> Pair.create(p, (double) p.getProbability())).collect(Collectors.toList()));
+
+		dist.reseedRandomGenerator(ParameterLoader.getParameters().random.generator.nextLong());
 		return dist.sample();
 	}
 

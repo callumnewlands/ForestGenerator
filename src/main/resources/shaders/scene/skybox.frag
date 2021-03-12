@@ -8,6 +8,8 @@ layout (location = 3) out vec3 gOcclusion;
 layout (location = 4) out vec4 gTranslucency;
 
 uniform samplerCube skyboxTexture;
+uniform bool hdrEnabled;
+uniform float toneExposure;
 
 void main() {
 
@@ -20,8 +22,8 @@ void main() {
 
     // TODO should the scattered values be in hdr or sdr colour space? - maybe hdr and then tone map
     // TODO uniform
-    const float exposure = 0.9f;
-    vec3 screenColour = vec3(1.0) - exp(-fragColour.rgb * exposure);
+    vec3 hdrColor = fragColour.rgb;
+    vec3 screenColour = hdrEnabled ? vec3(1.0) - exp(-hdrColor * toneExposure) : hdrColor;
     gOcclusion = screenColour;
     gTranslucency = vec4(0);
 }

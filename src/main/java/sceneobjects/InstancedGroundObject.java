@@ -13,6 +13,7 @@ import modeldata.meshdata.Mesh;
 import org.joml.Matrix4f;
 import org.joml.Vector2f;
 import org.joml.Vector3f;
+import params.ParameterLoader;
 import rendering.LevelOfDetail;
 
 public abstract class InstancedGroundObject {
@@ -20,6 +21,7 @@ public abstract class InstancedGroundObject {
 	private final List<InstancedLODModel> models = new ArrayList<>();
 
 	public InstancedGroundObject(int numberOfTypes, int numberOfInstances, Vector2f regionCentre, float regionWidth, TerrainQuadtree quadtree, boolean yRotationOnly) {
+		Random r = ParameterLoader.getParameters().random.generator;
 		for (int i = 0; i < numberOfTypes; i++) {
 			Map<LevelOfDetail, List<Mesh>> lodMeshes = getMeshes();
 			InstancedLODModelBuilder modelBuilder = new InstancedLODModelBuilder();
@@ -32,7 +34,6 @@ public abstract class InstancedGroundObject {
 			}
 			InstancedLODModel lodModel = modelBuilder.withNumberOfInstances(getNumber(numberOfInstances, numberOfTypes)).build();
 			lodModel.generateModelMatrices(() -> {
-				Random r = new Random();
 				float x = (r.nextFloat() - 0.5f) * regionWidth + regionCentre.x;
 				float z = (r.nextFloat() - 0.5f) * regionWidth + regionCentre.y;
 				Matrix4f model = new Matrix4f()
@@ -52,9 +53,10 @@ public abstract class InstancedGroundObject {
 	}
 
 	private int getNumber(int instances, int types) {
+		Random r = ParameterLoader.getParameters().random.generator;
 		float val = (float) instances / types;
 		if (val < 1) {
-			return (new Random()).nextInt(types) < instances ? 1 : 0;
+			return r.nextInt(types) < instances ? 1 : 0;
 		}
 		return (int) val;
 	}

@@ -1,10 +1,15 @@
-# TODO random seeding
-control:
-  manual: true
-window:
-  fullscreen: true
-  width: 800
-  height: 600
+random:
+  seed: -1 # A value of -1 will result in a seed derived from the system clock value
+input:
+  manual: true # It is advised to set manual XOR stdin to true
+  stdin: false # Enabling stdin will case render loop to block after each frame for input and will disable delta time
+output:
+  window:
+    visible: true
+    fullscreen: true
+    width: 800
+    height: 600
+  frameImages: false
 camera:
   startPosition: [ 0.0, 3.3, 0.0 ]
   verticalMovement: true
@@ -36,15 +41,27 @@ sceneObjects:
   fallenLeaves:
     density: 1.0
 lighting:
-  hdrEnabled: true
-  ambientStrength: 0.3
+  ambientStrength: 0.2
+  hdr:
+    enabled: true
+    exposure: 0.9
+  gammaCorrection:
+    enabled: true
+    gamma: 2.2
   sun:
     display: false
     numSides: 10
     strength: 1.0
     position: [ 50.0, 200.0, -50.0 ]
+    scale: 20.0
   ssao:
     enabled: true
     kernelSize: 32
     radius: 0.5
     bias: 0.025
+  translucency:
+    enabled: true
+    factor: 0.5
+  shadows:
+    enabled: true
+    resolution: 16384

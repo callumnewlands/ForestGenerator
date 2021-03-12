@@ -3,28 +3,20 @@ package rendering;
 import lombok.Getter;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
+import params.ParameterLoader;
+import params.Parameters;
 import utils.VectorUtils;
 
 @Getter
 public class Camera {
 
-	public enum MovementDirection {
-		FORWARD,
-		BACKWARD,
-		LEFT,
-		RIGHT,
-		UP,
-		DOWN
-	}
-
 	private static final Vector3f GLOBAL_UP = new Vector3f(0.0f, 1.0f, 0.0f);
 	private static final float MOVEMENT_SPEED = 7.0f;
 	private static final float MOUSE_SENSITIVITY = 0.1f;
 	private static final float MAX_PITCH = 89.0f;
-
+	private final Parameters parameters = ParameterLoader.getParameters();
 	private float yaw;
 	private float pitch;
-
 	private Vector3f position;
 	private Vector3f direction;
 	private Vector3f front;
@@ -74,10 +66,14 @@ public class Camera {
 				position = VectorUtils.add(position, VectorUtils.multiply(velocity, right));
 				break;
 			case UP:
-				position = VectorUtils.add(position, VectorUtils.multiply(velocity, up));
+				if (parameters.camera.verticalMovement) {
+					position = VectorUtils.add(position, VectorUtils.multiply(velocity, up));
+				}
 				break;
 			case DOWN:
-				position = VectorUtils.subtract(position, VectorUtils.multiply(velocity, up));
+				if (parameters.camera.verticalMovement) {
+					position = VectorUtils.subtract(position, VectorUtils.multiply(velocity, up));
+				}
 				break;
 			default:
 		}
@@ -94,6 +90,15 @@ public class Camera {
 		}
 
 		updateVectorsFromAngles();
+	}
+
+	public enum MovementDirection {
+		FORWARD,
+		BACKWARD,
+		LEFT,
+		RIGHT,
+		UP,
+		DOWN
 	}
 
 }

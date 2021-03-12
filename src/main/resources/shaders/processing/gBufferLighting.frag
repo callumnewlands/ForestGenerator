@@ -12,11 +12,15 @@ uniform sampler2D gDepth;
 uniform sampler2D shadowMap;
 
 uniform bool hdrEnabled;
+uniform bool gammaEnabled;
 uniform bool aoEnabled;
 uniform bool shadowsEnabled;
 uniform bool translucencyEnabled;
 uniform bool renderDepth;
 
+uniform float gamma;
+uniform float translucencyFactor;
+uniform float toneExposure;
 uniform float ambientStrength;
 uniform vec3 lightPos;
 uniform vec3 lightColour;
@@ -69,7 +73,7 @@ void main() {
     vec3 normal = texture(gNormal, textureCoord).rgb;
     vec3 diffuse = texture(gAlbedoSpec, textureCoord).rgb;
     vec3 transl = texture(gTranslucency, textureCoord).rgb;
-    float transl_factor = translucencyEnabled ? texture(gTranslucency, textureCoord).a : 0.0f;
+    float pixelTranslFactor = translucencyEnabled ? texture(gTranslucency, textureCoord).a : 0.0f;
     float specular = texture(gAlbedoSpec, textureCoord).a;
     float ambientOcclusion = texture(ssao, textureCoord).r;
     vec3 occ = texture(occlusion, textureCoord).rgb;
@@ -99,29 +103,25 @@ void main() {
         } else {
             ambient = ambientStrength * diffuse;
         }
-        float diff_factor =  max(dot(norm, lightDir), 0.0f);
+        float diffFactor =  max(dot(norm, lightDir), 0.0f);
         //        float transl_factor =  max(dot(-norm, lightDir), 0.0f);
         hdrColor =  ambient +
         //                    (1.0 - shadow) * Lo +
-        (1.0 - shadow) * diff_factor * lightColour * diffuse +
-        transl * transl_factor * 0.5f +
+        (1.0 - shadow) * diffFactor * lightColour * diffuse +
+        transl * pixelTranslFactor * translucencyFactor +
         scattering;
-        // TODO uniform for 0.5f
     } else {
         hdrColor = diffuse;
     }
 
     ////     Reinhard tone mapping
-    //    vec3 screenColour = hdrEnabled ? hdrColor / (hdrColor + vec3(1.0)) : hdrColor;
+//        vec3 screenColour = hdrEnabled ? hdrColor / (hdrColor + vec3(1.0)) : hdrColor;
 
     //     Exposure tone mapping
-    // TODO uniform
-    const float exposure = 0.9f;
-    vec3 screenColour = hdrEnabled ? vec3(1.0) - exp(-hdrColor * exposure) : hdrColor;
+    vec3 screenColour = hdrEnabled ? vec3(1.0) - exp(-hdrColor * toneExposure) : hdrColor;
 
     // gamma correction
-    const float gamma = 2.2;
-    vec3 gammaCorrected = pow(screenColour, vec3(1.0 / gamma));
+    vec3 gammaCorrected = gammaEnabled ? pow(screenColour, vec3(1.0 / gamma)) : screenColour;
     fragColour = vec4(gammaCorrected, 1.0);
 
     //    fragColour = vec4((translucencyEnabled ? vec3(transl_factor) : transl), 1.0);

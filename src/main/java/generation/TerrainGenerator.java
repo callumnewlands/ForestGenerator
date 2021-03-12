@@ -2,6 +2,7 @@ package generation;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 import java.util.stream.IntStream;
 
 import static utils.MathsUtils.lerp;
@@ -29,7 +30,10 @@ public class TerrainGenerator {
 	private static final float NOISE_SCALE = parameters.terrain.noise.scale;
 
 	public TerrainGenerator() {
-		noiseGenerator = new PerlinNoiseGenerator(0);
+		int seed = (int) parameters.random.seed;
+		seed = seed == -1 ? (new Random()).nextInt() : seed;
+		// TODO this uses Math.random() which does not take into account the seed value
+		noiseGenerator = new PerlinNoiseGenerator(seed);
 	}
 
 	private float round(float f) {

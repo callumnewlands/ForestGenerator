@@ -69,10 +69,10 @@ public class TerrainQuadtree {
 		return terrainGenerator.getHeight(x, z);
 	}
 
-	public void render(Boolean useNormalMapping, Matrix4f MVP) {
+	public void render(Matrix4f MVP) {
 		List<Quad> tiles = quad.getVisibleQuads(MVP);
 		for (Quad tile : tiles) {
-			tile.render(useNormalMapping);
+			tile.render();
 		}
 	}
 
@@ -169,7 +169,7 @@ public class TerrainQuadtree {
 			return children.stream().flatMap(q -> q.getMeshes().stream()).collect(Collectors.toList());
 		}
 
-		public void render(Boolean useNormalMapping) {
+		public void render() {
 
 			for (Mesh mesh : getMeshes()) {
 				mesh.render();
@@ -184,16 +184,17 @@ public class TerrainQuadtree {
 
 			if (parameters.sceneObjects.display) {
 				for (SceneObjects objects : getSceneObjects()) {
-					objects.render(useNormalMapping, levelOfDetail);
+					objects.render(levelOfDetail);
 				}
 			}
 
 		}
 
 		private int getNumber(int total) {
+			Random r = ParameterLoader.getParameters().random.generator;
 			float val = (float) total / numberOfMaxDepthTiles;
 			if (val < 1) {
-				return (new Random()).nextInt(numberOfMaxDepthTiles) < total ? 1 : 0;
+				return r.nextInt(numberOfMaxDepthTiles) < total ? 1 : 0;
 			}
 			return (int) val;
 		}
@@ -213,7 +214,7 @@ public class TerrainQuadtree {
 				grass = new Grass(1, getNumber(NUM_OF_INSTANCED_GRASS), centre, width, TerrainQuadtree.this, false);
 			}
 
-			private void render(Boolean useNormalMapping, LevelOfDetail levelOfDetail) {
+			private void render(LevelOfDetail levelOfDetail) {
 
 				trees.render(levelOfDetail);
 

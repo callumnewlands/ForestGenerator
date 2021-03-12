@@ -11,6 +11,7 @@ import modeldata.meshdata.Mesh;
 import org.joml.Matrix4f;
 import org.joml.Vector2f;
 import org.joml.Vector3f;
+import params.ParameterLoader;
 import rendering.LevelOfDetail;
 import rendering.Textures;
 import utils.MeshUtils;
@@ -31,7 +32,8 @@ public class Grass extends InstancedGroundObject {
 
 	@Override
 	float getHeightOffset() {
-		return -(new Random()).nextFloat() * 0.6f - 0.3f;
+		Random r = ParameterLoader.getParameters().random.generator;
+		return -r.nextFloat() * 0.6f - 0.3f;
 	}
 
 	@Override

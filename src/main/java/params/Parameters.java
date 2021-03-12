@@ -1,5 +1,6 @@
 package params;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
@@ -10,8 +11,9 @@ import org.joml.Vector3f;
 @Setter
 public class Parameters {
 
-	public Control control = new Control();
-	public Window window = new Window();
+	public Random random = new Random();
+	public Input input = new Input();
+	public Output output = new Output();
 	public Camera camera = new Camera();
 	public Terrain terrain = new Terrain();
 	public Quadtree quadtree = new Quadtree();
@@ -20,24 +22,42 @@ public class Parameters {
 
 	@NoArgsConstructor
 	@Setter
-	public static class Control {
-		public boolean manual = true;
+	public static class Random {
+		public long seed = -1;
+		@JsonIgnore
+		public java.util.Random generator = null;
 	}
 
 	@NoArgsConstructor
 	@Setter
-	public static class Window {
-		public boolean fullscreen = true; // TODO
-		public int width = 800;  // TODO
-		public int height = 600;  // TODO
+	public static class Input {
+		public boolean manual = true;
+		public boolean stdin = false;
 	}
+
+	@NoArgsConstructor
+	@Setter
+	public static class Output {
+		public boolean frameImages = false;
+		public Window window = new Window();
+
+		@NoArgsConstructor
+		@Setter
+		public static class Window {
+			public boolean visible = true;
+			public boolean fullscreen = true;
+			public int width = 800;
+			public int height = 600;
+		}
+	}
+
 
 	@NoArgsConstructor
 	@Setter
 	public static class Camera {
 		@JsonDeserialize(using = ParameterLoader.Vec3Deserializer.class)
 		public Vector3f startPosition = new Vector3f(0, 3.3f, 0);
-		public boolean verticalMovement = true;  // TODO
+		public boolean verticalMovement = true;
 	}
 
 	@NoArgsConstructor
@@ -92,10 +112,13 @@ public class Parameters {
 	@NoArgsConstructor
 	@Setter
 	public static class Lighting {
-		public boolean hdrEnabled = true;
-		public float ambientStrength = 0.3f;
+		public float ambientStrength = 0.2f;
 		public Sun sun = new Sun();
 		public SSAO ssao = new SSAO();
+		public HDR hdr = new HDR();
+		public GammaCorrection gammaCorrection = new GammaCorrection();
+		public Translucency translucency = new Translucency();
+		public Shadows shadows = new Shadows();
 
 		@NoArgsConstructor
 		@Setter
@@ -103,6 +126,7 @@ public class Parameters {
 			public boolean display = false;
 			public int numSides = 10;
 			public float strength = 1f;
+			public float scale = 20f;
 			@JsonDeserialize(using = ParameterLoader.Vec3Deserializer.class)
 			public Vector3f position = new Vector3f(50.0f, 200.0f, -50.0f);
 		}
@@ -114,6 +138,34 @@ public class Parameters {
 			public int kernelSize = 32;
 			public float radius = 0.5f;
 			public float bias = 0.025f;
+		}
+
+		@NoArgsConstructor
+		@Setter
+		public static class Translucency {
+			public boolean enabled = true;
+			public float factor = 0.5f;
+		}
+
+		@NoArgsConstructor
+		@Setter
+		public static class Shadows {
+			public boolean enabled = true;
+			public int resolution = 16384;
+		}
+
+		@NoArgsConstructor
+		@Setter
+		public static class HDR {
+			public boolean enabled = true;
+			public float exposure = 0.9f;
+		}
+
+		@NoArgsConstructor
+		@Setter
+		public static class GammaCorrection {
+			public boolean enabled = true;
+			public float gamma = 2.2f;
 		}
 	}
 }

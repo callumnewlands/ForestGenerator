@@ -47,7 +47,8 @@ public class Twigs extends InstancedGroundObject {
 		int numEdges = ParameterLoader.getParameters().sceneObjects.twigs.numSides;
 		TurtleInterpreter twigTurtleInterpreter = new TurtleInterpreter(numEdges);
 		twigTurtleInterpreter.setIgnored(List.of('A', 'B', 'C'));
-		List<Module> instructions = twigSystem().performDerivations(new Random().nextInt(2) + 5);
+		Random r = ParameterLoader.getParameters().random.generator;
+		List<Module> instructions = twigSystem().performDerivations(r.nextInt(2) + 5);
 		twigTurtleInterpreter.interpretInstructions(instructions);
 		Mesh twig = MeshUtils.transform(twigTurtleInterpreter.getMesh(), new Matrix4f().rotate((float) Math.PI / 2, new Vector3f(1, 0, 0)));
 		twig.addTexture("diffuseTexture", Textures.bark);

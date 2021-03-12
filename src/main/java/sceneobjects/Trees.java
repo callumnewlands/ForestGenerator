@@ -72,7 +72,8 @@ public class Trees extends InstancedGroundObject {
 		TurtleInterpreter turtleInterpreter = new TurtleInterpreter(numEdges);
 		turtleInterpreter.setSubModels(List.of(MeshUtils.transform(leaf, new Matrix4f().scale(LEAF_SCALE / TREE_SCALE))));
 		turtleInterpreter.setIgnored(List.of('A'));
-		List<Module> instructions = treeSystem().performDerivations(new Random().nextInt(2) + 7);
+		Random r = ParameterLoader.getParameters().random.generator;
+		List<Module> instructions = treeSystem().performDerivations(r.nextInt(2) + 7);
 		turtleInterpreter.interpretInstructions(instructions
 				.stream()
 				.map(m -> m.getName() == 'A' ? new ParametricValueModule('~', 0f) : m)
