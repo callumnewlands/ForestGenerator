@@ -85,6 +85,7 @@ public class Parameters {
 	public static class Quadtree {
 		public int levels = 3;
 		public float thresholdCoefficient = 1.7f;
+		public boolean frustumCulling = true;
 	}
 
 	@NoArgsConstructor

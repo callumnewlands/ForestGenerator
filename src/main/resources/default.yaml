@@ -27,6 +27,7 @@ terrain:
 quadtree:
   levels: 3
   thresholdCoefficient: 1.7
+  frustumCulling: true
 sceneObjects:
   display: true
   trees:

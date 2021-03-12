@@ -80,7 +80,7 @@ public class TerrainQuadtree {
 		private final Vector2f centre;
 		private final float width;
 		private final int depth;
-		private Mesh mesh;
+		private final Mesh mesh;
 		private List<Quad> children = null;
 		private SceneObjects sceneObjects = null;
 
@@ -104,6 +104,9 @@ public class TerrainQuadtree {
 		}
 
 		private boolean isOutsideView(Matrix4f MVP) {
+			if (!parameters.quadtree.frustumCulling) {
+				return false;
+			}
 			return !MVP.testSphere(centre.x, 0, centre.y, width);
 		}
 
@@ -140,7 +143,7 @@ public class TerrainQuadtree {
 		}
 
 		private List<Quad> getVisibleQuads(Matrix4f MVP) {
-
+			// Stop recursion to children at leaf node or if distance from camera > thresholdCoefficient * width
 			if (Math.abs(centre.x - seedPoint.x) > parameters.quadtree.thresholdCoefficient * width ||
 					Math.abs(centre.y - seedPoint.y) > parameters.quadtree.thresholdCoefficient * width ||
 					this.children == null) {
@@ -176,7 +179,7 @@ public class TerrainQuadtree {
 			}
 
 			LevelOfDetail levelOfDetail;
-			if (depth > (maxDepth + 1) / 2) {
+			if (maxDepth == 1 || depth > (maxDepth + 1) / 2) {
 				levelOfDetail = LevelOfDetail.HIGH;
 			} else {
 				levelOfDetail = LevelOfDetail.LOW;

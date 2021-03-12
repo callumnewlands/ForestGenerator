@@ -205,6 +205,7 @@ public class App {
 	private int scatterColor;
 	private int shadowMap;
 	private int ssaoNoiseTexture;
+	private int polygonMode = GL_FILL;
 
 	private Camera camera;
 	private Matrix4f lightVP;
@@ -675,6 +676,8 @@ public class App {
 			stepper -= (int) stepper;
 //			System.out.println(1 / deltaTime + " fps");
 
+			glPolygonMode(GL_FRONT_AND_BACK, polygonMode);
+
 			// Geometry Pass
 			glViewport(0, 0, windowWidth, windowHeight);
 			glBindFramebuffer(GL_FRAMEBUFFER, gBuffer);
@@ -690,6 +693,8 @@ public class App {
 			instancedLeafShaderProgram.setUniform("viewPos", camera.getPosition());
 			renderScene();
 			glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
 			if (parameters.lighting.ssao.enabled) {
 				// SSAO pass
@@ -889,10 +894,10 @@ public class App {
 			camera.move(Camera.MovementDirection.DOWN, (float) deltaTime);
 		}
 		if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS) {
-			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+			polygonMode = GL_LINE;
 		}
 		if (glfwGetKey(window, GLFW_KEY_1) == GLFW_RELEASE) {
-			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+			polygonMode = GL_FILL;
 		}
 		if (glfwGetKey(window, GLFW_KEY_3) == GLFW_PRESS) {
 			lightingPassShader.setUniform("hdrEnabled", !parameters.lighting.hdr.enabled);

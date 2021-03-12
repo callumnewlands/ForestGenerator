@@ -1,0 +1,23 @@
+random:
+  seed: -1
+output:
+  window:
+    fullscreen: false
+    width: 1400
+    height: 780
+terrain:
+  width: 10
+quadtree:
+  levels: 1
+  frustumCulling: false
+sceneObjects:
+  trees:
+    density: 0.5
+  twigs:
+    density: 0
+  rocks:
+    density: .0
+  grass:
+    density: 0
+  fallenLeaves:
+    density: 0
