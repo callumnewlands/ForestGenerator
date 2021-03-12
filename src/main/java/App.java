@@ -29,6 +29,7 @@ import static org.lwjgl.glfw.GLFW.GLFW_KEY_S;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_SPACE;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_W;
 import static org.lwjgl.glfw.GLFW.GLFW_OPENGL_CORE_PROFILE;
+import static org.lwjgl.glfw.GLFW.GLFW_OPENGL_DEBUG_CONTEXT;
 import static org.lwjgl.glfw.GLFW.GLFW_OPENGL_PROFILE;
 import static org.lwjgl.glfw.GLFW.GLFW_PRESS;
 import static org.lwjgl.glfw.GLFW.GLFW_RELEASE;
@@ -76,6 +77,7 @@ import static org.lwjgl.opengl.GL11.GL_STACK_UNDERFLOW;
 import static org.lwjgl.opengl.GL11.GL_TEXTURE_2D;
 import static org.lwjgl.opengl.GL11.GL_TEXTURE_BORDER_COLOR;
 import static org.lwjgl.opengl.GL11.GL_TEXTURE_MIN_FILTER;
+import static org.lwjgl.opengl.GL11.GL_TRUE;
 import static org.lwjgl.opengl.GL11.GL_UNSIGNED_BYTE;
 import static org.lwjgl.opengl.GL11.glBindTexture;
 import static org.lwjgl.opengl.GL11.glClear;
@@ -133,7 +135,30 @@ import static org.lwjgl.opengl.GL30.glCheckFramebufferStatus;
 import static org.lwjgl.opengl.GL30.glFramebufferTexture2D;
 import static org.lwjgl.opengl.GL30.glGenFramebuffers;
 import static org.lwjgl.opengl.GL30C.GL_INVALID_FRAMEBUFFER_OPERATION;
+import static org.lwjgl.opengl.GL43C.GL_DEBUG_OUTPUT;
+import static org.lwjgl.opengl.GL43C.GL_DEBUG_OUTPUT_SYNCHRONOUS;
+import static org.lwjgl.opengl.GL43C.GL_DEBUG_SEVERITY_HIGH;
+import static org.lwjgl.opengl.GL43C.GL_DEBUG_SEVERITY_LOW;
+import static org.lwjgl.opengl.GL43C.GL_DEBUG_SEVERITY_MEDIUM;
+import static org.lwjgl.opengl.GL43C.GL_DEBUG_SEVERITY_NOTIFICATION;
+import static org.lwjgl.opengl.GL43C.GL_DEBUG_SOURCE_API;
+import static org.lwjgl.opengl.GL43C.GL_DEBUG_SOURCE_APPLICATION;
+import static org.lwjgl.opengl.GL43C.GL_DEBUG_SOURCE_OTHER;
+import static org.lwjgl.opengl.GL43C.GL_DEBUG_SOURCE_SHADER_COMPILER;
+import static org.lwjgl.opengl.GL43C.GL_DEBUG_SOURCE_THIRD_PARTY;
+import static org.lwjgl.opengl.GL43C.GL_DEBUG_SOURCE_WINDOW_SYSTEM;
+import static org.lwjgl.opengl.GL43C.GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR;
+import static org.lwjgl.opengl.GL43C.GL_DEBUG_TYPE_ERROR;
+import static org.lwjgl.opengl.GL43C.GL_DEBUG_TYPE_MARKER;
+import static org.lwjgl.opengl.GL43C.GL_DEBUG_TYPE_OTHER;
+import static org.lwjgl.opengl.GL43C.GL_DEBUG_TYPE_PERFORMANCE;
+import static org.lwjgl.opengl.GL43C.GL_DEBUG_TYPE_POP_GROUP;
+import static org.lwjgl.opengl.GL43C.GL_DEBUG_TYPE_PORTABILITY;
+import static org.lwjgl.opengl.GL43C.GL_DEBUG_TYPE_PUSH_GROUP;
+import static org.lwjgl.opengl.GL43C.GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR;
+import static org.lwjgl.opengl.GL43C.glDebugMessageCallback;
 import static org.lwjgl.system.MemoryUtil.NULL;
+import static org.lwjgl.system.MemoryUtil.memByteBuffer;
 import static rendering.ShaderPrograms.billboardShaderProgram;
 import static rendering.ShaderPrograms.instancedLeafShaderProgram;
 import static rendering.ShaderPrograms.lightingPassShader;
@@ -156,6 +181,7 @@ import org.lwjgl.Version;
 import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.glfw.GLFWVidMode;
 import org.lwjgl.opengl.GL;
+import org.lwjgl.system.MemoryUtil;
 import params.ParameterLoader;
 import params.Parameters;
 import rendering.Camera;
@@ -245,6 +271,8 @@ public class App {
 		GL.createCapabilities();
 		System.out.println("Running OpenGL " + glGetString(GL_VERSION));
 
+		glEnable(GL_DEBUG_OUTPUT);
+		glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
 		glEnable(GL_DEPTH_TEST);
 		glEnable(GL_MULTISAMPLE);
 		// TODO reincorporate this using combined forward and deferred shading
@@ -271,6 +299,7 @@ public class App {
 		glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 		glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
 		glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+		glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
 		glfwWindowHint(GLFW_SAMPLES, 4);
 
 		GLFWVidMode videoMode = glfwGetVideoMode(glfwGetPrimaryMonitor());
@@ -312,6 +341,49 @@ public class App {
 			glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 			glfwSetCursorPos(window, lastX, lastY);
 		}
+
+		glDebugMessageCallback((source, type, id, severity, length, message, userParam) -> {
+			if (id == 131169 || id == 131185 || id == 131218 || id == 131204) {
+				return;
+			}
+
+			String msg = MemoryUtil.memUTF8(memByteBuffer(message, length));
+
+			System.err.println("---------------");
+			System.err.println("Debug message (" + id + "): " + msg);
+
+			switch (source) {
+				case GL_DEBUG_SOURCE_API -> System.err.print("Source: API");
+				case GL_DEBUG_SOURCE_WINDOW_SYSTEM -> System.err.print("Source: Window System");
+				case GL_DEBUG_SOURCE_SHADER_COMPILER -> System.err.print("Source: Shader Compiler");
+				case GL_DEBUG_SOURCE_THIRD_PARTY -> System.err.print("Source: Third Party");
+				case GL_DEBUG_SOURCE_APPLICATION -> System.err.print("Source: Application");
+				case GL_DEBUG_SOURCE_OTHER -> System.err.print("Source: Other");
+			}
+			System.err.println();
+
+			switch (type) {
+				case GL_DEBUG_TYPE_ERROR -> System.err.print("Type: Error");
+				case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR -> System.err.print("Type: Deprecated Behaviour");
+				case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR -> System.err.print("Type: Undefined Behaviour");
+				case GL_DEBUG_TYPE_PORTABILITY -> System.err.print("Type: Portability");
+				case GL_DEBUG_TYPE_PERFORMANCE -> System.err.print("Type: Performance");
+				case GL_DEBUG_TYPE_MARKER -> System.err.print("Type: Marker");
+				case GL_DEBUG_TYPE_PUSH_GROUP -> System.err.print("Type: Push Group");
+				case GL_DEBUG_TYPE_POP_GROUP -> System.err.print("Type: Pop Group");
+				case GL_DEBUG_TYPE_OTHER -> System.err.print("Type: Other");
+			}
+			System.err.println();
+
+			switch (severity) {
+				case GL_DEBUG_SEVERITY_HIGH -> System.err.print("Severity: high");
+				case GL_DEBUG_SEVERITY_MEDIUM -> System.err.print("Severity: medium");
+				case GL_DEBUG_SEVERITY_LOW -> System.err.print("Severity: low");
+				case GL_DEBUG_SEVERITY_NOTIFICATION -> System.err.print("Severity: notification");
+			}
+			System.err.println();
+			System.err.println();
+		}, 0);
 
 		glfwSetFramebufferSizeCallback(window, (window, width, height) -> {
 			System.out.printf("Framebuffer size callback: width = %d, height = %d%n", width, height);
@@ -484,7 +556,7 @@ public class App {
 	}
 
 	private void initLighting() {
-		Vector3f lightCol = new Vector3f(parameters.lighting.sun.strength);
+		Vector3f lightCol = new Vector3f(23.47f, 21.31f, 20.79f);
 
 		ShaderPrograms.forAll(sp -> sp.setUniform("lightPos", parameters.lighting.sun.position));
 		ShaderPrograms.forAll(sp -> sp.setUniform("lightColour", lightCol));
@@ -627,6 +699,7 @@ public class App {
 			// Lighting pass
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 			lightingPassShader.setUniform("lightVP", lightVP);
+			lightingPassShader.setUniform("viewPos", camera.getPosition());
 
 			lightingPassShader.setUniform("gPosition", 0);
 			glActiveTexture(GL_TEXTURE0);
@@ -663,6 +736,7 @@ public class App {
 			lightingPassShader.setUniform("gTranslucency", 8);
 			glActiveTexture(GL_TEXTURE8);
 			glBindTexture(GL_TEXTURE_2D, gTranslucency);
+
 
 			(new Quad(lightingPassShader)).render();
 

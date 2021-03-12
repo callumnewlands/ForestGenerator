@@ -2,7 +2,6 @@ package modeldata.meshdata;
 
 import java.util.List;
 
-import static org.lwjgl.opengl.GL11.GL_LINEAR;
 import static org.lwjgl.opengl.GL11.GL_RGB;
 import static org.lwjgl.opengl.GL11C.GL_COLOR_BUFFER_BIT;
 import static org.lwjgl.opengl.GL11C.GL_DEPTH_BUFFER_BIT;
@@ -10,6 +9,7 @@ import static org.lwjgl.opengl.GL11C.GL_FLOAT;
 import static org.lwjgl.opengl.GL11C.glClear;
 import static org.lwjgl.opengl.GL11C.glTexImage2D;
 import static org.lwjgl.opengl.GL11C.glViewport;
+import static org.lwjgl.opengl.GL12.GL_CLAMP_TO_EDGE;
 import static org.lwjgl.opengl.GL13C.GL_TEXTURE_CUBE_MAP_POSITIVE_X;
 import static org.lwjgl.opengl.GL14.GL_DEPTH_COMPONENT24;
 import static org.lwjgl.opengl.GL30.GL_COLOR_ATTACHMENT0;
@@ -49,14 +49,14 @@ public class HDRTexture extends CubemapTexture {
 		}
 //		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-		Texture hdr2DImage = new Texture2D(path, colour, 0, GL_RGB16F, GL_LINEAR, true);
+		Texture hdr2DImage = new Texture2D(path, colour, 0, GL_RGB16F, GL_CLAMP_TO_EDGE, true);
 
 		this.bind();
 		for (int i = 0; i < 6; i++) {
 			glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB16F, resolution, resolution,
 					0, GL_RGB, GL_FLOAT, NULL);
 		}
-		setHints(GL_LINEAR);
+		setHints(GL_CLAMP_TO_EDGE);
 
 		Vector3f origin = new Vector3f(0);
 		List<Matrix4f> captureViews = List.of(

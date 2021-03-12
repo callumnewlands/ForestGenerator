@@ -24,7 +24,7 @@ import org.joml.Vector3f;
 public class CubemapTexture extends Texture {
 
 	public CubemapTexture(Vector3f colour, int textureUnit) {
-		super(colour, textureUnit, GL_LINEAR);
+		super(colour, textureUnit, GL_CLAMP_TO_EDGE);
 	}
 
 	public CubemapTexture(List<String> paths, Vector3f colour, int textureUnit) {
@@ -43,11 +43,11 @@ public class CubemapTexture extends Texture {
 
 	@Override
 	protected void setHints(int textureWrap) {
-		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, textureWrap);
-		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, textureWrap);
-		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, textureWrap);
+		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, textureWrap);
+		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, textureWrap);
 	}
 
 	@Override

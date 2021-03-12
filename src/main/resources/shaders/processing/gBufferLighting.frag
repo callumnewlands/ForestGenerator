@@ -70,7 +70,6 @@ void main() {
     vec3 diffuse = texture(gAlbedoSpec, textureCoord).rgb;
     vec3 transl = texture(gTranslucency, textureCoord).rgb;
     float transl_factor = translucencyEnabled ? texture(gTranslucency, textureCoord).a : 0.0f;
-    //    float transl_factor = texture(gTranslucency, textureCoord).a;
     float specular = texture(gAlbedoSpec, textureCoord).a;
     float ambientOcclusion = texture(ssao, textureCoord).r;
     vec3 occ = texture(occlusion, textureCoord).rgb;
@@ -103,8 +102,9 @@ void main() {
         float diff_factor =  max(dot(norm, lightDir), 0.0f);
         //        float transl_factor =  max(dot(-norm, lightDir), 0.0f);
         hdrColor =  ambient +
+        //                    (1.0 - shadow) * Lo +
         (1.0 - shadow) * diff_factor * lightColour * diffuse +
-        transl * transl_factor * 0.5f * lightColour +
+        transl * transl_factor * 0.5f +
         scattering;
         // TODO uniform for 0.5f
     } else {
