@@ -1,7 +1,7 @@
 random:
   seed: -1 # A value of -1 will result in a seed derived from the system clock value
 input:
-  manual: true # It is advised to set manual XOR stdin to true
+  manual: true # It is advised to set one of manual XOR stdin to true
   stdin: false # Enabling stdin will case render loop to block after each frame for input and will disable delta time
 output:
   window:
@@ -10,6 +10,9 @@ output:
     width: 800
     height: 600
   frameImages: false
+  colour: true
+  depth: false # If outputting to window the depth output will be displayed instead of colour if this is true, if rendering to images, both can be output
+  invertDepth: true
 camera:
   startPosition: [ 0.0, 3.3, 0.0 ]
   verticalMovement: true
@@ -64,4 +67,10 @@ lighting:
     factor: 0.5
   shadows:
     enabled: true
-    resolution: 16384
+    resolution: 4096 # 16384
+  volumetricScattering:
+    enabled: true
+    numSamples: 100
+    sampleDensity: 0.9
+    decay: 1.0
+    exposure: 0.004

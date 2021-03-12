@@ -1,9 +1,18 @@
-control:
+random:
+  seed: 12
+input:
   manual: false
+  stdin: true
+output:
+  window:
+    visible: false
+  frameImages: true
+  colour: true
+  depth: true
 terrain:
   width: 100.0
 quadtree:
   levels: 2
 sceneObjects:
   trees:
-    density: 0.5
+    density: 0.6

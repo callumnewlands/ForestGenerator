@@ -40,6 +40,9 @@ public class Parameters {
 	public static class Output {
 		public boolean frameImages = false;
 		public Window window = new Window();
+		public boolean colour = true;
+		public boolean depth = false;
+		public boolean invertDepth = true;
 
 		@NoArgsConstructor
 		@Setter
@@ -119,6 +122,7 @@ public class Parameters {
 		public GammaCorrection gammaCorrection = new GammaCorrection();
 		public Translucency translucency = new Translucency();
 		public Shadows shadows = new Shadows();
+		public VolumetricScattering volumetricScattering = new VolumetricScattering();
 
 		@NoArgsConstructor
 		@Setter
@@ -151,7 +155,17 @@ public class Parameters {
 		@Setter
 		public static class Shadows {
 			public boolean enabled = true;
-			public int resolution = 16384;
+			public int resolution = 4096;
+		}
+
+		@NoArgsConstructor
+		@Setter
+		public static class VolumetricScattering {
+			public boolean enabled = true;
+			public int numSamples = 100;
+			public float sampleDensity = 0.9f;
+			public float decay = 1f;
+			public float exposure = 0.004f;
 		}
 
 		@NoArgsConstructor

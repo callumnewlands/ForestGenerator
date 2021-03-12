@@ -18,7 +18,6 @@ import lsystems.modules.CharModule;
 import lsystems.modules.Module;
 import lsystems.modules.ParametricValueModule;
 import org.joml.Vector3f;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import utils.VectorUtils;
 
@@ -172,7 +171,6 @@ class TurtleInterpreterTest {
 	}
 
 
-	@Disabled // TODO fix for new centre point and unit cross rotation
 	@Test
 	public void handlesForwardsAndRotations() {
 
@@ -372,7 +370,6 @@ class TurtleInterpreterTest {
 		assertEquals(expectedSize, result.size());
 	}
 
-	@Disabled // TODO fix for new centre point and unit cross rotation
 	@Test
 	public void handlesBrackets() {
 		TurtleInterpreter interpreter = new TurtleInterpreter();

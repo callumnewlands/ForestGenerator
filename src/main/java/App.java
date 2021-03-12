@@ -232,7 +232,7 @@ public class App {
 
 	public static void main(String[] args) throws IOException {
 		if (args.length == 0) {
-			ParameterLoader.loadParameters(ShaderProgram.RESOURCES_PATH + "/defaults.yaml");
+			ParameterLoader.loadParameters(ShaderProgram.RESOURCES_PATH + "/default.yaml");
 		} else if (args.length == 1) {
 			ParameterLoader.loadParameters(ShaderProgram.RESOURCES_PATH + "/" + args[0]);
 		} else {
@@ -425,7 +425,6 @@ public class App {
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, gAlbedoSpecular, 0);
 
-		// TODO maybe stencil buffer?
 		gOcclusion = glGenTextures();
 		glActiveTexture(GL_TEXTURE5);
 		glBindTexture(GL_TEXTURE_2D, gOcclusion);
@@ -512,21 +511,22 @@ public class App {
 			checkError("SSAO blur buffer init.");
 		}
 
-		// TODO param enable
-		scatterBuffer = glGenFramebuffers();
-		glBindFramebuffer(GL_FRAMEBUFFER, scatterBuffer);
-		scatterColor = glGenTextures();
-		glActiveTexture(GL_TEXTURE4);
-		glBindTexture(GL_TEXTURE_2D, scatterColor);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, windowWidth, windowHeight, 0, GL_RGBA, GL_FLOAT, NULL);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, scatterColor, 0);
-		if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-			System.err.println("Scatter framebuffer not complete");
+		if (parameters.lighting.volumetricScattering.enabled) {
+			scatterBuffer = glGenFramebuffers();
+			glBindFramebuffer(GL_FRAMEBUFFER, scatterBuffer);
+			scatterColor = glGenTextures();
+			glActiveTexture(GL_TEXTURE4);
+			glBindTexture(GL_TEXTURE_2D, scatterColor);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, windowWidth, windowHeight, 0, GL_RGBA, GL_FLOAT, NULL);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, scatterColor, 0);
+			if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+				System.err.println("Scatter framebuffer not complete");
+			}
+			glBindFramebuffer(GL_FRAMEBUFFER, 0);
+			checkError("scattering buffer init.");
 		}
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		checkError("scattering buffer init.");
 
 		initLighting();
 	}
@@ -569,11 +569,16 @@ public class App {
 		lightingPassShader.setUniform("gammaEnabled", parameters.lighting.gammaCorrection.enabled);
 		lightingPassShader.setUniform("gamma", parameters.lighting.gammaCorrection.gamma);
 		lightingPassShader.setUniform("aoEnabled", parameters.lighting.ssao.enabled);
-		lightingPassShader.setUniform("renderDepth", false);
+		lightingPassShader.setUniform("renderDepth", parameters.output.depth);
+		lightingPassShader.setUniform("invertDepth", parameters.output.invertDepth);
 		lightingPassShader.setUniform("shadowsEnabled", parameters.lighting.shadows.enabled);
 		lightingPassShader.setUniform("translucencyEnabled", parameters.lighting.translucency.enabled);
 		lightingPassShader.setUniform("translucencyFactor", parameters.lighting.translucency.factor);
 		lightingPassShader.setUniform("toneExposure", parameters.lighting.hdr.exposure);
+		lightingPassShader.setUniform("numSamples", parameters.lighting.volumetricScattering.numSamples);
+		lightingPassShader.setUniform("sampleDensity", parameters.lighting.volumetricScattering.sampleDensity);
+		lightingPassShader.setUniform("decay", parameters.lighting.volumetricScattering.decay);
+		lightingPassShader.setUniform("exposure", parameters.lighting.volumetricScattering.exposure);
 
 		skyboxShaderProgram.setUniform("hdrEnabled", parameters.lighting.hdr.enabled);
 		skyboxShaderProgram.setUniform("toneExposure", parameters.lighting.hdr.exposure);
@@ -642,6 +647,27 @@ public class App {
 		System.out.println("Shadow map generated");
 	}
 
+	// TODO occasionally (and seemingly randomly) the program runs through 2 render cycles just outputting a black
+	//  	screen and then on the third, crashes (on glfwSwapBuffers) with the exit code -1073740791 (0xc0000409)
+	//		An event in the Windows log which seems to coincide is:
+	//			A TDR has been detected. The application must close. Error code: 7 (pid=32376 tid=29344 java.exe 64bit)
+	//			Visit http://nvidia.custhelp.com/app/answers/detail/a_id/3633 for more information.
+	//		From the NVIDIA driver and:
+	//			java.exe
+	//   		14.0.2.0
+	//   		5f0657a8
+	//   		nvoglv64.dll
+	//   		27.21.14.6172
+	//   		6035730c
+	//  		c0000409
+	//   		00000000011833e9
+	//   		7e78
+	//   		01d7175d0da63ae6
+	//   		C:\Program Files\Java\jdk-14.0.2\bin\java.exe
+	//   		C:\WINDOWS\System32\DriverStore\FileRepository\nvdmi.inf_amd64_d4f5fb7711ba6c16\nvoglv64.dll
+	//   		79151a35-b41e-4339-b932-f7f014b87aff
+	//    	From the Application
+	//
 	private void loop() {
 		while (!glfwWindowShouldClose(window)) {
 			updateDeltaTime();
@@ -700,20 +726,24 @@ public class App {
 				glBindFramebuffer(GL_FRAMEBUFFER, 0);
 			}
 
-			// Light scattering pass
-			glBindFramebuffer(GL_FRAMEBUFFER, scatterBuffer);
-			glClear(GL_COLOR_BUFFER_BIT);
-			scatteringShader.setUniform("viewPos", camera.getPosition());
-			scatteringShader.setUniform("viewDir", camera.getDirection());
-			scatteringShader.setUniform("occlusion", 5);
-			glActiveTexture(GL_TEXTURE5);
-			glBindTexture(GL_TEXTURE_2D, gOcclusion);
-			(new Quad(scatteringShader)).render();
-			glBindFramebuffer(GL_FRAMEBUFFER, 0);
+			if (parameters.lighting.volumetricScattering.enabled) {
+				// Light scattering pass
+				glBindFramebuffer(GL_FRAMEBUFFER, scatterBuffer);
+				glClear(GL_COLOR_BUFFER_BIT);
+				scatteringShader.setUniform("viewPos", camera.getPosition());
+				scatteringShader.setUniform("viewDir", camera.getDirection());
+				scatteringShader.setUniform("occlusion", 5);
+				glActiveTexture(GL_TEXTURE5);
+				glBindTexture(GL_TEXTURE_2D, gOcclusion);
+				(new Quad(scatteringShader)).render();
+				glBindFramebuffer(GL_FRAMEBUFFER, 0);
+			}
 
 			// Lighting pass
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-			lightingPassShader.setUniform("lightVP", lightVP);
+			if (parameters.lighting.shadows.enabled) {
+				lightingPassShader.setUniform("lightVP", lightVP);
+			}
 			lightingPassShader.setUniform("viewPos", camera.getPosition());
 
 			lightingPassShader.setUniform("gPosition", 0);
@@ -752,19 +782,34 @@ public class App {
 			glActiveTexture(GL_TEXTURE8);
 			glBindTexture(GL_TEXTURE_2D, gTranslucency);
 
-
+			if (parameters.output.frameImages && parameters.output.colour) {
+				lightingPassShader.setUniform("renderDepth", false);
+			}
 			(new Quad(lightingPassShader)).render();
 
 			glfwSwapBuffers(window);
+			if (parameters.output.frameImages) {
+				outputFrame(parameters.output.colour ? "colour" : "depth");
+
+				// If parameters.output.colour is set, then colour frame was just saved, so now save depth frame
+				if (parameters.output.colour && parameters.output.depth) {
+					glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+					lightingPassShader.setUniform("renderDepth", true);
+					(new Quad(lightingPassShader)).render();
+					glfwSwapBuffers(window);
+					outputFrame("depth");
+				}
+
+				lightingPassShader.setUniform("renderDepth", parameters.output.depth);
+				frame += 1;
+			}
+
 			if (parameters.input.manual) {
 				pollKeys();
 				glfwPollEvents();
 			}
 			if (parameters.input.stdin) {
 				blockAndProcessInputStream();
-			}
-			if (parameters.output.frameImages) {
-				outputFrame();
 			}
 
 			checkError("render loop");
@@ -864,10 +909,10 @@ public class App {
 			lightingPassShader.setUniform("aoEnabled", parameters.lighting.ssao.enabled);
 		}
 		if (glfwGetKey(window, GLFW_KEY_5) == GLFW_PRESS) {
-			lightingPassShader.setUniform("renderDepth", true);
+			lightingPassShader.setUniform("renderDepth", !parameters.output.depth);
 		}
 		if (glfwGetKey(window, GLFW_KEY_5) == GLFW_RELEASE) {
-			lightingPassShader.setUniform("renderDepth", false);
+			lightingPassShader.setUniform("renderDepth", parameters.output.depth);
 		}
 		if (glfwGetKey(window, GLFW_KEY_6) == GLFW_PRESS) {
 			lightingPassShader.setUniform("shadowsEnabled", !parameters.lighting.shadows.enabled);
@@ -908,7 +953,7 @@ public class App {
 		}
 	}
 
-	private void outputFrame() {
+	private void outputFrame(String type) {
 		float[] array = new float[windowWidth * windowHeight * 3];
 		glReadBuffer(GL_FRONT);
 		glReadPixels(0, 0, windowWidth, windowHeight, GL_RGB, GL_FLOAT, array);
@@ -923,13 +968,12 @@ public class App {
 		try {
 			File dir = new File("./frames");
 			dir.mkdir();
-			File file = new File(String.format("./frames/frame-%d.jpg", frame));
+			File file = new File(String.format("./frames/frame-%s-%d.jpg", type, frame));
 			file.createNewFile();
 			ImageIO.write(image, "jpg", file);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		frame += 1;
 	}
 
 	private void exit() {

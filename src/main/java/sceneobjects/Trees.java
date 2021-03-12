@@ -102,7 +102,7 @@ public class Trees extends InstancedGroundObject {
 		board.setShaderProgram(billboardShaderProgram);
 
 		Mesh LODCanopy = new Mesh(canopy);
-		LODCanopy.setShaderProgram(instancedNormalTextureShaderProgram);
+		LODCanopy.setShaderProgram(instancedLeafShaderProgram);
 		List<Mesh> billboard = List.of(
 				new Mesh(board),
 				MeshUtils.transform(board, new Matrix4f().rotate((float) Math.PI / 2, up)),

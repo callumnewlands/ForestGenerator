@@ -170,62 +170,6 @@ public class LoadedModel implements Model {
 	}
 
 	// TODO materials
-//	private void loadMaterials(final AIScene scene) {
-//		int noOfMaterials = scene.mNumMaterials();
-//		PointerBuffer aiMaterials = scene.mMaterials();
-//		for (int i = 0; i < noOfMaterials; i++) {
-//			AIMaterial aiMaterial = AIMaterial.create(aiMaterials.get(i));
-//			materials.add(processMaterial(aiMaterial));
-//		}
-//	}
-//
-//	private Material processMaterial(final AIMaterial material) {
-////		material.mNumAllocated();
-//		// Note: only loads (1st) *diffuse* texture of mesh atm.
-//		// TODO load specular and multiple textures if needed
-//
-//		AIColor4D colour = AIColor4D.create();
-//		Vector4f ambient = new Vector4f(1.0f);
-//		Vector4f diffuse = new Vector4f(1.0f);
-//		Vector4f specular = new Vector4f(1.0f);
-//
-//		if (aiGetMaterialColor(material, AI_MATKEY_COLOR_AMBIENT, aiTextureType_NONE, 0, colour) == 0) {
-//			ambient = aiColor4DToVector4f(colour);
-//		}
-//		if (aiGetMaterialColor(material, AI_MATKEY_COLOR_DIFFUSE, aiTextureType_NONE, 0, colour) == 0) {
-//			diffuse = aiColor4DToVector4f(colour);
-//		}
-//		if (aiGetMaterialColor(material, AI_MATKEY_COLOR_SPECULAR, aiTextureType_NONE, 0, colour) == 0) {
-//			specular = aiColor4DToVector4f(colour);
-//		}
-//
-//		AIString texturePathPointer = AIString.calloc();
-//		aiGetMaterialTexture(material, aiTextureType_DIFFUSE, 0, texturePathPointer,
-//				(IntBuffer) null, null, null, null, null, null);
-//		String texturePath = texturePathPointer.dataString();
-//		Texture diffuseTexture = null;
-//		if (texturePath != null && texturePath.length() > 0) {
-//			if (loadedTextures.containsKey(texturePath)) {
-//				diffuseTexture = loadedTextures.get(texturePath);
-//			} else {
-//				diffuseTexture = new Texture(texturesDirectory + "/" + texturePath, diffuse,
-//						GL_TEXTURE0);
-//				loadedTextures.put(texturePath, diffuseTexture);
-//			}
-//		}
-//		// TODO?
-////		IntBuffer max = IntBuffer.allocate(1); //.put(1).flip()
-////		FloatBuffer shininessBuffer = FloatBuffer.allocate(1);
-////		if (aiGetMaterialFloatArray(material, AI_MATKEY_SHININESS,
-////		aiTextureType_NONE, 0, shininessBuffer, max) == 0) {
-////			shininess = shininessBuffer.get();
-////		}
-//		if (diffuseTexture != null) {
-//			return new Material(diffuseTexture, specular, shaderProgram);
-//		} else {
-//			return new Material(ambient, diffuse, specular, shaderProgram);
-//		}
-//	}
 
 	private List<Mesh> loadMeshes(final AIScene scene) {
 		List<Mesh> meshes = new ArrayList<>();

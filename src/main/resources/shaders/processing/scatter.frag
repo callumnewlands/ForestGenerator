@@ -9,27 +9,27 @@ uniform vec3 viewDir;
 uniform mat4 view;
 uniform mat4 projection;
 
-const int NUM_SCATTERING_SAMPLES = 100;
-const float density = 0.9f;//0.74f // sample density
-const float decay = 1f;// 1f // light fall-off
-const float exposure = 0.004f;// 0.006f// 0.0034f // light ray intensity
+uniform int numSamples;
+uniform float sampleDensity;// sample density
+uniform float decay;// light fall-off
+uniform float exposure;// light ray intensity
 
 out vec3 fragColor;
 
 void main()
 {
     vec4 lightPosTransformed = (projection * view * vec4(lightPos, 1.0f));
-    vec2 lightPosScreen = lightPosTransformed.xy / lightPosTransformed.w * 0.5 + 0.5;;
+    vec2 lightPosScreen = (lightPosTransformed.xy / lightPosTransformed.w) * 0.5 + 0.5;;
     // vector between samples in direction of light
     vec2 sampleDelta = textureCoord - lightPosScreen;
-    sampleDelta *= 1f / NUM_SCATTERING_SAMPLES * density;
+    sampleDelta *= (1f / numSamples) * sampleDensity;
     vec3 originalColour = texture(occlusion, textureCoord).rgb;
     vec3 colour = originalColour;
     float illuminationDecay = 1.0f;
 
     // additive sampling
     vec2 scatteringCoordinate = textureCoord;
-    for (int i = 0; i < NUM_SCATTERING_SAMPLES; i++) {
+    for (int i = 0; i < numSamples; i++) {
         scatteringCoordinate -= sampleDelta;
         vec3 sampleCol = texture(occlusion, scatteringCoordinate).rgb;
         sampleCol *= illuminationDecay;//* weight;

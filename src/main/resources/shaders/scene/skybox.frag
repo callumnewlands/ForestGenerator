@@ -20,8 +20,6 @@ void main() {
     gAlbedoSpec.rgb = fragColour.rgb;
     gAlbedoSpec.a = 1.0f;
 
-    // TODO should the scattered values be in hdr or sdr colour space? - maybe hdr and then tone map
-    // TODO uniform
     vec3 hdrColor = fragColour.rgb;
     vec3 screenColour = hdrEnabled ? vec3(1.0) - exp(-hdrColor * toneExposure) : hdrColor;
     gOcclusion = screenColour;

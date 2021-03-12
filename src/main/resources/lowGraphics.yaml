@@ -1,0 +1,29 @@
+random:
+  seed: 12
+output:
+  window:
+    fullscreen: false
+    width: 1400
+    height: 780
+terrain:
+  width: 100.0
+quadtree:
+  levels: 1
+sceneObjects:
+  display: true
+  trees:
+    numSides: 4
+    density: 0.6
+  twigs:
+    typesPerQuad: 1
+    numSides: 4
+lighting:
+  ambientStrength: 0.2
+  ssao:
+    enabled: false
+  translucency:
+    enabled: false
+  shadows:
+    enabled: false
+  volumetricScattering:
+    enabled: false

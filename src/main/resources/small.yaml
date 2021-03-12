@@ -1,16 +1,14 @@
 random:
   seed: 12
-#input:
-#  manual: false
-#  stdin: true
-#output:
-#  frameImages: true
+output:
+  window:
+    fullscreen: false
+    width: 1400
+    height: 780
 terrain:
   width: 100.0
 quadtree:
   levels: 2
-camera:
-  startPosition: [ 0.0, 3.2, 0.0 ]
 sceneObjects:
   trees:
     density: 0.6

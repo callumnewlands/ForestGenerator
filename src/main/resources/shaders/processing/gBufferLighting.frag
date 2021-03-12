@@ -17,6 +17,7 @@ uniform bool aoEnabled;
 uniform bool shadowsEnabled;
 uniform bool translucencyEnabled;
 uniform bool renderDepth;
+uniform bool invertDepth;
 
 uniform float gamma;
 uniform float translucencyFactor;
@@ -31,8 +32,7 @@ uniform mat4 lightVP;
 out vec4 fragColour;
 
 // from learnopengl.com: https://learnopengl.com/Advanced-Lighting/Shadows/Shadow-Mapping
-float shadowCalculation(vec4 fragPosLightSpace, vec3 normal, vec3 lightDir)
-{
+float shadowCalculation(vec4 fragPosLightSpace, vec3 normal, vec3 lightDir) {
     // perform perspective divide
     vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
     // transform to [0,1] range
@@ -58,9 +58,6 @@ float shadowCalculation(vec4 fragPosLightSpace, vec3 normal, vec3 lightDir)
     }
     shadow /= 9.0;
 
-    // Non-PCF
-    //    float shadow = currentDepth - bias > closestDepth  ? 1.0 : 0.0;
-
     if (projCoords.z > 1.0) {
         shadow = 1.0;// Default to shadowed if past far plane of view frustum
     }
@@ -84,9 +81,10 @@ void main() {
         float z = depth * 2.0 - 1.0;// nonlinear in [-1, 1]
         const float far = 300;
         const float near = 0.1;
-        z = (2.0 * near * far) / (far + near - z * (far - near));// linear in [far, near]
+        z = (2.0 * near * far) / (far + near - z * (far - near)) + 0.000001;// linear in [far, near]
         const float max = 20;
         fragColour = vec4(vec3(z / max), 1.0);
+        if (invertDepth) fragColour = 1.0 - fragColour;
         return;
     }
 
@@ -104,18 +102,17 @@ void main() {
             ambient = ambientStrength * diffuse;
         }
         float diffFactor =  max(dot(norm, lightDir), 0.0f);
-        //        float transl_factor =  max(dot(-norm, lightDir), 0.0f);
         hdrColor =  ambient +
-        //                    (1.0 - shadow) * Lo +
         (1.0 - shadow) * diffFactor * lightColour * diffuse +
         transl * pixelTranslFactor * translucencyFactor +
         scattering;
+        // TODO specular
     } else {
         hdrColor = diffuse;
     }
 
     ////     Reinhard tone mapping
-//        vec3 screenColour = hdrEnabled ? hdrColor / (hdrColor + vec3(1.0)) : hdrColor;
+    //        vec3 screenColour = hdrEnabled ? hdrColor / (hdrColor + vec3(1.0)) : hdrColor;
 
     //     Exposure tone mapping
     vec3 screenColour = hdrEnabled ? vec3(1.0) - exp(-hdrColor * toneExposure) : hdrColor;
@@ -123,6 +120,4 @@ void main() {
     // gamma correction
     vec3 gammaCorrected = gammaEnabled ? pow(screenColour, vec3(1.0 / gamma)) : screenColour;
     fragColour = vec4(gammaCorrected, 1.0);
-
-    //    fragColour = vec4((translucencyEnabled ? vec3(transl_factor) : transl), 1.0);
 }

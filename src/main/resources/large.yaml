@@ -1,5 +1,12 @@
+random:
+  seed: 12
+output:
+  window:
+    fullscreen: false
+    width: 1400
+    height: 780
 terrain:
-  width: 300.0
+  width: 250.0
 quadtree:
   levels: 3
 sceneObjects:

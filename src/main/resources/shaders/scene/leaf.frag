@@ -64,7 +64,7 @@ void main() {
     gPosition = worldPos;
     gNormal = norm;
     gAlbedoSpec.rgb = vertexCol.rgb;
-    gAlbedoSpec.a = 0;// TODO specular
+    gAlbedoSpec.a = 0;
     gOcclusion = 0;
     gTranslucency.rgb = translColour.rgb;
     gTranslucency.a = max(0.0f, diffTransl);
