@@ -12,7 +12,9 @@ quadtree:
   frustumCulling: false
 sceneObjects:
   trees:
-    density: 0.5
+    - !Parameters$SceneObjects$BranchingTree
+      instanceFraction: 1.0
+      density: 0.5
   twigs:
     density: 0
   rocks:
@@ -21,3 +23,6 @@ sceneObjects:
     density: 0
   fallenLeaves:
     density: 0
+lighting:
+  volumetricScattering:
+    enabled: false

@@ -15,4 +15,5 @@ quadtree:
   levels: 2
 sceneObjects:
   trees:
-    density: 0.6
+    - !Parameters$SceneObjects$BranchingTree
+      density: 0.6

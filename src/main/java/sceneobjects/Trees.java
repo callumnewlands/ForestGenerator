@@ -1,5 +1,6 @@
 package sceneobjects;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -14,6 +15,7 @@ import static rendering.ShaderPrograms.instancedNormalTextureShaderProgram;
 import generation.TerrainQuadtree;
 import generation.TurtleInterpreter;
 import lsystems.LSystem;
+import lsystems.Production;
 import lsystems.ProductionBuilder;
 import lsystems.modules.CharModule;
 import lsystems.modules.Module;
@@ -23,17 +25,22 @@ import lsystems.modules.ParametricValueModule;
 import modeldata.meshdata.Mesh;
 import modeldata.meshdata.Vertex;
 import modeldata.meshdata.VertexAttribute;
+import org.apache.commons.lang3.NotImplementedException;
 import org.joml.Matrix4f;
 import org.joml.Vector2f;
 import org.joml.Vector3f;
 import params.ParameterLoader;
+import params.Parameters;
 import rendering.LevelOfDetail;
 import rendering.Textures;
 import utils.MeshUtils;
 
 public class Trees extends InstancedGroundObject {
 
-	public static final float TREE_SCALE = 0.01f;
+	private final int index;
+	private static final Parameters parameters = ParameterLoader.getParameters();
+
+	// TODO add leaf properties to yaml
 	public static final float LEAF_SCALE = 0.7f;
 	private final static Vector3f up = new Vector3f(0f, 1f, 0f);
 	private final static Vector3f out = new Vector3f(0f, 0f, 1f);
@@ -52,13 +59,14 @@ public class Trees extends InstancedGroundObject {
 					VertexAttribute.TEXTURE)
 	);
 
-	public Trees(int numberOfTypes, int numberOfInstances, Vector2f regionCentre, float regionWidth, TerrainQuadtree quadtree, boolean yRotationOnly) {
+	public Trees(int numberOfTypes, int numberOfInstances, Vector2f regionCentre, float regionWidth, TerrainQuadtree quadtree, boolean yRotationOnly, int index) {
 		super(numberOfTypes, numberOfInstances, regionCentre, regionWidth, quadtree, yRotationOnly);
+		this.index = index;
 	}
 
 	@Override
 	float getScale() {
-		return TREE_SCALE;
+		return parameters.sceneObjects.trees.get(index).scale;
 	}
 
 	@Override
@@ -68,12 +76,15 @@ public class Trees extends InstancedGroundObject {
 
 	@Override
 	Map<LevelOfDetail, List<Mesh>> getMeshes() {
-		int numEdges = ParameterLoader.getParameters().sceneObjects.trees.numSides;
+		Parameters.SceneObjects.Tree params = parameters.sceneObjects.trees.get(index);
+		int numEdges = params.numSides;
 		TurtleInterpreter turtleInterpreter = new TurtleInterpreter(numEdges);
-		turtleInterpreter.setSubModels(List.of(MeshUtils.transform(leaf, new Matrix4f().scale(LEAF_SCALE / TREE_SCALE))));
+		turtleInterpreter.setSubModels(List.of(MeshUtils.transform(leaf, new Matrix4f().scale(LEAF_SCALE / params.scale))));
 		turtleInterpreter.setIgnored(List.of('A'));
 		Random r = ParameterLoader.getParameters().random.generator;
-		List<Module> instructions = treeSystem().performDerivations(r.nextInt(2) + 7);
+		int minI = params.minIterations;
+		int maxI = params.maxIterations;
+		List<Module> instructions = treeSystem().performDerivations(r.nextInt(maxI - minI) + minI);
 		turtleInterpreter.interpretInstructions(instructions
 				.stream()
 				.map(m -> m.getName() == 'A' ? new ParametricValueModule('~', 0f) : m)
@@ -95,7 +106,7 @@ public class Trees extends InstancedGroundObject {
 		canopy.setShaderProgram(instancedLeafShaderProgram);
 
 		Mesh board = MeshUtils.transform(Trees.leaf, new Matrix4f()
-				.scale(1f, 10f / TREE_SCALE, 1f / TREE_SCALE)
+				.scale(1f, 10f / params.scale, 1f / params.scale)
 				.rotate((float) Math.PI / 2, out));
 		board.addTexture("diffuseTexture", Textures.bark);
 		board.addTexture("normalTexture", Textures.barkNormal);
@@ -115,18 +126,51 @@ public class Trees extends InstancedGroundObject {
 	}
 
 	private LSystem treeSystem() {
-		float d1 = 1.6535f; //94.74f;
-		float d2 = 2.3148f; //132.63f;
-		float a = 0.1053f * (float) Math.PI; //18.95f;
-		float lr = 1.109f;
-		float vr = 1.832f; //1.732f
-		float e = 0.052f; //0.22f
+		Parameters.SceneObjects.Tree params = parameters.sceneObjects.trees.get(index);
+		if (!(params instanceof Parameters.SceneObjects.BranchingTree)) {
+			throw new NotImplementedException();
+		}
+		float a = params.lSystemParams.get("a");
+		float lr = params.lSystemParams.get("lr");
+		float vr = params.lSystemParams.get("vr");
+		float e = params.lSystemParams.get("e");
+		List<Parameters.SceneObjects.BranchingTree.Branching> branchings =
+				((Parameters.SceneObjects.BranchingTree) params).branchings;
 
 		CharModule A = new CharModule('A');
 		ParametricParameterModule ExIn = new ParametricParameterModule('!', List.of("w"));
 		Module ExOut = new ParametricExpressionModule('!', List.of("w"), vars -> List.of(vars.get("w") * vr));
 		ParametricParameterModule FIn = new ParametricParameterModule('F', List.of("l"));
 		Module FOut = new ParametricExpressionModule('F', List.of("l"), vars -> List.of(vars.get("l") * lr));
+
+		List<Production> productions = new ArrayList<>();
+		for (Parameters.SceneObjects.BranchingTree.Branching entry : branchings) {
+			List<Module> successors = new ArrayList<>(List.of(
+					new ParametricValueModule('!', vr),
+					new ParametricValueModule('F', 50f))
+			);
+
+			for (float angle : entry.angles) {
+				successors.addAll(List.of(
+						LB,
+						new ParametricValueModule('&', a),
+						new ParametricValueModule('F', 50f),
+						A,
+						RB,
+						new ParametricValueModule('/', angle))
+				);
+			}
+
+			successors.addAll(List.of(
+					new ParametricValueModule('&', a),
+					new ParametricValueModule('F', 50f),
+					A)
+			);
+			productions.add(new ProductionBuilder(List.of(A), successors).withProbability(entry.prob).build()
+			);
+		}
+		productions.add(new ProductionBuilder(List.of(FIn), List.of(FOut)).build());
+		productions.add(new ProductionBuilder(List.of(ExIn), List.of(ExOut)).build());
 
 		return new LSystem(
 				List.of(
@@ -137,43 +181,8 @@ public class Trees extends InstancedGroundObject {
 						A
 				),
 				List.of(),
-				List.of(
-						new ProductionBuilder(List.of(A), List.of(
-								new ParametricValueModule('!', vr),
-								new ParametricValueModule('F', 50f),
-								LB,
-								new ParametricValueModule('&', a),
-								new ParametricValueModule('F', 50f),
-								A,
-								RB,
-								new ParametricValueModule('/', d1),
-								LB,
-								new ParametricValueModule('&', a),
-								new ParametricValueModule('F', 50f),
-								A,
-								RB,
-								new ParametricValueModule('/', d2),
-								new ParametricValueModule('&', a),
-								new ParametricValueModule('F', 50f),
-								A
-						)).withProbability(0.7f).build(),
-						new ProductionBuilder(List.of(A), List.of(
-								new ParametricValueModule('!', vr),
-								new ParametricValueModule('F', 50f),
-								LB,
-								new ParametricValueModule('&', a),
-								new ParametricValueModule('F', 50f),
-								A,
-								RB,
-								new ParametricValueModule('/', (float) Math.PI),
-								new ParametricValueModule('&', a),
-								new ParametricValueModule('F', 50f),
-								A
-						)).withProbability(0.3f).build(),
-
-						new ProductionBuilder(List.of(FIn), List.of(FOut)).build(),
-						new ProductionBuilder(List.of(ExIn), List.of(ExOut)).build()
-				));
+				productions
+		);
 	}
 
 }

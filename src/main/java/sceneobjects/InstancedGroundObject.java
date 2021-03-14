@@ -55,6 +55,7 @@ public abstract class InstancedGroundObject {
 	private int getNumber(int instances, int types) {
 		Random r = ParameterLoader.getParameters().random.generator;
 		float val = (float) instances / types;
+		// If fewer than 1 should be present in this quad generate 1 with probability (instances/types)
 		if (val < 1) {
 			return r.nextInt(types) < instances ? 1 : 0;
 		}

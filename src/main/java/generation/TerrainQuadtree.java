@@ -29,7 +29,6 @@ public class TerrainQuadtree {
 	//	public static final boolean RENDER_OBJECTS = true;
 //	public static final float DISTANCE_COEFF = 1.7f;
 //	private static final float TREE_DENSITY = 1f; //1
-	private static final int NUM_OF_INSTANCED_TREES = (int) (GROUND_WIDTH * GROUND_WIDTH * 0.025 * parameters.sceneObjects.trees.density);
 	private static final int NUM_OF_INSTANCED_TWIGS = (int) (GROUND_WIDTH * GROUND_WIDTH * 0.04 * parameters.sceneObjects.twigs.density);
 	private static final int NUM_OF_INSTANCED_ROCKS = (int) (GROUND_WIDTH * GROUND_WIDTH * 0.01 * parameters.sceneObjects.rocks.density);
 	private static final int NUM_OF_INSTANCED_GRASS = (int) (GROUND_WIDTH * GROUND_WIDTH * 2.30 * parameters.sceneObjects.grass.density);
@@ -196,6 +195,7 @@ public class TerrainQuadtree {
 		private int getNumber(int total) {
 			Random r = ParameterLoader.getParameters().random.generator;
 			float val = (float) total / numberOfMaxDepthTiles;
+			// If fewer than 1 should be present in this quad generate 1 with probability (total/numberOfMaxDepthTiles)
 			if (val < 1) {
 				return r.nextInt(numberOfMaxDepthTiles) < total ? 1 : 0;
 			}
@@ -203,14 +203,20 @@ public class TerrainQuadtree {
 		}
 
 		private class SceneObjects {
-			private final Trees trees;
+			private final List<Trees> trees;
 			private final Twigs twigs;
 			private final Rocks rocks;
 			private final FallenLeaves leaves;
 			private final Grass grass;
 
 			public SceneObjects() {
-				trees = new Trees(parameters.sceneObjects.trees.typesPerQuad, getNumber(NUM_OF_INSTANCED_TREES), centre, width, TerrainQuadtree.this, true);
+				trees = new ArrayList<>();
+				int numTreeTypes = parameters.sceneObjects.trees.size();
+				for (int i = 0; i < numTreeTypes; i++) {
+					int typesPerQuad = (int) (1 / parameters.sceneObjects.trees.get(i).instanceFraction);
+					int numInstances = (int) (GROUND_WIDTH * GROUND_WIDTH * 0.025 * parameters.sceneObjects.trees.get(i).density / numTreeTypes);
+					trees.add(new Trees(typesPerQuad, getNumber(numInstances), centre, width, TerrainQuadtree.this, true, i));
+				}
 				leaves = new FallenLeaves(1, getNumber(NUM_OF_INSTANCED_LEAVES), centre, width, TerrainQuadtree.this, false);
 				twigs = new Twigs(parameters.sceneObjects.twigs.typesPerQuad, getNumber(NUM_OF_INSTANCED_TWIGS), centre, width, TerrainQuadtree.this, false);
 				rocks = new Rocks(1, getNumber(NUM_OF_INSTANCED_ROCKS), centre, width, TerrainQuadtree.this, false);
@@ -219,7 +225,7 @@ public class TerrainQuadtree {
 
 			private void render(LevelOfDetail levelOfDetail) {
 
-				trees.render(levelOfDetail);
+				trees.forEach(t -> t.render(levelOfDetail));
 
 				twigs.render(levelOfDetail);
 				rocks.render(levelOfDetail);

@@ -1,6 +1,10 @@
 package params;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
@@ -92,7 +96,8 @@ public class Parameters {
 	@Setter
 	public static class SceneObjects {
 		public boolean display = true;
-		public LSystemObject trees = new LSystemObject(1, 6);
+		@JsonTypeInfo(use = JsonTypeInfo.Id.NAME)
+		public List<Tree> trees = List.of(new BranchingTree());
 		public LSystemObject twigs = new LSystemObject(2, 5);
 		public SceneObject rocks = new SceneObject();
 		public SceneObject grass = new SceneObject();
@@ -108,8 +113,50 @@ public class Parameters {
 		@AllArgsConstructor
 		@Setter
 		public static class LSystemObject extends SceneObject {
-			public int typesPerQuad = 1;
+			public int typesPerQuad = 1; // TODO change to instance fraction
 			public int numSides = 5;
+		}
+
+		@NoArgsConstructor
+		@AllArgsConstructor
+		@Setter
+		public static class Tree extends SceneObject {
+			public String name = "Tree";
+			public Map<String, Float> lSystemParams;
+			public float instanceFraction = 0.2f;
+			public int numSides = 5;
+			public float scale = 1.0f;
+			public int minIterations = 7;
+			public int maxIterations = 9;
+			// TODO textures
+		}
+
+		@Setter
+		public static class BranchingTree extends Tree {
+			public List<Branching> branchings = List.of(
+					new Branching(List.of((float) Math.PI), 0.3f),
+					new Branching(List.of(1.6535f, 2.3148f), 0.7f)
+			);
+
+			public BranchingTree() {
+				super();
+				lSystemParams = new HashMap<>(Map.of(
+						"a", 0.3308f,
+						"lr", 1.109f,
+						"vr", 1.832f,
+						"e", 0.052f));
+				name = "Tree 1";
+				numSides = 6;
+				scale = 0.01f;
+			}
+
+			@NoArgsConstructor
+			@AllArgsConstructor
+			@Setter
+			public static class Branching {
+				public List<Float> angles;
+				public float prob;
+			}
 		}
 	}
 

@@ -12,8 +12,9 @@ quadtree:
 sceneObjects:
   display: true
   trees:
-    numSides: 4
-    density: 0.6
+    - !Parameters$SceneObjects$BranchingTree
+      density: 0.6
+      numSides: 4
   twigs:
     typesPerQuad: 1
     numSides: 4

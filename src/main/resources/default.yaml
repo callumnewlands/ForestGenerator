@@ -31,9 +31,24 @@ quadtree:
 sceneObjects:
   display: true
   trees:
-    typesPerQuad: 1
-    numSides: 6
-    density: 1.0
+    - !Parameters$SceneObjects$BranchingTree
+      name: tree 1
+      lSystemParams:
+        a: 0.3308
+        lr: 1.109
+        vr: 1.832
+        e: 0.052
+      branching:
+        - angles: [ 3.14159 ]
+          prob: 0.3
+        - angles: [ 1.6535, 2.3148 ]
+          prob: 0.7
+      instanceFraction: 0.2 # The fraction of all models of this tree which are instanced from a given generated mesh (random configuration)
+      scale: 0.01
+      numSides: 6
+      minIterations: 7 # inclusive
+      maxIterations: 9 # exclusive
+      density: 1.0
   twigs:
     typesPerQuad: 2
     numSides: 5

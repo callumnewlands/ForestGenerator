@@ -539,7 +539,8 @@ public class App {
 		skybox = new Skybox();
 		// immenstadter_horn_8k.hdr
 		// noon_grass_8k.hdr
-		Texture skyboxTexture = new HDRTexture(ShaderProgram.RESOURCES_PATH + "/textures/noon_grass_8k.hdr", 2048, new Vector3f(.529f, .808f, .922f), 8);
+		// gamrig_8k.hdr
+		Texture skyboxTexture = new HDRTexture(ShaderProgram.RESOURCES_PATH + "/textures/gamrig_8k.hdr", 2048, new Vector3f(.529f, .808f, .922f), 8);
 		skybox.addTexture("skyboxTexture", skyboxTexture);
 		checkError("skybox loading");
 		System.out.println("Skybox HDR loaded");
@@ -576,10 +577,11 @@ public class App {
 		lightingPassShader.setUniform("translucencyEnabled", parameters.lighting.translucency.enabled);
 		lightingPassShader.setUniform("translucencyFactor", parameters.lighting.translucency.factor);
 		lightingPassShader.setUniform("toneExposure", parameters.lighting.hdr.exposure);
-		lightingPassShader.setUniform("numSamples", parameters.lighting.volumetricScattering.numSamples);
-		lightingPassShader.setUniform("sampleDensity", parameters.lighting.volumetricScattering.sampleDensity);
-		lightingPassShader.setUniform("decay", parameters.lighting.volumetricScattering.decay);
-		lightingPassShader.setUniform("exposure", parameters.lighting.volumetricScattering.exposure);
+
+		scatteringShader.setUniform("numSamples", parameters.lighting.volumetricScattering.numSamples);
+		scatteringShader.setUniform("sampleDensity", parameters.lighting.volumetricScattering.sampleDensity);
+		scatteringShader.setUniform("decay", parameters.lighting.volumetricScattering.decay);
+		scatteringShader.setUniform("exposure", parameters.lighting.volumetricScattering.exposure);
 
 		skyboxShaderProgram.setUniform("hdrEnabled", parameters.lighting.hdr.enabled);
 		skyboxShaderProgram.setUniform("toneExposure", parameters.lighting.hdr.exposure);
