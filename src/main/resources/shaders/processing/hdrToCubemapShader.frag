@@ -5,18 +5,20 @@ uniform sampler2D hdr;
 
 out vec4 fragColour;
 
-// from learnopengl.com
-const vec2 invAtan = vec2(0.1591, 0.3183);
-vec2 sampleSphericalMap(vec3 v)
+// Project spherical (xyz) coordinate onto a 2D (uv) equirectangular projection
+vec2 sphericalToEquirectangular(vec3 pos)
 {
-    vec2 uv = vec2(atan(v.z, v.x), asin(v.y));
-    uv *= invAtan;
-    uv += 0.5;
+    float theta = atan(pos.z, pos.x);// 2pi*u = arctan(z/x)
+    float phi = asin(pos.y);// pi*v = arcsin(y)
+
+    const vec2 piFractions = vec2(0.1591, 0.3183);// ( 1/(2pi), 1/pi )
+    vec2 uv = vec2(theta, phi) * piFractions;// Normalise to range [-0.5, 0.5]
+    uv += 0.5;// Range [0, 1]
     return uv;
 }
 
 void main()
 {
-    vec2 faceTexCoords = sampleSphericalMap(normalize(textureCoord));
+    vec2 faceTexCoords = sphericalToEquirectangular(normalize(textureCoord));
     fragColour = vec4(texture(hdr, faceTexCoords).rgb, 1.0);
 }

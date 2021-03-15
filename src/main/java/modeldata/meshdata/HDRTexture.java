@@ -3,6 +3,8 @@ package modeldata.meshdata;
 import java.util.List;
 
 import static org.lwjgl.opengl.GL11.GL_RGB;
+import static org.lwjgl.opengl.GL11.GL_TEXTURE_2D;
+import static org.lwjgl.opengl.GL11.glGetTexImage;
 import static org.lwjgl.opengl.GL11C.GL_COLOR_BUFFER_BIT;
 import static org.lwjgl.opengl.GL11C.GL_DEPTH_BUFFER_BIT;
 import static org.lwjgl.opengl.GL11C.GL_FLOAT;
@@ -29,11 +31,15 @@ import static org.lwjgl.opengl.GL30.glRenderbufferStorage;
 import static org.lwjgl.system.MemoryUtil.NULL;
 import static rendering.ShaderPrograms.hdrToCubemapShader;
 
+import lombok.Getter;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import sceneobjects.Cube;
 
+@Getter
 public class HDRTexture extends CubemapTexture {
+
+	private final Vector3f brightestArea;
 
 	public HDRTexture(String path, int resolution, Vector3f colour, int textureUnit) {
 		super(colour, textureUnit);
@@ -49,7 +55,11 @@ public class HDRTexture extends CubemapTexture {
 		}
 //		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-		Texture hdr2DImage = new Texture2D(path, colour, 0, GL_RGB16F, GL_CLAMP_TO_EDGE, true);
+		Texture2D hdr2DImage = new Texture2D(path, colour, 0, GL_RGB16F, GL_CLAMP_TO_EDGE, true);
+
+		// TODO could use this area to determine sun brightness
+		// TODO config to disable this
+		brightestArea = getBrightestArea(hdr2DImage);
 
 		this.bind();
 		for (int i = 0; i < 6; i++) {
@@ -86,6 +96,47 @@ public class HDRTexture extends CubemapTexture {
 			cube.render();
 		}
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	}
+
+	private Vector3f getBrightestArea(Texture2D hdr2DImage) {
+		int width = hdr2DImage.getWidth();
+		int height = hdr2DImage.getHeight();
+		float[] array = new float[width * height * 3];
+		glGetTexImage(GL_TEXTURE_2D, 0, GL_RGB, GL_FLOAT, array);
+		float brightest = 0;
+		int brightestI = 0;
+		for (int i = width; i < array.length / 3; i++) {
+			if (i % width == 0 || (i + 1) % width == 0 || (i / width + 1) % height == 0) {
+				continue;
+			}
+			float intensity = 0;
+			for (int y = -1; y < 2; y++) {
+				for (int x = -1; x < 2; x++) {
+					for (int c = 0; c < 3; c++) {
+						intensity += array[(i + x) * 3 + (y * width * 3) + c];
+					}
+				}
+			}
+			if (intensity > brightest) {
+				brightest = intensity;
+				brightestI = i;
+			}
+		}
+		int u = brightestI % width;
+		int v = brightestI / width;
+		return equiRectangularToSpherical((float) u / width, (float) v / height);
+	}
+
+	private Vector3f equiRectangularToSpherical(float uNorm, float vNorm) {
+		float theta = (uNorm - 0.5f) * 2 * (float) Math.PI; // range [0, 2pi]
+		float phi = (vNorm - 0.5f) * (float) Math.PI; // range [0, pi]
+
+		float x = (float) (Math.cos(theta) * Math.cos(phi));
+		float z = (float) (Math.sin(phi) * Math.cos(phi));
+		float y = (float) Math.sin(phi);
+
+		float distance = 200;
+		return new Vector3f(x, y, z).normalize().mul(distance);
 	}
 
 }

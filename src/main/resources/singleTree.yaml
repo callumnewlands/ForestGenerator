@@ -26,3 +26,5 @@ sceneObjects:
 lighting:
   volumetricScattering:
     enabled: false
+  sun:
+    display: true

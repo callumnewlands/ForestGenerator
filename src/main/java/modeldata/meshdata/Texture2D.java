@@ -20,10 +20,15 @@ import static org.lwjgl.opengl.GL13C.glActiveTexture;
 import static org.lwjgl.opengl.GL21C.GL_SRGB_ALPHA;
 import static org.lwjgl.opengl.GL30C.glGenerateMipmap;
 
+import lombok.Getter;
 import org.joml.Vector3f;
 import org.lwjgl.BufferUtils;
 
+@Getter
 public class Texture2D extends Texture {
+
+	private int width;
+	private int height;
 
 	public Texture2D(final String path, final Vector3f colour, final int textureUnit, final int internalFormat, final int textureWrap) {
 		this(path, colour, textureUnit, internalFormat, textureWrap, false);
@@ -34,11 +39,15 @@ public class Texture2D extends Texture {
 		try {
 			if (loadAsFloat) {
 				LoadedFloatImage image = loadFloatTextureFromFile(path);
+				this.width = image.width;
+				this.height = image.height;
 				glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, image.width, image.height, 0, image.format,
 						GL_FLOAT, image.imageData);
 			} else {
 
 				LoadedByteImage image = loadByteTextureFromFile(path);
+				this.width = image.width;
+				this.height = image.height;
 				glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, image.width, image.height, 0, image.format,
 						GL_UNSIGNED_BYTE, image.imageData);
 			}
@@ -60,6 +69,8 @@ public class Texture2D extends Texture {
 			}
 		}
 		image.flip();
+		this.width = width;
+		this.height = height;
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_SRGB_ALPHA, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
 		glGenerateMipmap(GL_TEXTURE_2D);
 	}

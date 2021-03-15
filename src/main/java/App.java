@@ -67,6 +67,8 @@ import static org.lwjgl.opengl.GL11.GL_FRONT;
 import static org.lwjgl.opengl.GL11.GL_INVALID_ENUM;
 import static org.lwjgl.opengl.GL11.GL_INVALID_OPERATION;
 import static org.lwjgl.opengl.GL11.GL_INVALID_VALUE;
+import static org.lwjgl.opengl.GL11.GL_LEQUAL;
+import static org.lwjgl.opengl.GL11.GL_LESS;
 import static org.lwjgl.opengl.GL11.GL_NEAREST;
 import static org.lwjgl.opengl.GL11.GL_NO_ERROR;
 import static org.lwjgl.opengl.GL11.GL_OUT_OF_MEMORY;
@@ -82,6 +84,7 @@ import static org.lwjgl.opengl.GL11.glBindTexture;
 import static org.lwjgl.opengl.GL11.glClear;
 import static org.lwjgl.opengl.GL11.glClearColor;
 import static org.lwjgl.opengl.GL11.glCullFace;
+import static org.lwjgl.opengl.GL11.glDepthFunc;
 import static org.lwjgl.opengl.GL11.glEnable;
 import static org.lwjgl.opengl.GL11.glGenTextures;
 import static org.lwjgl.opengl.GL11.glGetError;
@@ -171,7 +174,6 @@ import static utils.MathsUtils.lerp;
 import generation.TerrainQuadtree;
 import javax.imageio.ImageIO;
 import modeldata.meshdata.HDRTexture;
-import modeldata.meshdata.Texture;
 import org.joml.Matrix3f;
 import org.joml.Matrix4f;
 import org.joml.Vector2f;
@@ -213,6 +215,7 @@ public class App {
 	private TerrainQuadtree quadtree;
 	private Skybox skybox;
 	private Polygon sun;
+	private Vector3f sunPosition;
 
 	private double lastFrame = 0.0;
 	private double deltaTime = 0.0;
@@ -540,7 +543,8 @@ public class App {
 		// immenstadter_horn_8k.hdr
 		// noon_grass_8k.hdr
 		// gamrig_8k.hdr
-		Texture skyboxTexture = new HDRTexture(ShaderProgram.RESOURCES_PATH + "/textures/gamrig_8k.hdr", 2048, new Vector3f(.529f, .808f, .922f), 8);
+		HDRTexture skyboxTexture = new HDRTexture(ShaderProgram.RESOURCES_PATH + "/textures/gamrig_8k.hdr", 2048, new Vector3f(.529f, .808f, .922f), 8);
+		sunPosition = skyboxTexture.getBrightestArea();
 		skybox.addTexture("skyboxTexture", skyboxTexture);
 		checkError("skybox loading");
 		System.out.println("Skybox HDR loaded");
@@ -687,7 +691,7 @@ public class App {
 			ShaderPrograms.forAll(sp -> sp.setUniform("projection", projection));
 			ShaderPrograms.forAll(sp -> sp.setUniform("view", camera.getViewMatrix()));
 
-			ShaderPrograms.forAll(sp -> sp.setUniform("lightPos", parameters.lighting.sun.position));
+			ShaderPrograms.forAll(sp -> sp.setUniform("lightPos", sunPosition));
 			ShaderPrograms.forAll(sp -> sp.setUniform("lightColour", new Vector3f(parameters.lighting.sun.strength)));
 			ShaderPrograms.forAll(sp -> sp.setUniform("ambientStrength", parameters.lighting.ambientStrength));
 
@@ -844,17 +848,21 @@ public class App {
 	private void renderScene() {
 		quadtree.render(camera.getViewMatrix().mulLocal(projection));
 
+		glDepthFunc(GL_LEQUAL);
+
+		sunShader.setUniform("view", new Matrix4f(new Matrix3f(camera.getViewMatrix())));
 		if (parameters.lighting.sun.display) {
 			sun.setModelMatrix(new Matrix4f()
-					.translate(parameters.lighting.sun.position)
+					.translate(sunPosition)
 					.rotateTowards(new Vector3f(camera.getDirection()).negate(), camera.getUp())
 					.rotate((float) Math.PI / 2, new Vector3f(-1, 0, 0))
 					.scale(parameters.lighting.sun.scale));
 			sun.render();
 		}
-
 		skyboxShaderProgram.setUniform("view", new Matrix4f(new Matrix3f(camera.getViewMatrix())));
 		skybox.render();
+
+		glDepthFunc(GL_LESS);
 	}
 
 	private void updateDeltaTime() {
