@@ -5,6 +5,14 @@ output:
     fullscreen: false
     width: 1400
     height: 780
+#input:
+#  manual: false
+#  stdin: true
+#output:
+#  window:
+#    visible: false
+#  frameImages: true
+#  colour: true
 terrain:
   width: 100.0
 quadtree:

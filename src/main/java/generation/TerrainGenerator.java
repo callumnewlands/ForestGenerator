@@ -11,7 +11,6 @@ import modeldata.meshdata.Mesh;
 import modeldata.meshdata.Texture2D;
 import modeldata.meshdata.Vertex;
 import modeldata.meshdata.VertexAttribute;
-import org.j3d.texture.procedural.PerlinNoiseGenerator;
 import org.joml.Vector2f;
 import org.joml.Vector3f;
 import params.ParameterLoader;
@@ -20,20 +19,25 @@ import utils.VectorUtils;
 
 public class TerrainGenerator {
 
-	private final PerlinNoiseGenerator noiseGenerator;
+	private final FastNoiseLite noiseGenerator;
 
 	private static final Parameters parameters = ParameterLoader.getParameters();
 	private static final int NO_OF_OCTAVES = parameters.terrain.noise.octaves;
 	private static final float PERSISTENCE = parameters.terrain.noise.persistence;
 	private static final float LACUNARITY = parameters.terrain.noise.lacunarity;
-	// TODO horizontal scale
-	private static final float NOISE_SCALE = parameters.terrain.noise.scale;
+	private static final float NOISE_SCALE_X = parameters.terrain.noise.xScale;
+	private static final float NOISE_SCALE_Y = parameters.terrain.noise.yScale;
+	private static final float VERTICAL_SCALE = parameters.terrain.verticalScale;
 
 	public TerrainGenerator() {
 		int seed = (int) parameters.random.seed;
 		seed = seed == -1 ? (new Random()).nextInt() : seed;
-		// TODO this uses Math.random() which does not take into account the seed value
-		noiseGenerator = new PerlinNoiseGenerator(seed);
+		noiseGenerator = new FastNoiseLite(seed);
+		noiseGenerator.SetNoiseType(FastNoiseLite.NoiseType.OpenSimplex2);
+		noiseGenerator.SetFractalType(FastNoiseLite.FractalType.FBm);
+		noiseGenerator.SetFractalOctaves(NO_OF_OCTAVES);
+		noiseGenerator.SetFractalLacunarity(LACUNARITY);
+		noiseGenerator.SetFractalGain(PERSISTENCE);
 	}
 
 	private float round(float f) {
@@ -42,18 +46,7 @@ public class TerrainGenerator {
 	}
 
 	public float getHeight(float x, float y) {
-		float amplitude = 1.0f;
-		float frequency = 1.0f;
-		float totalValue = 0.0f;
-
-		for (int i = 0; i < NO_OF_OCTAVES; i++) {
-			float scaledX = x / NOISE_SCALE * frequency;
-			float scaledY = y / NOISE_SCALE * frequency;
-			totalValue += noiseGenerator.noise2(scaledX, scaledY) * amplitude;
-			amplitude *= PERSISTENCE;
-			frequency *= LACUNARITY;
-		}
-		return totalValue;
+		return noiseGenerator.GetNoise(x / NOISE_SCALE_X, y / NOISE_SCALE_Y) * VERTICAL_SCALE;
 	}
 
 

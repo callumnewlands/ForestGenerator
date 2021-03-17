@@ -1,0 +1,27 @@
+random:
+  seed: 12
+output:
+  window:
+    fullscreen: false
+    width: 1400
+    height: 780
+terrain:
+  width: 100.0
+quadtree:
+  levels: 3
+sceneObjects:
+  trees: [ ]
+  twigs:
+    density: 0
+  rocks:
+    density: .0
+  grass:
+    density: 0
+  fallenLeaves:
+    density: 0
+lighting:
+  ambientStrength: 0.5
+  volumetricScattering:
+    enabled: false
+  sun:
+    display: true

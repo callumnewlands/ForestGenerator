@@ -71,16 +71,18 @@ public class Parameters {
 	@Setter
 	public static class Terrain {
 		public float width = 200f;
+		public float verticalScale = 3.0f;
 		public Noise noise = new Noise();
 		public float vertexDensity = 1f;
 
 		@NoArgsConstructor
 		@Setter
 		public static class Noise {
-			public float scale = 9.0f;
+			public float xScale = 1.0f;
+			public float yScale = 1.0f;
 			public int octaves = 8;
 			public float persistence = 0.5f;
-			public float lacunarity = 0.025f;
+			public float lacunarity = 2.0f;
 		}
 	}
 

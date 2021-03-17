@@ -2,10 +2,10 @@ random:
   seed: -1 # A value of -1 will result in a seed derived from the system clock value
 input:
   manual: true # It is advised to set one of manual XOR stdin to true
-  stdin: false # Enabling stdin will case render loop to block after each frame for input and will disable delta time
+  stdin: false # Note: Enabling stdin will case render loop to block after each frame for input and will disable delta time
 output:
   window:
-    visible: true
+    visible: true # TODO test disabled window with manual input
     fullscreen: true
     width: 800
     height: 600
@@ -18,8 +18,10 @@ camera:
   verticalMovement: true
 terrain:
   width: 200.0
+  verticalScale: 3.0
   noise:
-    scale: 9.0
+    xScale: 1.0
+    yScale: 1.0
     octaves: 8
     persistence: 0.5
     lacunarity: 2.0
