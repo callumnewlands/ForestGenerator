@@ -120,4 +120,6 @@ void main() {
     // gamma correction
     vec3 gammaCorrected = gammaEnabled ? pow(screenColour, vec3(1.0 / gamma)) : screenColour;
     fragColour = vec4(gammaCorrected, 1.0);
+
+    //    fragColour = vec4(norm, 1.0);
 }

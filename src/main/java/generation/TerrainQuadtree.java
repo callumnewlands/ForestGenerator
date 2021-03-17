@@ -26,9 +26,6 @@ public class TerrainQuadtree {
 
 	private static final Parameters parameters = ParameterLoader.getParameters();
 	private static final float GROUND_WIDTH = parameters.terrain.width;
-	//	public static final boolean RENDER_OBJECTS = true;
-//	public static final float DISTANCE_COEFF = 1.7f;
-//	private static final float TREE_DENSITY = 1f; //1
 	private static final int NUM_OF_INSTANCED_TWIGS = (int) (GROUND_WIDTH * GROUND_WIDTH * 0.04 * parameters.sceneObjects.twigs.density);
 	private static final int NUM_OF_INSTANCED_ROCKS = (int) (GROUND_WIDTH * GROUND_WIDTH * 0.01 * parameters.sceneObjects.rocks.density);
 	private static final int NUM_OF_INSTANCED_GRASS = (int) (GROUND_WIDTH * GROUND_WIDTH * 2.30 * parameters.sceneObjects.grass.density);
@@ -51,7 +48,9 @@ public class TerrainQuadtree {
 		this.texture = texture;
 		this.numberOfTilesAcross = (int) (Math.pow(2, maxDepth));
 		this.numberOfMaxDepthTiles = (int) Math.pow(2, 2 * maxDepth);
-		this.textureWidth = width / (float) numberOfTilesAcross;
+		// TODO param
+		int textureScale = 2;
+		this.textureWidth = width / (numberOfTilesAcross * (float) (Math.pow(2, textureScale)));
 		this.quad = new Quad(centre, width, 0, texture);
 		this.quad.updateChildren();
 	}

@@ -16,7 +16,7 @@ void main() {
     vec4 fragColour = texture(skyboxTexture, textureCoord);
 
     gPosition = textureCoord;
-    gNormal = textureCoord;
+    gNormal = -textureCoord;
     gAlbedoSpec.rgb = fragColour.rgb;
     gAlbedoSpec.a = 1.0f;
 

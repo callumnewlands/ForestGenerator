@@ -19,8 +19,6 @@ import utils.VectorUtils;
 
 public class TerrainGenerator {
 
-	private final FastNoiseLite noiseGenerator;
-
 	private static final Parameters parameters = ParameterLoader.getParameters();
 	private static final int NO_OF_OCTAVES = parameters.terrain.noise.octaves;
 	private static final float PERSISTENCE = parameters.terrain.noise.persistence;
@@ -28,6 +26,7 @@ public class TerrainGenerator {
 	private static final float NOISE_SCALE_X = parameters.terrain.noise.xScale;
 	private static final float NOISE_SCALE_Y = parameters.terrain.noise.yScale;
 	private static final float VERTICAL_SCALE = parameters.terrain.verticalScale;
+	private final FastNoiseLite noiseGenerator;
 
 	public TerrainGenerator() {
 		int seed = (int) parameters.random.seed;
@@ -45,10 +44,10 @@ public class TerrainGenerator {
 		return Math.round(f * precision) / (float) precision;
 	}
 
+	// TODO store this so it doesnt need calculated each time?
 	public float getHeight(float x, float y) {
 		return noiseGenerator.GetNoise(x / NOISE_SCALE_X, y / NOISE_SCALE_Y) * VERTICAL_SCALE;
 	}
-
 
 	private float[][] getHeightmap(Vector2f centre, float width, int verticesPerSide) {
 
@@ -95,7 +94,11 @@ public class TerrainGenerator {
 				float d = heights[hx][hy - 1];
 				float l = heights[hx - 1][hy];
 				float r = heights[hx + 1][hy];
-				Vector3f norm = new Vector3f((r - l) / (2 * gridSize), (d - u) / (2 * gridSize), -1).normalize();
+				// First order (linear) approximation to gradient vector (normal)
+				Vector3f norm = new Vector3f(
+						(r - l) / (2 * gridSize),
+						-1,
+						(u - d) / (2 * gridSize)).normalize().negate();
 
 				float texX = (xi * textureTilesPerGroundTile) / verticesPerSide;
 				float texY = (yi * textureTilesPerGroundTile) / verticesPerSide;

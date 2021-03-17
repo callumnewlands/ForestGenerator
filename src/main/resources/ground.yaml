@@ -20,7 +20,7 @@ sceneObjects:
   fallenLeaves:
     density: 0
 lighting:
-  ambientStrength: 0.5
+  #  ambientStrength: 0.5
   volumetricScattering:
     enabled: false
   sun:
