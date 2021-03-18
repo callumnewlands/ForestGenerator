@@ -5,6 +5,8 @@ output:
     fullscreen: false
     width: 1400
     height: 780
+  frameImages: false
+  colour: true
 terrain:
   width: 100.0
 quadtree:

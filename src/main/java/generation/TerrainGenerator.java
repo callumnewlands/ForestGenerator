@@ -15,7 +15,6 @@ import org.joml.Vector2f;
 import org.joml.Vector3f;
 import params.ParameterLoader;
 import params.Parameters;
-import utils.VectorUtils;
 
 public class TerrainGenerator {
 
@@ -99,13 +98,12 @@ public class TerrainGenerator {
 						(r - l) / (2 * gridSize),
 						-1,
 						(u - d) / (2 * gridSize)).normalize().negate();
+				Vector3f tang = new Vector3f(2 * gridSize, r - l, 0).normalize();
 
 				float texX = (xi * textureTilesPerGroundTile) / verticesPerSide;
 				float texY = (yi * textureTilesPerGroundTile) / verticesPerSide;
 
 				Vector3f pos = new Vector3f(round(x), round(h), round(y));
-				Vector3f right = new Vector3f(lerp(minX, maxX, (float) hx / (verticesPerSide - 1)), h, y);
-				Vector3f tang = VectorUtils.subtract(right, pos);
 
 				vertices.add(new Vertex(
 						pos,

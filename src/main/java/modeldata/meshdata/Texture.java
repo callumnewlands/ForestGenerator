@@ -7,7 +7,6 @@ import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.nio.channels.FileChannel;
-import java.nio.file.Paths;
 
 import static org.lwjgl.opengl.GL11.GL_RED;
 import static org.lwjgl.opengl.GL11.GL_RGBA;
@@ -23,8 +22,12 @@ import static org.lwjgl.system.MemoryStack.stackPush;
 import lombok.AllArgsConstructor;
 import org.joml.Vector3f;
 import org.lwjgl.system.MemoryStack;
+import params.ParameterLoader;
+import params.Parameters;
 
 public abstract class Texture {
+
+	static final Parameters parameters = ParameterLoader.getParameters();
 
 	static final int RGBA_NO_OF_COMPONENTS = 4;
 	static final int RGB_NO_OF_COMPONENTS = 3;
@@ -44,7 +47,8 @@ public abstract class Texture {
 
 	protected static ByteBuffer readFileToByteBuffer(final String path) throws IOException {
 		ByteBuffer buffer;
-		File file = new File(Paths.get(path).toAbsolutePath().toString());
+
+		File file = new File(parameters.resourcesRoot + path);
 		if (file.exists() && file.isFile()) {
 			FileInputStream fis = new FileInputStream(file);
 			FileChannel fc = fis.getChannel();
@@ -52,7 +56,7 @@ public abstract class Texture {
 			fc.close();
 			fis.close();
 		} else {
-			throw new IOException("Resource: " + path + " is not a file.");
+			throw new IOException("Resource: " + file.getAbsolutePath() + " is not a file.");
 		}
 		return buffer;
 	}

@@ -1,5 +1,7 @@
 package modeldata;
 
+import java.io.File;
+import java.io.IOException;
 import java.nio.IntBuffer;
 import java.util.ArrayList;
 import java.util.List;
@@ -28,13 +30,16 @@ import org.lwjgl.assimp.AIFace;
 import org.lwjgl.assimp.AIMesh;
 import org.lwjgl.assimp.AIScene;
 import org.lwjgl.assimp.AIVector3D;
+import params.ParameterLoader;
+import params.Parameters;
 import rendering.ShaderProgram;
 
 public class LoadedModel implements Model {
 
 	private final SingleModel model;
+	static final Parameters parameters = ParameterLoader.getParameters();
 
-	public LoadedModel(final String resourcePath) {
+	public LoadedModel(final String resourcePath) throws IOException {
 		this(resourcePath,
 //				texturesDir,
 				aiProcess_JoinIdenticalVertices
@@ -45,10 +50,9 @@ public class LoadedModel implements Model {
 						| aiProcess_FlipUVs);
 	}
 
-	public LoadedModel(final String resourcePath, final int flags) {
-//		this.texturesDirectory = texturesDir;
+	public LoadedModel(final String resourcePath, final int flags) throws IOException {
 
-		AIScene scene = aiImportFile(resourcePath, flags);
+		AIScene scene = aiImportFile(new File(parameters.resourcesRoot + resourcePath).getAbsolutePath(), flags);
 		if (scene == null || scene.mRootNode() == null) {
 			throw new RuntimeException("Error loading model");
 		}

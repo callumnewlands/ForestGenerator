@@ -2,8 +2,6 @@ package rendering;
 
 import java.io.IOException;
 import java.nio.FloatBuffer;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.List;
 
 import static org.lwjgl.opengl.GL11C.GL_FALSE;
@@ -39,13 +37,11 @@ import org.lwjgl.system.NativeType;
 
 public class ShaderProgram {
 
-	// TODO probably use classLoader.getResources() instead
-	public static final String RESOURCES_PATH = "src/main/resources";
 	private int handle;
 
 	public ShaderProgram(final String vertexShaderPath, final String fragmentShaderPath) throws IOException {
-		String vertexShaderSourceCode = new String(Files.readAllBytes(Paths.get(RESOURCES_PATH + vertexShaderPath)));
-		String fragmentShaderSourceCode = new String(Files.readAllBytes(Paths.get(RESOURCES_PATH + fragmentShaderPath)));
+		String vertexShaderSourceCode = new String(getClass().getResourceAsStream(vertexShaderPath).readAllBytes());
+		String fragmentShaderSourceCode = new String(getClass().getResourceAsStream(fragmentShaderPath).readAllBytes());
 
 		int vertexShader = compileShader(vertexShaderSourceCode, vertexShaderPath, GL_VERTEX_SHADER);
 		int fragmentShader = compileShader(fragmentShaderSourceCode, fragmentShaderPath, GL_FRAGMENT_SHADER);

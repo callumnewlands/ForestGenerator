@@ -38,7 +38,7 @@ void main()
     }
     fragColor = colour * exposure;
 
-    // TODO not sure this is the correct way to do this
+    // TODO a better way to do this
     vec3 lightDir = normalize(lightPos - viewPos);
     if (dot(lightDir, viewDir) < 0.1) {
         fragColor = originalColour;

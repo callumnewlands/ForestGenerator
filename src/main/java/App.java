@@ -186,7 +186,6 @@ import org.lwjgl.system.MemoryUtil;
 import params.ParameterLoader;
 import params.Parameters;
 import rendering.Camera;
-import rendering.ShaderProgram;
 import rendering.ShaderPrograms;
 import rendering.Textures;
 import sceneobjects.Polygon;
@@ -196,7 +195,7 @@ import sceneobjects.Skybox;
 public class App {
 
 	private static final int MAJOR_VERSION = 4;
-	private static final int MINOR_VERSION = 6;
+	private static final int MINOR_VERSION = 3;
 	private final Parameters parameters = ParameterLoader.getParameters();
 	private int windowWidth;
 	private int windowHeight;
@@ -235,12 +234,11 @@ public class App {
 	}
 
 	public static void main(String[] args) throws IOException {
-		if (args.length == 0) {
-			ParameterLoader.loadParameters(ShaderProgram.RESOURCES_PATH + "/default.yaml");
-		} else if (args.length == 1) {
-			ParameterLoader.loadParameters(ShaderProgram.RESOURCES_PATH + "/" + args[0]);
-		} else {
+		if (args.length > 1) {
 			throw new RuntimeException("Usage: java -jar ForestGenerator.jar [params.yaml]");
+		}
+		if (args.length == 1) {
+			ParameterLoader.loadParameters(args[0]);
 		}
 		new App().run();
 	}
@@ -543,7 +541,7 @@ public class App {
 		// immenstadter_horn_8k.hdr
 		// noon_grass_8k.hdr
 		// gamrig_8k.hdr
-		HDRTexture skyboxTexture = new HDRTexture(ShaderProgram.RESOURCES_PATH + "/textures/gamrig_8k.hdr", 2048, new Vector3f(.529f, .808f, .922f), 8);
+		HDRTexture skyboxTexture = new HDRTexture("textures/gamrig_8k.hdr", 2048, new Vector3f(.529f, .808f, .922f), 8);
 		sunPosition = skyboxTexture.getBrightestArea();
 		skybox.addTexture("skyboxTexture", skyboxTexture);
 		checkError("skybox loading");
@@ -654,7 +652,7 @@ public class App {
 		System.out.println("Shadow map generated");
 	}
 
-	// TODO occasionally (and seemingly randomly) the program runs through 2 render cycles just outputting a black
+	// FIXME occasionally (and seemingly randomly) the program runs through 2 render cycles just outputting a black
 	//  	screen and then on the third, crashes (on glfwSwapBuffers) with the exit code -1073740791 (0xc0000409)
 	//		An event in the Windows log which seems to coincide is:
 	//			A TDR has been detected. The application must close. Error code: 7 (pid=32376 tid=29344 java.exe 64bit)
@@ -944,6 +942,7 @@ public class App {
 	}
 
 	private void blockAndProcessInputStream() {
+		// TODO param
 		final int MOUSE_ANGLE = 20;
 		try {
 			String s = inputStream.readLine().toUpperCase();

@@ -15,6 +15,7 @@ import org.joml.Vector3f;
 @Setter
 public class Parameters {
 
+	public String resourcesRoot = "./resources/";
 	public Random random = new Random();
 	public Input input = new Input();
 	public Output output = new Output();
@@ -89,7 +90,7 @@ public class Parameters {
 	@NoArgsConstructor
 	@Setter
 	public static class Quadtree {
-		public int levels = 3;
+		public int levels = 2;
 		public float thresholdCoefficient = 1.7f;
 		public boolean frustumCulling = true;
 	}
