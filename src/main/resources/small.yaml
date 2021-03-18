@@ -1,4 +1,4 @@
-resourcesRoot: ./wsrc/main/resources/
+resourcesRoot: ./src/main/resources/
 random:
   seed: 12
 output:

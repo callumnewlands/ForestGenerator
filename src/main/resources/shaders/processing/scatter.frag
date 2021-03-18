@@ -22,7 +22,7 @@ void main()
     vec2 lightPosScreen = (lightPosTransformed.xy / lightPosTransformed.w) * 0.5 + 0.5;;
     // vector between samples in direction of light
     vec2 sampleDelta = textureCoord - lightPosScreen;
-    sampleDelta *= (1f / numSamples) * sampleDensity;
+    sampleDelta *= (1.0f / numSamples) * sampleDensity;
     vec3 originalColour = texture(occlusion, textureCoord).rgb;
     vec3 colour = originalColour;
     float illuminationDecay = 1.0f;
