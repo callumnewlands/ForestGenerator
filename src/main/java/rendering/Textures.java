@@ -11,56 +11,56 @@ import org.joml.Vector3f;
 public final class Textures {
 
 	public static Texture2D leaf = new Texture2D(
-			"resources/textures/Leaf2_front_rotated.tga",
+			"textures/Leaf2_front_rotated.tga",
 			new Vector3f(0.1f, 0.3f, 0.1f),
 			0,
 			GL_SRGB_ALPHA,
 			GL_CLAMP_TO_EDGE);
 
 	public static Texture2D leafNormal = new Texture2D(
-			"resources/textures/Leaf2_normals_front_rotated.tga",
+			"textures/Leaf2_normals_front_rotated.tga",
 			new Vector3f(0.1f, 0.3f, 0.1f),
 			1,
 			GL_RGBA,
 			GL_CLAMP_TO_EDGE);
 
 	public static Texture2D bark = new Texture2D(
-			"resources/textures/Bark_Pine_baseColor.jpg",
+			"textures/Bark_Pine_baseColor.jpg",
 			new Vector3f(0.34f, 0.17f, 0.07f),
 			2,
 			GL_SRGB_ALPHA,
 			GL_REPEAT);
 
 	public static Texture2D ground = new Texture2D(
-			"resources/textures/floor2.png",
+			"textures/floor2.png",
 			new Vector3f(0.34f, 0.17f, 0.07f),
 			3,
 			GL_SRGB_ALPHA,
 			GL_REPEAT);
 
 	public static Texture2D barkNormal = new Texture2D(
-			"resources/textures/Bark_Pine_normal.jpg",
+			"textures/Bark_Pine_normal.jpg",
 			new Vector3f(0.34f, 0.17f, 0.07f),
 			4,
 			GL_RGBA,
 			GL_REPEAT);
 
 	public static Texture2D grass = new Texture2D(
-			"resources/textures/grass.png",
+			"textures/grass.png",
 			new Vector3f(0.1f, 0.3f, 0.1f),
 			5,
 			GL_SRGB_ALPHA,
 			GL_CLAMP_TO_EDGE);
 
 	public static Texture2D rock = new Texture2D(
-			"resources/textures/Mossy_rock_01_2K_Base_Color.png",
+			"textures/Mossy_rock_01_2K_Base_Color.png",
 			new Vector3f(0.3f, 0.3f, 0.3f),
 			6,
 			GL_SRGB_ALPHA,
 			GL_REPEAT);
 
 	public static Texture2D rockNormal = new Texture2D(
-			"resources/textures/Mossy_rock_01_2K_Normal.png",
+			"textures/Mossy_rock_01_2K_Normal.png",
 			new Vector3f(0.3f, 0.3f, 0.3f),
 			7,
 			GL_RGBA,
@@ -102,49 +102,49 @@ public final class Textures {
 
 	private static final String leafName = "Leaf2";
 	public static Texture2D leafFront = new Texture2D(
-			"resources/textures/" + leafName + "/" + leafName + "_front.tga",
+			"textures/" + leafName + "/" + leafName + "_front.tga",
 			new Vector3f(0.1f, 0.3f, 0.1f),
 			9,
 			GL_SRGB_ALPHA,
 			GL_CLAMP_TO_EDGE);
 	public static Texture2D leafFrontT = new Texture2D(
-			"resources/textures/" + leafName + "/" + leafName + "_front_t.tga",
+			"textures/" + leafName + "/" + leafName + "_front_t.tga",
 			new Vector3f(0.1f, 0.3f, 0.1f),
 			10,
 			GL_SRGB_ALPHA,
 			GL_CLAMP_TO_EDGE);
 	public static Texture2D leafBack = new Texture2D(
-			"resources/textures/" + leafName + "/" + leafName + "_back.tga",
+			"textures/" + leafName + "/" + leafName + "_back.tga",
 			new Vector3f(0.1f, 0.3f, 0.1f),
 			11,
 			GL_SRGB_ALPHA,
 			GL_CLAMP_TO_EDGE);
 	public static Texture2D leafBackT = new Texture2D(
-			"resources/textures/" + leafName + "/" + leafName + "_back_T.tga",
+			"textures/" + leafName + "/" + leafName + "_back_T.tga",
 			new Vector3f(0.1f, 0.3f, 0.1f),
 			12,
 			GL_SRGB_ALPHA,
 			GL_CLAMP_TO_EDGE);
 	public static Texture2D leafFrontHL = new Texture2D(
-			"resources/textures/" + leafName + "/" + leafName + "_halflife_front_t.tga",
+			"textures/" + leafName + "/" + leafName + "_halflife_front_t.tga",
 			new Vector3f(0.1f, 0.3f, 0.1f),
 			13,
 			GL_RGBA,
 			GL_CLAMP_TO_EDGE);
 	public static Texture2D leafFrontNorm = new Texture2D(
-			"resources/textures/" + leafName + "/" + leafName + "_normals_front.tga",
+			"textures/" + leafName + "/" + leafName + "_normals_front.tga",
 			new Vector3f(0.1f, 0.3f, 0.1f),
 			14,
 			GL_RGBA,
 			GL_CLAMP_TO_EDGE);
 	public static Texture2D leafBackHL = new Texture2D(
-			"resources/textures/" + leafName + "/" + leafName + "_halflife_back_t.tga",
+			"textures/" + leafName + "/" + leafName + "_halflife_back_t.tga",
 			new Vector3f(0.1f, 0.3f, 0.1f),
 			15,
 			GL_RGBA,
 			GL_CLAMP_TO_EDGE);
 	public static Texture2D leafBackNorm = new Texture2D(
-			"resources/textures/" + leafName + "/" + leafName + "_normals_back.tga",
+			"textures/" + leafName + "/" + leafName + "_normals_back.tga",
 			new Vector3f(0.1f, 0.3f, 0.1f),
 			16,
 			GL_RGBA,

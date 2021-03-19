@@ -20,7 +20,7 @@ public class Rocks extends InstancedGroundObject {
 
 	static {
 		try {
-			rock = new LoadedModel("resources/models/Rock1.obj");
+			rock = new LoadedModel("models/Rock1.obj");
 		} catch (IOException e) {
 			throw new RuntimeException("Unable to load rocks model: " + e.getLocalizedMessage());
 		}

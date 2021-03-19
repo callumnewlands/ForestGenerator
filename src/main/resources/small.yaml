@@ -1,4 +1,3 @@
-resourcesRoot: ./src/main/resources/
 random:
   seed: 12
 output:
