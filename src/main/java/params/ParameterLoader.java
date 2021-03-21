@@ -18,7 +18,9 @@ public final class ParameterLoader {
 
 	public static Parameters loadParameters(String filePath) throws IOException {
 		ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
-		mapper.registerSubtypes(Parameters.SceneObjects.BranchingTree.class);
+		mapper.registerSubtypes(
+				Parameters.SceneObjects.BranchingTree.class,
+				Parameters.SceneObjects.MonopodialTree.class);
 		parameters = mapper.readValue(new File(filePath), Parameters.class);
 		setRandomGenerator();
 		return parameters;

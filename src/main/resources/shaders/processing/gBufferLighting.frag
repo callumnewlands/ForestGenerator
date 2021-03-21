@@ -102,7 +102,7 @@ void main() {
             ambient = ambientStrength * diffuse;
         }
         float diffFactor =  max(dot(norm, lightDir), 0.0f);
-        hdrColor =  ambient +
+        hdrColor = ambient +
         (1.0 - shadow) * diffFactor * lightColour * diffuse +
         transl * pixelTranslFactor * translucencyFactor +
         scattering;
@@ -111,6 +111,7 @@ void main() {
         hdrColor = diffuse;
     }
 
+    // TODO should the HDRI be tone mapped?
     ////     Reinhard tone mapping
     //        vec3 screenColour = hdrEnabled ? hdrColor / (hdrColor + vec3(1.0)) : hdrColor;
 

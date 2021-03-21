@@ -1,20 +1,22 @@
 random:
-  seed: -1
+  seed: 2
 output:
   window:
     fullscreen: false
     width: 1400
     height: 780
+#  frameImages: true
 terrain:
   width: 10
 quadtree:
-  levels: 1
+  levels: 0
   frustumCulling: false
 sceneObjects:
   trees:
-    - !Parameters$SceneObjects$BranchingTree
+    - !Parameters$SceneObjects$MonopodialTree
+      #    - !Parameters$SceneObjects$BranchingTree
       instanceFraction: 1.0
-      density: 0.5
+      density: 0.4
   twigs:
     density: 0
   rocks:
@@ -25,6 +27,8 @@ sceneObjects:
     density: 0
 lighting:
   volumetricScattering:
+    enabled: false
+  shadows:
     enabled: false
   sun:
     display: true

@@ -92,17 +92,20 @@ public class TurtleInterpreter {
 	}
 
 	private void addCrossSectionVertices(List<Vector3f> crossSection) {
-		this.vertices.get(this.vertices.size() - 1).addAll(crossSection);
+		this.vertices.get(turtle.vertexListIndex).addAll(crossSection);
 	}
 
 	private void startNewVerticesSubList() {
 		this.vertices.add(new ArrayList<>());
-		// TODO uncommenting this fixes gaps in monopodial tree but breaks normals
-//		addCrossSectionVertices(turtle.prevCross);
+		this.turtle.vertexListIndex = this.vertices.size() - 1;
+		addCrossSectionVertices(turtle.prevCross);
 	}
 
 	private void moveForwards(float distance) {
-		Matrix4f model = (new Matrix4f()).translation(VectorUtils.multiply(distance, turtle.heading));
+		if (distance == 0f) {
+			return;
+		}
+		Matrix4f model = (new Matrix4f()).translation(VectorUtils.multiply(distance, VectorUtils.normalize(turtle.heading)));
 		turtle.position = model.transformPosition(turtle.position);
 		updateCrossSection(model);
 
@@ -120,14 +123,11 @@ public class TurtleInterpreter {
 				turtle.position.x,
 				turtle.position.y,
 				turtle.position.z);
-		turtle.up = model.transformDirection(turtle.up);
-		turtle.heading = model.transformDirection(turtle.heading);
+		turtle.up = model.transformDirection(turtle.up).normalize();
+		turtle.heading = model.transformDirection(turtle.heading).normalize();
 
-		// Not sure this is the right approach, but seems to be working
 		if (!axis.equals(turtle.heading)) {
 			updateCrossSection(model);
-		} else {
-			addCrossSectionVertices(turtle.prevCross);
 		}
 
 	}
@@ -136,8 +136,7 @@ public class TurtleInterpreter {
 		Vector3f up = new Vector3f(0, 1, 0);
 		Vector3f left = VectorUtils.cross(up, turtle.heading).normalize();
 
-		turtle.up = VectorUtils.cross(turtle.heading, left);
-
+		turtle.up = VectorUtils.cross(turtle.heading, left).normalize();
 //		addCrossSectionVertices(turtle.prevCross);
 	}
 
@@ -183,8 +182,8 @@ public class TurtleInterpreter {
 				turtle.position.x,
 				turtle.position.y,
 				turtle.position.z);
-		turtle.up = model.transformDirection(turtle.up);
-		turtle.heading = model.transformDirection(turtle.heading);
+		turtle.up = model.transformDirection(turtle.up).normalize();
+		turtle.heading = model.transformDirection(turtle.heading).normalize();
 		updateCrossSection(model, false);
 	}
 
@@ -284,14 +283,14 @@ public class TurtleInterpreter {
 				case '+' -> parseRotation(module, turtle.up);
 				case '-' -> turn(-this.rotationAngle, turtle.up);
 				case '$' -> turnToVertical();
-				case '*' -> closeFace();
+				case '%' -> closeFace();
 				case '&' -> parseRotation(module, VectorUtils.cross(turtle.up, turtle.heading).normalize());
 				case '/' -> parseRotation(module, turtle.heading);
-				case '[' -> states.push(this.turtle.copy());
-				case ']' -> {
-					turtle = states.pop();
+				case '[' -> {
+					states.push(this.turtle.copy());
 					startNewVerticesSubList();
 				}
+				case ']' -> turtle = states.pop();
 				case '!' -> parseEx(module);
 				case '~' -> parseTilde(module);
 				default -> throw new RuntimeException("Unable to interpret module: " + module.toString() +
@@ -439,6 +438,7 @@ public class TurtleInterpreter {
 		private Vector3f up;
 		private List<Vector3f> prevCross;
 		private float radius = 0.5f;
+		private int vertexListIndex = 0;
 
 		public Turtle copy() {
 			return new Turtle(
@@ -448,7 +448,8 @@ public class TurtleInterpreter {
 					this.prevCross.stream()
 							.map(Vector3f::new)
 							.collect(Collectors.toList()),
-					this.radius);
+					this.radius,
+					this.vertexListIndex);
 		}
 	}
 

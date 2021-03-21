@@ -22,4 +22,7 @@ public final class VectorUtils {
 		return (new Vector3f(vec1)).cross(vec2);
 	}
 
+	public static Vector3f normalize(Vector3f vec) {
+		return new Vector3f(vec).normalize();
+	}
 }

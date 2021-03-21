@@ -177,7 +177,7 @@ public class TerrainQuadtree {
 			}
 
 			LevelOfDetail levelOfDetail;
-			if (maxDepth == 1 || depth > (maxDepth + 1) / 2) {
+			if (maxDepth == 0 || maxDepth == 1 || depth > (maxDepth + 1) / 2) {
 				levelOfDetail = LevelOfDetail.HIGH;
 			} else {
 				levelOfDetail = LevelOfDetail.LOW;
