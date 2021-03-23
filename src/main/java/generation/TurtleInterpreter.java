@@ -23,6 +23,7 @@ import org.joml.Quaternionf;
 import org.joml.Vector2f;
 import org.joml.Vector3f;
 import org.joml.Vector4f;
+import utils.MathsUtils;
 import utils.MeshUtils;
 import utils.VectorUtils;
 
@@ -92,6 +93,7 @@ public class TurtleInterpreter {
 	}
 
 	private void addCrossSectionVertices(List<Vector3f> crossSection) {
+		turtle.prevRadius = turtle.radius;
 		this.vertices.get(turtle.vertexListIndex).addAll(crossSection);
 	}
 
@@ -112,6 +114,64 @@ public class TurtleInterpreter {
 		addCrossSectionVertices(turtle.prevCross);
 	}
 
+	private void moveForwardsWithLeaves(float distance, int numLeaves, int index, float radialAngle, float liftAngle) {
+		liftAngle = -liftAngle;
+		if (liftAngle > Math.PI) {
+			liftAngle = -(float) (2 * Math.PI - liftAngle);
+		} else if (liftAngle < -Math.PI) {
+			liftAngle = (float) (2 * Math.PI + liftAngle);
+		}
+		if (radialAngle > Math.PI) {
+			radialAngle = -(float) (2 * Math.PI - radialAngle);
+		} else if (radialAngle < -Math.PI) {
+			radialAngle = (float) (2 * Math.PI + radialAngle);
+		}
+
+		float step = distance / (numLeaves + 1);
+		Turtle leafTurtle = turtle.copy();
+		Vector3f pitchAxis = VectorUtils.cross(leafTurtle.up, leafTurtle.heading).normalize();
+		Vector3f stemAxis = VectorUtils.normalize(leafTurtle.heading);
+		Vector3f stepVector = VectorUtils.multiply(step, stemAxis);
+		Vector3f centre = new Vector3f(leafTurtle.prevCross.get(0));
+
+		// Pitch up by liftAngle
+		Quaternionf rotation = new Quaternionf(new AxisAngle4f(liftAngle, pitchAxis));
+		Matrix4f model = (new Matrix4f()).identity().rotateAround(rotation,
+				leafTurtle.position.x,
+				leafTurtle.position.y,
+				leafTurtle.position.z);
+		leafTurtle.up = model.transformDirection(leafTurtle.up).normalize();
+		leafTurtle.heading = model.transformDirection(leafTurtle.heading).normalize();
+
+
+		for (int i = 0; i < numLeaves; i++) {
+			// Move along by step
+			model = (new Matrix4f()).translation(stepVector);
+			leafTurtle.position = model.transformPosition(leafTurtle.position);
+			centre = model.transformPosition(centre);
+
+			//  Move out by radius
+			float currentRadius = MathsUtils.lerp(leafTurtle.prevRadius, leafTurtle.radius, (float) (i + 1) / (numLeaves + 1));
+			model = (new Matrix4f()).translation(VectorUtils.multiply(currentRadius, leafTurtle.up));
+			leafTurtle.position = model.transformPosition(leafTurtle.position);
+
+			// Rotate around stem
+			rotation = new Quaternionf(new AxisAngle4f(radialAngle, stemAxis));
+			model = (new Matrix4f()).identity().rotateAround(rotation, centre.x, centre.y, centre.z);
+			leafTurtle.up = model.transformDirection(leafTurtle.up).normalize();
+			leafTurtle.heading = model.transformDirection(leafTurtle.heading).normalize();
+			leafTurtle.position = model.transformPosition(leafTurtle.position);
+
+			// Inject leaf model
+			injectedModels.add(new ModelReference(index, leafTurtle));
+
+			//  Move back in by radius
+			model = (new Matrix4f()).translation(VectorUtils.multiply(-currentRadius, leafTurtle.up));
+			leafTurtle.position = model.transformPosition(leafTurtle.position);
+		}
+		moveForwards(distance);
+	}
+
 	private void turn(float angle, Vector3f axis) {
 		if (angle > Math.PI) {
 			angle = -(float) (2 * Math.PI - angle);
@@ -126,6 +186,7 @@ public class TurtleInterpreter {
 		turtle.up = model.transformDirection(turtle.up).normalize();
 		turtle.heading = model.transformDirection(turtle.heading).normalize();
 
+		// Prevents twisting along prism axis
 		if (!axis.equals(turtle.heading)) {
 			updateCrossSection(model);
 		}
@@ -211,10 +272,26 @@ public class TurtleInterpreter {
 		switch (module.getNumberOfParameters()) {
 			case 0 -> moveForwards(this.stepSize);
 			case 1 -> {
-				float step = getFirstValueFromParametricModule(module);
-				moveForwards(step);
+				float distance = getFirstValueFromParametricModule(module);
+				moveForwards(distance);
 			}
-			default -> throw new RuntimeException("Too many parameters in: " + module.toString());
+			case 5 -> {
+				List<Float> args = getAllValuesFromParametricModule(module);
+				float distance = args.get(0);
+				int numLeaves = args.get(1).intValue();
+				if (numLeaves <= 0) {
+					moveForwards(distance);
+					return;
+				}
+				int index = args.get(2).intValue();
+				float radialAngle = args.get(3);
+				float liftAngle = args.get(4);
+				if (index >= subModels.size()) {
+					throw new RuntimeException("Referenced model ID: " + index + " is not in subModels list");
+				}
+				moveForwardsWithLeaves(distance, numLeaves, index, radialAngle, liftAngle);
+			}
+			default -> throw new RuntimeException("Undefined number of parameters in: " + module.toString());
 		}
 	}
 
@@ -282,10 +359,10 @@ public class TurtleInterpreter {
 				case 'T' -> parseT(module);
 				case '+' -> parseRotation(module, turtle.up);
 				case '-' -> turn(-this.rotationAngle, turtle.up);
-				case '$' -> turnToVertical();
-				case '%' -> closeFace();
 				case '&' -> parseRotation(module, VectorUtils.cross(turtle.up, turtle.heading).normalize());
 				case '/' -> parseRotation(module, turtle.heading);
+				case '$' -> turnToVertical();
+				case '%' -> closeFace();
 				case '[' -> {
 					states.push(this.turtle.copy());
 					startNewVerticesSubList();
@@ -438,6 +515,7 @@ public class TurtleInterpreter {
 		private Vector3f up;
 		private List<Vector3f> prevCross;
 		private float radius = 0.5f;
+		private float prevRadius = 0.5f;
 		private int vertexListIndex = 0;
 
 		public Turtle copy() {
@@ -449,6 +527,7 @@ public class TurtleInterpreter {
 							.map(Vector3f::new)
 							.collect(Collectors.toList()),
 					this.radius,
+					this.prevRadius,
 					this.vertexListIndex);
 		}
 	}

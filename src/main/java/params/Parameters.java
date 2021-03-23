@@ -187,8 +187,8 @@ public class Parameters {
 						Map.entry("e", -0.01f)));  // Elasticity
 				name = "Tree 2";
 				numSides = 6;
-				scale = 1f;
-				minIterations = 15;
+				scale = 0.5f;
+				minIterations = 12; // 12 poplar // 9 aspen
 				maxIterations = minIterations + 1;
 			}
 

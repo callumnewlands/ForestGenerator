@@ -40,7 +40,7 @@ import utils.MeshUtils;
 public class Trees extends InstancedGroundObject {
 
 	// TODO add leaf properties to yaml
-	public static final float LEAF_SCALE = 0.7f;
+	public static final float LEAF_SCALE = 0.06f; //0.7f normal 0.1f poplar 0.06f aspen
 	private static final Parameters parameters = ParameterLoader.getParameters();
 	private final static Vector3f up = new Vector3f(0f, 1f, 0f);
 	private final static Vector3f out = new Vector3f(0f, 0f, 1f);
@@ -221,7 +221,7 @@ public class Trees extends InstancedGroundObject {
 				new ParametricValueModule('A', List.of(wB, l1))
 		);
 
-		// TODO fix weird tapering etc at top of tree when nB is large
+		// TODO leaves on 3rd level branches (and 2nd for poplar?) -> Maybe a turtle command which can cover a forward segment in leaves
 		// TODO variable branch lengths and angles (aspen)
 
 		// Trunk
@@ -261,9 +261,19 @@ public class Trees extends InstancedGroundObject {
 					new ParametricValueModule('/', (float) Math.toRadians(aS2) * finalI),
 					new ParametricValueModule('&', (float) Math.toRadians(aS3)),
 					new ParametricExpressionModule('!', List.of("w"), vars -> List.of(wS2 * wI.apply(vars))),
-					new ParametricExpressionModule('F', List.of("l"), vars -> List.of((float) Math.sqrt(nB2 - finalI) * vars.get("l") / 4)), // TODO /3 for aspen
+					new ParametricExpressionModule('F', List.of("l"), vars -> List.of(
+							(float) Math.sqrt(nB2 - finalI) * vars.get("l") / 4, // TODO /3 for aspen
+							(float) (int) ((Math.sqrt(nB2 - finalI) + 2) * 4 * vars.get("l")),
+							0f,
+							(float) Math.toRadians(140),
+							(float) Math.toRadians(40))),
 					new ParametricValueModule('&', (float) Math.toRadians(aS4)),
-					new ParametricExpressionModule('F', List.of("l"), vars -> List.of((float) Math.sqrt(nB2 - finalI) * vars.get("l") / 4)),
+					new ParametricExpressionModule('F', List.of("l"), vars -> List.of(
+							(float) Math.sqrt(nB2 - finalI) * vars.get("l") / 4,
+							(float) (int) ((Math.sqrt(nB2 - finalI) + 2) * 4 * vars.get("l")),
+							0f,
+							(float) Math.toRadians(140),
+							(float) Math.toRadians(40))),
 					new CharModule('%'),
 					RB,
 					// TODO +() for aspen
