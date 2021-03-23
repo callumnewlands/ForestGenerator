@@ -20,7 +20,8 @@ public final class ParameterLoader {
 		ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
 		mapper.registerSubtypes(
 				Parameters.SceneObjects.BranchingTree.class,
-				Parameters.SceneObjects.MonopodialTree.class);
+				Parameters.SceneObjects.MonopodialTree.class,
+				Parameters.SceneObjects.PoplarTree.class);
 		parameters = mapper.readValue(new File(filePath), Parameters.class);
 		setRandomGenerator();
 		return parameters;

@@ -46,6 +46,9 @@ public class InstancedLODModel {
 	}
 
 	public void render(LevelOfDetail levelOfDetail) {
+		if (numberOfInstances == 0) {
+			return;
+		}
 		Model lodModel = models.get(levelOfDetail);
 		if (lodModel == null) {
 			switch (levelOfDetail) {

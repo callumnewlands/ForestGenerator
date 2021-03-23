@@ -21,8 +21,15 @@ public abstract class InstancedGroundObject {
 	private final List<InstancedLODModel> models = new ArrayList<>();
 
 	public InstancedGroundObject(int numberOfTypes, int numberOfInstances, Vector2f regionCentre, float regionWidth, TerrainQuadtree quadtree, boolean yRotationOnly) {
+		if (numberOfInstances == 0) {
+			return;
+		}
 		Random r = ParameterLoader.getParameters().random.generator;
 		for (int i = 0; i < numberOfTypes; i++) {
+			int numberOfThisType = getNumber(numberOfInstances, numberOfTypes);
+			if (numberOfThisType == 0) {
+				continue;
+			}
 			Map<LevelOfDetail, List<Mesh>> lodMeshes = getMeshes();
 			InstancedLODModelBuilder modelBuilder = new InstancedLODModelBuilder();
 			// For each LOD, construct the lod representation for type i
@@ -32,7 +39,7 @@ public abstract class InstancedGroundObject {
 				model.setIsInstanced(true);
 				modelBuilder.withLODModel(lod, model);
 			}
-			InstancedLODModel lodModel = modelBuilder.withNumberOfInstances(getNumber(numberOfInstances, numberOfTypes)).build();
+			InstancedLODModel lodModel = modelBuilder.withNumberOfInstances(numberOfThisType).build();
 			lodModel.generateModelMatrices(() -> {
 				float x = (r.nextFloat() - 0.5f) * regionWidth + regionCentre.x;
 				float z = (r.nextFloat() - 0.5f) * regionWidth + regionCentre.y;

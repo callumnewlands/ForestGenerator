@@ -14,10 +14,14 @@ output:
 #  frameImages: true
 #  colour: true
 terrain:
-  width: 100.0
+  width: 30.0 #100
 quadtree:
   levels: 2
 sceneObjects:
   trees:
-    - !Parameters$SceneObjects$BranchingTree
+    - !Parameters$SceneObjects$MonopodialTree
       density: 0.6
+    - !Parameters$SceneObjects$BranchingTree
+      density: 1.0
+    - !Parameters$SceneObjects$PoplarTree
+      density: 0.8

@@ -26,7 +26,6 @@ output:
   # Invert the depth colours (default: near = black, far = white)
   invertDepth: true
 
-
 camera:
   startPosition: [ 0.0, 3.3, 0.0 ]
   # Enable/disable vertical motion
@@ -77,12 +76,88 @@ sceneObjects:
       instanceFraction: 0.2
       # Size scalar for the models
       scale: 0.01
+      # Size scalar for the leaf models
+      leafScale: 0.7
       # Number of sides to use in the cross section of the branches
       numSides: 6
       # Minimum number of iterations of the L-system
       minIterations: 7 # inclusive
       # Maximum number of iterations of the L-system
       maxIterations: 9 # exclusive
+      # Density of models in the scene
+      density: 1.0
+
+    - !Parameters$SceneObjects$MonopodialTree
+      name: Aspen
+      lSystemParams:
+        lB: 4.0   # Base length
+        lS: 0.6   # Side branch length
+        lSm: 0.4  # Min ratio for side branch length (of ls) and width (of ws)
+        wB: 0.3   # Base width
+        wS: 0.08  # Side branch width
+        wS2: 0.4  # 3rd level side branch width
+        vr: 0.04  # Width of start of side branch
+        aB: 90.0  # Branch angle to trunk
+        aS: 80.0  # Branch angle around trunk
+        aS2: 140.0 # 3rd level side branch angle
+        aS3: 60.0 # 3rd level side branch angle upwards
+        aS4: 45.0 # 3rd level side branch angle upwards for 2nd part
+        tH: 0.7   # Threshold for switching expansion/contraction (1 = bottom, 0 = top)
+        aD: -1.0  # Angle to curve the side branches downward
+        nB: 8     # Number of side branches (and trunk height segments) per iteration
+        nB2: 17   # Branching factor of side branches
+        l1: 0.1   # Length of trunk sections
+        lr: 0.5   # Offset of side branches from centre
+        e: 0      # Elasticity
+      # The fraction of all models of this tree which are instanced from a given generated mesh (random configuration) (Larger = more repeated instances)
+      instanceFraction: 0.2
+      # Size scalar for the models
+      scale: 0.5
+      # Size scalar for the leaf models
+      leafScale: 0.06
+      # Number of sides to use in the cross section of the branches
+      numSides: 6
+      # Minimum number of iterations of the L-system
+      minIterations: 8 # inclusive
+      # Maximum number of iterations of the L-system
+      maxIterations: 10 # exclusive
+      # Density of models in the scene
+      density: 1.0
+
+    - !Parameters$SceneObjects$MonopodialTree
+      name: Lombardy Poplar
+      lSystemParams:
+        lB: 0.0   # Base length
+        lS: 1.06  # Side branch length
+        lSm: 1.0  # Min ratio for side branch length (of ls) and width (of ws)
+        wB: 0.7   # Base width
+        wS: 0.3   # Side branch width
+        wS2: 0.2  # 3rd level side branch width
+        vr: 0.2   # Width of start of side branch
+        aB: 35.0  # Branch angle to trunk
+        aS: 80.0  # Branch angle around trunk
+        aS2: 140.0 # 3rd level side branch angle
+        aS3: 30.0 # 3rd level side branch angle upwards
+        aS4: -20.0 # 3rd level side branch angle upwards for 2nd part
+        tH: 1.0   # Threshold for switching expansion/contraction (1 = bottom, 0 = top)
+        aD: -1.2  # Angle to curve the side branches downward
+        nB: 2     # Number of side branches (and trunk height segments) per iteration
+        nB2: 25   # Branching factor of side branches
+        l1: 0.5   # Length of trunk sections
+        lr: 0.0   # Offset of side branches from centre
+        e: -0.01  # Elasticity
+      # The fraction of all models of this tree which are instanced from a given generated mesh (random configuration) (Larger = more repeated instances)
+      instanceFraction: 0.2
+      # Size scalar for the models
+      scale: 0.5
+      # Size scalar for the leaf models
+      leafScale: 0.1
+      # Number of sides to use in the cross section of the branches
+      numSides: 6
+      # Minimum number of iterations of the L-system
+      minIterations: 8 # inclusive
+      # Maximum number of iterations of the L-system
+      maxIterations: 10 # exclusive
       # Density of models in the scene
       density: 1.0
   twigs:

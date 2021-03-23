@@ -542,7 +542,7 @@ public class App {
 		// noon_grass_8k.hdr
 		// gamrig_8k.hdr
 		// qwantani_8k.hdr
-		HDRTexture skyboxTexture = new HDRTexture("textures/qwantani_8k.hdr", 2048, new Vector3f(.529f, .808f, .922f), 8);
+		HDRTexture skyboxTexture = new HDRTexture("textures/gamrig_8k.hdr", 2048, new Vector3f(.529f, .808f, .922f), 8);
 		sunPosition = skyboxTexture.getBrightestArea();
 		skybox.addTexture("skyboxTexture", skyboxTexture);
 		checkError("skybox loading");

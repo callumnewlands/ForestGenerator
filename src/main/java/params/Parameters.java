@@ -100,7 +100,11 @@ public class Parameters {
 	public static class SceneObjects {
 		public boolean display = true;
 		@JsonTypeInfo(use = JsonTypeInfo.Id.NAME)
-		public List<Tree> trees = List.of(new BranchingTree());
+		public List<Tree> trees = List.of(
+				new BranchingTree(),
+				new MonopodialTree(),
+				new PoplarTree()
+		);
 		public LSystemObject twigs = new LSystemObject(2, 5);
 		public SceneObject rocks = new SceneObject();
 		public SceneObject grass = new SceneObject();
@@ -129,6 +133,7 @@ public class Parameters {
 			public float instanceFraction = 0.2f;
 			public int numSides = 5;
 			public float scale = 1.0f;
+			public float leafScale = 1.0f;
 			public int minIterations = 7;
 			public int maxIterations = 9;
 			// TODO textures
@@ -151,6 +156,7 @@ public class Parameters {
 				name = "Tree 1";
 				numSides = 6;
 				scale = 0.01f;
+				leafScale = 0.7f;
 			}
 
 			@NoArgsConstructor
@@ -162,14 +168,45 @@ public class Parameters {
 			}
 		}
 
-		@Setter
 		public static class MonopodialTree extends Tree {
-
 			public MonopodialTree() {
 				super();
 				lSystemParams = new HashMap<>(Map.ofEntries(
+						Map.entry("lB", 4f),  // Base length
+						Map.entry("lS", 0.6f),  // Side branch length
+						Map.entry("lSm", 0.4f),  // Min ratio for side branch length (of ls) and width (of ws)
+						Map.entry("wB", 0.3f), // Base width
+						Map.entry("wS", 0.08f), // Side branch width
+						Map.entry("wS2", 0.4f), // 3rd level side branch width
+						Map.entry("vr", 0.04f), // Width of start of side branch
+						Map.entry("aB", 90), // Branch angle to trunk
+						Map.entry("aS", 80), // Branch angle around trunk
+						Map.entry("aS2", 140), // 3rd level side branch angle
+						Map.entry("aS3", 60), // 3rd level side branch angle upwards
+						Map.entry("aS4", 45), // 3rd level side branch angle upwards for 2nd part
+						Map.entry("tH", 0.7f), // Threshold for switching expansion/contraction (1 = bottom, 0 = top)
+						Map.entry("aD", -1), // Angle to curve the side branches downward
+						Map.entry("nB", 8), // Number of side branches (and trunk height segments) per iteration
+						Map.entry("nB2", 17),// Branching factor of side branches
+						Map.entry("l1", 0.1f), // Length of trunk sections
+						Map.entry("lr", 0.5f), // Offset of side branches from centre
+						Map.entry("e", 0))); // Elasticity
+				name = "Aspen";
+				numSides = 6;
+				scale = 0.5f;
+				leafScale = 0.06f;
+				minIterations = 8;
+				maxIterations = 10;
+			}
+		}
+
+		public static class PoplarTree extends MonopodialTree {
+			public PoplarTree() {
+				super();
+				lSystemParams = new HashMap<>(Map.ofEntries(
 						Map.entry("lB", 0f),  // Base length
-						Map.entry("lS", 1.5f),  // Side branch length
+						Map.entry("lS", 1.06f),  // Side branch length
+						Map.entry("lSm", 1.0f),  // Min ratio for side branch length (of ls) and width (of ws)
 						Map.entry("wB", 0.7f), // Base width
 						Map.entry("wS", 0.3f), // Side branch width
 						Map.entry("wS2", 0.2f), // 3rd level side branch width
@@ -179,58 +216,18 @@ public class Parameters {
 						Map.entry("aS2", 140), // 3rd level side branch angle
 						Map.entry("aS3", 30), // 3rd level side branch angle upwards
 						Map.entry("aS4", -20), // 3rd level side branch angle upwards for 2nd part
+						Map.entry("tH", 1.0f), // Threshold for switching expansion/contraction (1 = bottom, 0 = top)
 						Map.entry("aD", -1.2), // Angle to curve the side branches downward
 						Map.entry("nB", 2), // Number of side branches (and trunk height segments) per iteration
 						Map.entry("nB2", 25),// Branching factor of side branches
 						Map.entry("l1", 0.5f), // Length of trunk sections
 						Map.entry("lr", 0f), // Offset of side branches from centre
 						Map.entry("e", -0.01f)));  // Elasticity
-				name = "Tree 2";
-				numSides = 6;
-				scale = 0.5f;
-				minIterations = 12; // 12 poplar // 9 aspen
-				maxIterations = minIterations + 1;
+				name = "Lombardy Poplar";
+				leafScale = 0.1f;
+				minIterations = 11;
+				maxIterations = 13;
 			}
-
-//			Poplar params
-//				lSystemParams = new HashMap<>(Map.ofEntries(
-//						Map.entry("lB", 0f),  // Base length
-//						Map.entry("lS", 1.5f),  // Side branch length
-//						Map.entry("wB", 0.7f), // Base width
-//						Map.entry("wS", 0.3f), // Side branch width
-//						Map.entry("wS2", 0.2f), // 3rd level side branch width
-//						Map.entry("vr", 0.2f), // Width of start of side branch
-//						Map.entry("aB", 35), // Branch angle to trunk
-//						Map.entry("aS", 80), // Branch angle around trunk
-//						Map.entry("aS2", 140), // 3rd level side branch angle
-//						Map.entry("aS3", 30), // 3rd level side branch angle upwards
-//						Map.entry("aS4", -20), // 3rd level side branch angle upwards for 2nd part
-//						Map.entry("aD", -1.2), // Angle to curve the side branches downward
-//						Map.entry("nB", 2), // Number of side branches (and trunk height segments) per iteration
-//						Map.entry("nB2", 25),// Branching factor of side branches
-//						Map.entry("l1", 0.5f), // Length of trunk sections
-//						Map.entry("lr", 0f), // Offset of side branches from centre
-//						Map.entry("e", -0.01f)));  // Elasticity
-
-//			Aspen params
-//				lSystemParams = new HashMap<>(Map.ofEntries(
-//							Map.entry("lB", 4f),  // Base length
-//							Map.entry("lS", 0.6f),  // Side branch length
-//							Map.entry("wB", 0.3f), // Base width
-//							Map.entry("wS", 0.08f), // Side branch width
-//							Map.entry("wS2", 0.4f), // 3rd level side branch width
-//							Map.entry("vr", 0.04f), // Width of start of side branch
-//							Map.entry("aB", 90), // Branch angle to trunk TODO variable angles
-//							Map.entry("aS", 80), // Branch angle around trunk
-//							Map.entry("aS2", 140), // 3rd level side branch angle
-//							Map.entry("aS3", 60), // 3rd level side branch angle upwards
-//							Map.entry("aS4", 45), // 3rd level side branch angle upwards for 2nd part
-//							Map.entry("aD", -1), // Angle to curve the side branches downward
-//							Map.entry("nB", 8), // Number of side branches (and trunk height segments) per iteration
-//							Map.entry("nB2", 17),// Branching factor of side branches
-//							Map.entry("l1", 0.1f), // Length of trunk sections
-//							Map.entry("lr", 0.5f), // Offset of side branches from centre
-//							Map.entry("e", 0))); // Elasticity
 		}
 	}
 

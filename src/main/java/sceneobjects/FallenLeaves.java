@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.Map;
 
 import static rendering.ShaderPrograms.instancedNormalTextureShaderProgram;
-import static sceneobjects.Trees.LEAF_SCALE;
 
 import generation.TerrainQuadtree;
 import modeldata.meshdata.Mesh;
@@ -20,7 +19,7 @@ public class FallenLeaves extends InstancedGroundObject {
 
 	@Override
 	float getScale() {
-		return LEAF_SCALE;
+		return 0.7f; // TODO generate leaves from trees list
 	}
 
 	@Override

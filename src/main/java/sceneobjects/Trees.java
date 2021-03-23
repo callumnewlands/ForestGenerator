@@ -35,12 +35,11 @@ import params.ParameterLoader;
 import params.Parameters;
 import rendering.LevelOfDetail;
 import rendering.Textures;
+import utils.MathsUtils;
 import utils.MeshUtils;
 
 public class Trees extends InstancedGroundObject {
 
-	// TODO add leaf properties to yaml
-	public static final float LEAF_SCALE = 0.06f; //0.7f normal 0.1f poplar 0.06f aspen
 	private static final Parameters parameters = ParameterLoader.getParameters();
 	private final static Vector3f up = new Vector3f(0f, 1f, 0f);
 	private final static Vector3f out = new Vector3f(0f, 0f, 1f);
@@ -80,7 +79,7 @@ public class Trees extends InstancedGroundObject {
 		Parameters.SceneObjects.Tree params = parameters.sceneObjects.trees.get(index);
 		int numEdges = params.numSides;
 		TurtleInterpreter turtleInterpreter = new TurtleInterpreter(numEdges);
-		turtleInterpreter.setSubModels(List.of(MeshUtils.transform(leaf, new Matrix4f().scale(LEAF_SCALE / params.scale))));
+		turtleInterpreter.setSubModels(List.of(MeshUtils.transform(leaf, new Matrix4f().scale(params.leafScale / params.scale))));
 		Random r = ParameterLoader.getParameters().random.generator;
 		int minI = params.minIterations;
 		int maxI = params.maxIterations;
@@ -99,6 +98,7 @@ public class Trees extends InstancedGroundObject {
 			throw new NotImplementedException();
 		}
 		turtleInterpreter.interpretInstructions(instructions);
+
 		Mesh branches = turtleInterpreter.getMesh();
 		branches.addTexture("diffuseTexture", Textures.bark);
 		branches.addTexture("normalTexture", Textures.barkNormal);
@@ -115,6 +115,7 @@ public class Trees extends InstancedGroundObject {
 		canopy.addTexture("leaf_TSHLM_back_t", Textures.leafBackHL);
 		canopy.setShaderProgram(instancedLeafShaderProgram);
 
+		// Uses leaf geometry to construct billboard
 		Mesh board = MeshUtils.transform(Trees.leaf, new Matrix4f()
 				.scale(1f, 10f / params.scale, 1f / params.scale)
 				.rotate((float) Math.PI / 2, out));
@@ -198,6 +199,7 @@ public class Trees extends InstancedGroundObject {
 		float e = params.lSystemParams.get("e").floatValue();
 		float lB = params.lSystemParams.get("lB").floatValue();
 		float lS = params.lSystemParams.get("lS").floatValue();
+		float lSm = params.lSystemParams.get("lSm").floatValue();
 		float wB = params.lSystemParams.get("wB").floatValue();
 		float wS = params.lSystemParams.get("wS").floatValue();
 		float wS2 = params.lSystemParams.get("wS2").floatValue();
@@ -206,6 +208,7 @@ public class Trees extends InstancedGroundObject {
 		float aS2 = params.lSystemParams.get("aS2").floatValue();
 		float aS3 = params.lSystemParams.get("aS3").floatValue();
 		float aS4 = params.lSystemParams.get("aS4").floatValue();
+		float tH = params.lSystemParams.get("tH").floatValue();
 		float aD = params.lSystemParams.get("aD").floatValue();
 		int nB = params.lSystemParams.get("nB").intValue();
 		int nB2 = params.lSystemParams.get("nB2").intValue();
@@ -221,26 +224,37 @@ public class Trees extends InstancedGroundObject {
 				new ParametricValueModule('A', List.of(wB, l1))
 		);
 
-		// TODO leaves on 3rd level branches (and 2nd for poplar?) -> Maybe a turtle command which can cover a forward segment in leaves
-		// TODO variable branch lengths and angles (aspen)
+		boolean variableAngles = false;
 
 		// Trunk
 		ParametricParameterModule AIn = new ParametricParameterModule('A', List.of("w", "l"));
 		List<Module> AOut = new ArrayList<>();
 		for (int i = 0; i < nB; i++) {
-			float angle = (float) Math.toRadians(aB); // Branch angle to trunk
 			int finalI = i;
+			Function<Map<String, Float>, Float> heightFraction = vars -> {
+				float w0 = vars.get("w"); // Width of current segment
+				float w1 = vars.get("w") + wB / (maxi - 1); // Width of lower segment
+				return MathsUtils.lerp(w0 / wB, w1 / wB, (float) finalI / nB);  // Fraction of height of current position (0 = top of tree)
+			};
+			Function<Map<String, Float>, Float> branchLen = vars -> {
+				float pos = heightFraction.apply(vars);
+				return lSm + (1 - lSm) * (pos <= tH ? pos / tH : (1 - pos) / (1 - tH));
+			};
+//			float angle = (float) Math.toRadians(aB); // Branch angle to trunk
 			AOut.addAll(List.of(
 					new ParametricValueModule('/', (float) Math.toRadians(aS)), // Rotates around trunk
 					LB,
-					new ParametricValueModule('&', angle),
-					new ParametricExpressionModule('!', List.of("w"), vars -> List.of(vars.get("w") * vr)),
+					new ParametricExpressionModule('&', List.of("w"), vars -> List.of((float) Math.toRadians(
+							variableAngles
+									? (30 + 85 * heightFraction.apply(vars))
+									: aB))), // TODO min-max angles
+					new ParametricExpressionModule('!', List.of("w"), vars -> List.of(vars.get("w") * vr * branchLen.apply(vars))),
 					new ParametricExpressionModule('F', List.of("w"), vars -> List.of(vars.get("w") * lr)), // Move the base of the side branches away from the trunk centre
 					new ParametricExpressionModule('B', List.of("w"), vars -> List.of(
-							vars.get("w") * wS, // Controls width of side branches relative to trunk
-							(float) Math.sqrt(vars.get("l")) * lS)), // TODO for aspen these two are in terms of b_len not w and l
+							vars.get("w") * wS * branchLen.apply(vars),
+							lS * branchLen.apply(vars))),
 					RB,
-					new ParametricExpressionModule('!', List.of("w"), vars -> List.of(vars.get("w") - finalI * (wB / (maxi - 1)) / (nB))), // Taper along trunk
+					new ParametricExpressionModule('!', List.of("w"), vars -> List.of(vars.get("w") - finalI * (wB / (maxi - 1)) / (nB))), // Taper trunk
 					new ParametricExpressionModule('F', List.of("l"), vars -> List.of(vars.get("l")))
 			));
 		}

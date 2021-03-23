@@ -224,7 +224,9 @@ public class TerrainQuadtree {
 
 			private void render(LevelOfDetail levelOfDetail) {
 
-				trees.forEach(t -> t.render(levelOfDetail));
+				for (Trees tree : trees) {
+					tree.render(levelOfDetail);
+				}
 
 				twigs.render(levelOfDetail);
 				rocks.render(levelOfDetail);
