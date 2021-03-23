@@ -14,14 +14,24 @@ output:
 #  frameImages: true
 #  colour: true
 terrain:
-  width: 30.0 #100
+  width: 30.0
 quadtree:
   levels: 2
 sceneObjects:
   trees:
-    - !Parameters$SceneObjects$MonopodialTree
-      density: 0.6
     - !Parameters$SceneObjects$BranchingTree
       density: 1.0
+    - !Parameters$SceneObjects$MonopodialTree
+      density: 0.7
     - !Parameters$SceneObjects$PoplarTree
-      density: 0.8
+      density: 0.6
+#lighting:
+#  volumetricScattering:
+#    # Number of samples along each light ray
+#    numSamples: 100
+#    # Density of samples along each light ray
+#    sampleDensity: 0.9
+#    # Impact decay of each sample
+#    decay: 0.9 # range [0.0, 1.0]
+#    # Scalar for brightness of each ray
+#    exposure: 0.004

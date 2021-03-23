@@ -62,6 +62,7 @@ public class Trees extends InstancedGroundObject {
 	public Trees(int numberOfTypes, int numberOfInstances, Vector2f regionCentre, float regionWidth, TerrainQuadtree quadtree, boolean yRotationOnly, int index) {
 		super(numberOfTypes, numberOfInstances, regionCentre, regionWidth, quadtree, yRotationOnly);
 		this.index = index;
+		generate();
 	}
 
 	@Override
@@ -93,7 +94,8 @@ public class Trees extends InstancedGroundObject {
 					.collect(Collectors.toList());
 		} else if (params instanceof Parameters.SceneObjects.MonopodialTree) {
 			turtleInterpreter.setIgnored(List.of('A', 'B'));
-			instructions = monopodialTreeSystem().performDerivations(r.nextInt(maxI - minI) + minI);
+			instructions = monopodialTreeSystem()
+					.performDerivations(r.nextInt(maxI - minI) + minI);
 		} else {
 			throw new NotImplementedException();
 		}

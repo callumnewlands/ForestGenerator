@@ -28,6 +28,7 @@ public class Rocks extends InstancedGroundObject {
 
 	public Rocks(int numberOfTypes, int numberOfInstances, Vector2f regionCentre, float regionWidth, TerrainQuadtree quadtree, boolean yRotationOnly) {
 		super(numberOfTypes, numberOfInstances, regionCentre, regionWidth, quadtree, yRotationOnly);
+		generate();
 	}
 
 	@Override

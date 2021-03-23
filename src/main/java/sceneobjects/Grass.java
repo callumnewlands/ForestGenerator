@@ -23,6 +23,7 @@ public class Grass extends InstancedGroundObject {
 
 	public Grass(int numberOfTypes, int numberOfInstances, Vector2f regionCentre, float regionWidth, TerrainQuadtree quadtree, boolean yRotationOnly) {
 		super(numberOfTypes, numberOfInstances, regionCentre, regionWidth, quadtree, yRotationOnly);
+		generate();
 	}
 
 	@Override

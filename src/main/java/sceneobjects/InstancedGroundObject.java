@@ -19,8 +19,25 @@ import rendering.LevelOfDetail;
 public abstract class InstancedGroundObject {
 
 	private final List<InstancedLODModel> models = new ArrayList<>();
+	private final int numberOfTypes;
+	private final int numberOfInstances;
+	private final Vector2f regionCentre;
+	private final float regionWidth;
+	private final TerrainQuadtree quadtree;
+	private final boolean yRotationOnly;
+	private boolean generated = false;
 
 	public InstancedGroundObject(int numberOfTypes, int numberOfInstances, Vector2f regionCentre, float regionWidth, TerrainQuadtree quadtree, boolean yRotationOnly) {
+		this.numberOfTypes = numberOfTypes;
+		this.numberOfInstances = numberOfInstances;
+		this.regionCentre = regionCentre;
+		this.regionWidth = regionWidth;
+		this.quadtree = quadtree;
+		this.yRotationOnly = yRotationOnly;
+	}
+
+	public void generate() {
+		generated = true;
 		if (numberOfInstances == 0) {
 			return;
 		}
@@ -82,6 +99,9 @@ public abstract class InstancedGroundObject {
 //	}
 
 	public void render(LevelOfDetail levelOfDetail) {
+		if (!generated) {
+			throw new RuntimeException("Model is attempting to be rendered without being generated. Is there a subclass constructor which does not call generate()?");
+		}
 		for (InstancedLODModel model : models) {
 			model.render(levelOfDetail);
 		}

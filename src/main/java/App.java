@@ -191,6 +191,7 @@ import rendering.Textures;
 import sceneobjects.Polygon;
 import sceneobjects.Quad;
 import sceneobjects.Skybox;
+import utils.VectorUtils;
 
 public class App {
 
@@ -538,6 +539,7 @@ public class App {
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		skybox = new Skybox();
+		// autumn_park_8k.hdr
 		// immenstadter_horn_8k.hdr
 		// noon_grass_8k.hdr
 		// gamrig_8k.hdr
@@ -627,11 +629,25 @@ public class App {
 		glClear(GL_DEPTH_BUFFER_BIT);
 		//	TODO rework shader system and use much simpler shader to render scene for shadow map depth sampling
 		float shadowMapScale = parameters.terrain.width;
-		Vector3f sunPos = parameters.lighting.sun.position;
-		float farPlane = (float) Math.sqrt(Math.pow(sunPos.y, 2) + Math.pow(parameters.terrain.width, 2)) + 1;
+		float halfTerrainWidth = parameters.terrain.width / 2;
+//		Vector3f sunPos = parameters.lighting.sun.position;
+		List<Vector3f> terrainCorners = List.of(
+				new Vector3f(-halfTerrainWidth, 0, -halfTerrainWidth),
+				new Vector3f(-halfTerrainWidth, 0, halfTerrainWidth),
+				new Vector3f(halfTerrainWidth, 0, -halfTerrainWidth),
+				new Vector3f(halfTerrainWidth, 0, halfTerrainWidth)
+		);
+		float furthestDistance = 0;
+		for (Vector3f corner : terrainCorners) {
+			float len = VectorUtils.subtract(corner, sunPosition).length();
+			if (len > furthestDistance) {
+				furthestDistance = len;
+			}
+		}
+		float farPlane = furthestDistance + 10;
 		Matrix4f lightProjection = new Matrix4f().ortho(-shadowMapScale, shadowMapScale, -shadowMapScale, shadowMapScale, 0.1f, farPlane);
 		Matrix4f lightView = new Matrix4f().lookAt(
-				sunPos,
+				sunPosition,
 				new Vector3f(0),
 				new Vector3f(0, 1, 0));
 

@@ -128,11 +128,7 @@ public class Mesh {
 	}
 
 	protected void draw() {
-//		if (isInstanced) {
-//			vertexArray.draw(1);
-//		} else {
 		vertexArray.draw();
-//		}
 	}
 
 	protected void draw(int numberOfInstances) {

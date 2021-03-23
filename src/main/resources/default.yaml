@@ -93,8 +93,8 @@ sceneObjects:
         lB: 4.0   # Base length
         lS: 0.6   # Side branch length
         lSm: 0.4  # Min ratio for side branch length (of ls) and width (of ws)
-        wB: 0.3   # Base width
-        wS: 0.08  # Side branch width
+        wB: 0.5   # Base width
+        wS: 0.4  # Side branch width
         wS2: 0.4  # 3rd level side branch width
         vr: 0.04  # Width of start of side branch
         aB: 90.0  # Branch angle to trunk
@@ -112,19 +112,19 @@ sceneObjects:
       # The fraction of all models of this tree which are instanced from a given generated mesh (random configuration) (Larger = more repeated instances)
       instanceFraction: 0.2
       # Size scalar for the models
-      scale: 0.5
+      scale: 1.0
       # Size scalar for the leaf models
-      leafScale: 0.06
+      leafScale: 0.28
       # Number of sides to use in the cross section of the branches
       numSides: 6
       # Minimum number of iterations of the L-system
-      minIterations: 8 # inclusive
+      minIterations: 10 # inclusive
       # Maximum number of iterations of the L-system
-      maxIterations: 10 # exclusive
+      maxIterations: 12 # exclusive
       # Density of models in the scene
       density: 1.0
 
-    - !Parameters$SceneObjects$MonopodialTree
+    - !Parameters$SceneObjects$PoplarTree
       name: Lombardy Poplar
       lSystemParams:
         lB: 0.0   # Base length
@@ -149,15 +149,15 @@ sceneObjects:
       # The fraction of all models of this tree which are instanced from a given generated mesh (random configuration) (Larger = more repeated instances)
       instanceFraction: 0.2
       # Size scalar for the models
-      scale: 0.5
+      scale: 0.7
       # Size scalar for the leaf models
-      leafScale: 0.1
+      leafScale: 0.15
       # Number of sides to use in the cross section of the branches
       numSides: 6
       # Minimum number of iterations of the L-system
-      minIterations: 8 # inclusive
+      minIterations: 13 # inclusive
       # Maximum number of iterations of the L-system
-      maxIterations: 10 # exclusive
+      maxIterations: 15 # exclusive
       # Density of models in the scene
       density: 1.0
   twigs:

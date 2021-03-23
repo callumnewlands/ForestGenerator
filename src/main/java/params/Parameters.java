@@ -133,7 +133,7 @@ public class Parameters {
 			public float instanceFraction = 0.2f;
 			public int numSides = 5;
 			public float scale = 1.0f;
-			public float leafScale = 1.0f;
+			public float leafScale = 1.0f; // TODO this should probably scale with tree scale so that a 2* larger tree has 2* larger leaves than before
 			public int minIterations = 7;
 			public int maxIterations = 9;
 			// TODO textures
@@ -175,8 +175,8 @@ public class Parameters {
 						Map.entry("lB", 4f),  // Base length
 						Map.entry("lS", 0.6f),  // Side branch length
 						Map.entry("lSm", 0.4f),  // Min ratio for side branch length (of ls) and width (of ws)
-						Map.entry("wB", 0.3f), // Base width
-						Map.entry("wS", 0.08f), // Side branch width
+						Map.entry("wB", 0.5f), // Base width
+						Map.entry("wS", 0.4f), // Side branch width
 						Map.entry("wS2", 0.4f), // 3rd level side branch width
 						Map.entry("vr", 0.04f), // Width of start of side branch
 						Map.entry("aB", 90), // Branch angle to trunk
@@ -193,10 +193,10 @@ public class Parameters {
 						Map.entry("e", 0))); // Elasticity
 				name = "Aspen";
 				numSides = 6;
-				scale = 0.5f;
-				leafScale = 0.06f;
-				minIterations = 8;
-				maxIterations = 10;
+				scale = 1f;
+				leafScale = 0.28f;
+				minIterations = 10;
+				maxIterations = 12;
 			}
 		}
 
@@ -224,9 +224,10 @@ public class Parameters {
 						Map.entry("lr", 0f), // Offset of side branches from centre
 						Map.entry("e", -0.01f)));  // Elasticity
 				name = "Lombardy Poplar";
-				leafScale = 0.1f;
-				minIterations = 11;
-				maxIterations = 13;
+				scale = 0.7f;
+				leafScale = 0.15f;
+				minIterations = 13;
+				maxIterations = 15;
 			}
 		}
 	}
