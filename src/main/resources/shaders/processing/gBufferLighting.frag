@@ -111,17 +111,20 @@ void main() {
         hdrColor = diffuse;
     }
 
-    // TODO which tone mapping algoritm, also why is the sky washed out in gamrig.hdr
+    // TODO which tone mapping algoritm? Also why is the sun AOE too large in gamrig.hdr?
     vec3 screenColour = hdrColor;
     if (hdrEnabled) {
         //        // Reinhard tone mapping
         //        screenColour = hdrColor / (hdrColor + vec3(1.0));
         //        //Exposure tone mapping
         //        screenColour = vec3(1.0) - exp(-hdrColor * toneExposure);
-        // Extended Reinhard-Jodie tone mapping
+        //        // Reinhard-Jodie tone mapping
+        //        float luminance = dot(hdrColor, vec3(0.2126f, 0.7152f, 0.0722f));
+        //        vec3 tv = hdrColor / (1.0f + hdrColor);
+        //        screenColour = mix(hdrColor / (1.0f + luminance), tv, tv);
+        // Extended Reinhard tone mapping
         float luminance = dot(hdrColor, vec3(0.2126f, 0.7152f, 0.0722f));
-        vec3 tv = hdrColor / (1.0f + hdrColor);
-        screenColour = mix(hdrColor / (1.0f + luminance), tv, tv);
+        screenColour = hdrColor / (vec3(1.0f) + luminance);
     }
 
     // gamma correction

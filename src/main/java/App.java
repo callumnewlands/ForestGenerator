@@ -15,6 +15,7 @@ import static org.lwjgl.glfw.GLFW.GLFW_CURSOR;
 import static org.lwjgl.glfw.GLFW.GLFW_CURSOR_DISABLED;
 import static org.lwjgl.glfw.GLFW.GLFW_FALSE;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_1;
+import static org.lwjgl.glfw.GLFW.GLFW_KEY_2;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_3;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_4;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_5;
@@ -924,6 +925,12 @@ public class App {
 		}
 		if (glfwGetKey(window, GLFW_KEY_1) == GLFW_RELEASE) {
 			polygonMode = GL_FILL;
+		}
+		if (glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS) {
+			lightingPassShader.setUniform("gammaEnabled", !parameters.lighting.gammaCorrection.enabled);
+		}
+		if (glfwGetKey(window, GLFW_KEY_2) == GLFW_RELEASE) {
+			lightingPassShader.setUniform("gammaEnabled", parameters.lighting.gammaCorrection.enabled);
 		}
 		if (glfwGetKey(window, GLFW_KEY_3) == GLFW_PRESS) {
 			lightingPassShader.setUniform("hdrEnabled", !parameters.lighting.hdr.enabled);

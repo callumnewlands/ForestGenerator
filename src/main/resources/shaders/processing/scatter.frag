@@ -34,6 +34,7 @@ void main()
     for (int i = 0; i < numSamples; i++) {
         scatteringCoordinate -= sampleDelta;
         vec3 sampleCol = texture(occlusion, scatteringCoordinate).rgb;
+        // TODO param
         if (length(sampleCol) > 100f) {
             sampleCol = vec3(100f);
         }
@@ -48,10 +49,12 @@ void main()
         //        fragColor = fragColor / (fragColor + vec3(1.0));
         //        //Exposure tone mapping
         //        fragColor = vec3(1.0) - exp(-fragColor * toneExposure);
-
-        // Extended Reinhard-Jodie tone mapping
+        //        // Reinhard-Jodie tone mapping
+        //        float luminance = dot(fragColor, vec3(0.2126f, 0.7152f, 0.0722f));
+        //        vec3 tv = fragColor / (1.0f + fragColor);
+        //        fragColor = mix(fragColor / (1.0f + luminance), tv, tv);
+        // Extended Reinhard tone mapping
         float luminance = dot(fragColor, vec3(0.2126f, 0.7152f, 0.0722f));
-        vec3 tv = fragColor / (1.0f + fragColor);
-        fragColor = mix(fragColor / (1.0f + luminance), tv, tv);
+        fragColor = fragColor / (vec3(1.0f) + luminance);
     }
 }
