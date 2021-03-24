@@ -8,8 +8,6 @@ layout (location = 3) out vec3 gOcclusion;
 layout (location = 4) out vec4 gTranslucency;
 
 uniform samplerCube skyboxTexture;
-uniform bool hdrEnabled;
-uniform float toneExposure;
 
 void main() {
 
@@ -21,7 +19,6 @@ void main() {
     gAlbedoSpec.a = 1.0f;
 
     vec3 hdrColor = fragColour.rgb;
-    vec3 screenColour = hdrEnabled ? vec3(1.0) - exp(-hdrColor * toneExposure) : hdrColor;
-    gOcclusion = screenColour;
+    gOcclusion = hdrColor;
     gTranslucency = vec4(0);
 }

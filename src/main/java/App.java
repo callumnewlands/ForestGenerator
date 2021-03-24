@@ -322,6 +322,7 @@ public class App {
 
 	private void initShaders() {
 		final Vector3f cameraPosition = new Vector3f(parameters.camera.startPosition);
+		// TODO param for starting direction
 		final float cameraYaw = -90.0f;
 		final float cameraPitch = 0.0f;
 		camera = new Camera(cameraPosition, cameraYaw, cameraPitch);
@@ -544,6 +545,7 @@ public class App {
 		// noon_grass_8k.hdr
 		// gamrig_8k.hdr
 		// qwantani_8k.hdr
+		// TODO resolution param
 		HDRTexture skyboxTexture = new HDRTexture("textures/gamrig_8k.hdr", 2048, new Vector3f(.529f, .808f, .922f), 8);
 		sunPosition = skyboxTexture.getBrightestArea();
 		skybox.addTexture("skyboxTexture", skyboxTexture);
@@ -587,9 +589,8 @@ public class App {
 		scatteringShader.setUniform("sampleDensity", parameters.lighting.volumetricScattering.sampleDensity);
 		scatteringShader.setUniform("decay", parameters.lighting.volumetricScattering.decay);
 		scatteringShader.setUniform("exposure", parameters.lighting.volumetricScattering.exposure);
-
-		skyboxShaderProgram.setUniform("hdrEnabled", parameters.lighting.hdr.enabled);
-		skyboxShaderProgram.setUniform("toneExposure", parameters.lighting.hdr.exposure);
+		scatteringShader.setUniform("hdrEnabled", parameters.lighting.hdr.enabled);
+		scatteringShader.setUniform("toneExposure", parameters.lighting.hdr.exposure);
 
 		if (parameters.lighting.ssao.enabled) {
 			ssaoKernel = new ArrayList<>();
@@ -926,11 +927,11 @@ public class App {
 		}
 		if (glfwGetKey(window, GLFW_KEY_3) == GLFW_PRESS) {
 			lightingPassShader.setUniform("hdrEnabled", !parameters.lighting.hdr.enabled);
-			skyboxShaderProgram.setUniform("hdrEnabled", !parameters.lighting.hdr.enabled);
+			scatteringShader.setUniform("hdrEnabled", !parameters.lighting.hdr.enabled);
 		}
 		if (glfwGetKey(window, GLFW_KEY_3) == GLFW_RELEASE) {
 			lightingPassShader.setUniform("hdrEnabled", parameters.lighting.hdr.enabled);
-			skyboxShaderProgram.setUniform("hdrEnabled", parameters.lighting.hdr.enabled);
+			scatteringShader.setUniform("hdrEnabled", parameters.lighting.hdr.enabled);
 		}
 		if (glfwGetKey(window, GLFW_KEY_4) == GLFW_PRESS) {
 			lightingPassShader.setUniform("aoEnabled", !parameters.lighting.ssao.enabled);

@@ -283,9 +283,9 @@ public class Parameters {
 		public static class VolumetricScattering {
 			public boolean enabled = true;
 			public int numSamples = 100;
-			public float sampleDensity = 0.9f;
-			public float decay = 1f;
-			public float exposure = 0.004f;
+			public float sampleDensity = 0.5f;
+			public float decay = 0.99f;
+			public float exposure = 0.0015f;
 		}
 
 		@NoArgsConstructor

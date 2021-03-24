@@ -101,8 +101,8 @@ void main() {
         } else {
             ambient = ambientStrength * diffuse;
         }
-        float diffFactor =  max(dot(norm, lightDir), 0.0f);
-        hdrColor = ambient +
+        float diffFactor = max(dot(norm, lightDir), 0.0f);
+        hdrColor =  ambient +
         (1.0 - shadow) * diffFactor * lightColour * diffuse +
         transl * pixelTranslFactor * translucencyFactor +
         scattering;
@@ -111,12 +111,18 @@ void main() {
         hdrColor = diffuse;
     }
 
-    // TODO should the HDRI be tone mapped?
-    ////     Reinhard tone mapping
-    //        vec3 screenColour = hdrEnabled ? hdrColor / (hdrColor + vec3(1.0)) : hdrColor;
-
-    //     Exposure tone mapping
-    vec3 screenColour = hdrEnabled ? vec3(1.0) - exp(-hdrColor * toneExposure) : hdrColor;
+    // TODO which tone mapping algoritm, also why is the sky washed out in gamrig.hdr
+    vec3 screenColour = hdrColor;
+    if (hdrEnabled) {
+        //        // Reinhard tone mapping
+        //        screenColour = hdrColor / (hdrColor + vec3(1.0));
+        //        //Exposure tone mapping
+        //        screenColour = vec3(1.0) - exp(-hdrColor * toneExposure);
+        // Extended Reinhard-Jodie tone mapping
+        float luminance = dot(hdrColor, vec3(0.2126f, 0.7152f, 0.0722f));
+        vec3 tv = hdrColor / (1.0f + hdrColor);
+        screenColour = mix(hdrColor / (1.0f + luminance), tv, tv);
+    }
 
     // gamma correction
     vec3 gammaCorrected = gammaEnabled ? pow(screenColour, vec3(1.0 / gamma)) : screenColour;

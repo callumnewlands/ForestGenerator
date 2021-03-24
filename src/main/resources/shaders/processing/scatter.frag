@@ -13,6 +13,8 @@ uniform int numSamples;
 uniform float sampleDensity;// sample density
 uniform float decay;// light fall-off
 uniform float exposure;// light ray intensity
+uniform bool hdrEnabled;
+uniform float toneExposure;
 
 out vec3 fragColor;
 
@@ -32,15 +34,24 @@ void main()
     for (int i = 0; i < numSamples; i++) {
         scatteringCoordinate -= sampleDelta;
         vec3 sampleCol = texture(occlusion, scatteringCoordinate).rgb;
-        sampleCol *= illuminationDecay;//* weight;
+        if (length(sampleCol) > 100f) {
+            sampleCol = vec3(100f);
+        }
+        sampleCol *= illuminationDecay;
         colour += sampleCol;
         illuminationDecay *= decay;
     }
     fragColor = colour * exposure;
 
-    // TODO a better way to do this
-    vec3 lightDir = normalize(lightPos - viewPos);
-    if (dot(lightDir, viewDir) < 0.1) {
-        fragColor = originalColour;
+    if (hdrEnabled) {
+        //        // Reinhard tone mapping
+        //        fragColor = fragColor / (fragColor + vec3(1.0));
+        //        //Exposure tone mapping
+        //        fragColor = vec3(1.0) - exp(-fragColor * toneExposure);
+
+        // Extended Reinhard-Jodie tone mapping
+        float luminance = dot(fragColor, vec3(0.2126f, 0.7152f, 0.0722f));
+        vec3 tv = fragColor / (1.0f + fragColor);
+        fragColor = mix(fragColor / (1.0f + luminance), tv, tv);
     }
 }

@@ -211,15 +211,15 @@ lighting:
     factor: 0.5
   shadows:
     enabled: true
-    # Resolution of the shadow map (larger scenes will need a larger resolution to avoid pixelation artefacts at the cost of GPU memory
+    # Resolution of the shadow map (larger scenes will need a larger resolution to avoid pixelation artefacts/missing details at the cost of GPU memory)
     resolution: 4096
   volumetricScattering:
     enabled: true
-    # Number of samples along each light ray
+    # Number of samples along each light ray (larger = higher resolution)
     numSamples: 100
-    # Density of samples along each light ray
-    sampleDensity: 0.9
-    # Impact decay of each sample
-    decay: 1.0 # range [0.0, 1.0]
-    # Scalar for brightness of each ray
-    exposure: 0.004
+    # Density of samples along each light ray (smaller = samples taken from a smaller area = shorter, brighter rays)
+    sampleDensity: 0.5
+    # Impact decay of each sample (lower = greater fall-off)
+    decay: 0.99 # range [0.0, 1.0)
+    # Scalar for brightness of each ray (higher = brighter)
+    exposure: 0.0015

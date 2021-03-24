@@ -1,37 +1,31 @@
 random:
   seed: 12
-output:
-  window:
-    fullscreen: false
-    width: 1400
-    height: 780
+
 #input:
 #  manual: false
 #  stdin: true
-#output:
-#  window:
-#    visible: false
+output:
+  window:
+    #    visible: false
+    fullscreen: false
+    width: 1400
+    height: 780
 #  frameImages: true
-#  colour: true
+
+camera:
+  #  startPosition: [ 10.5, 3.3, -0.5  ]
+  startPosition: [ 0, 3.3, 0 ]
+
 terrain:
-  width: 30.0
+  width: 50.0
 quadtree:
   levels: 2
 sceneObjects:
   trees:
     - !Parameters$SceneObjects$BranchingTree
-      density: 1.0
+      density: 0.6
     - !Parameters$SceneObjects$MonopodialTree
       density: 0.7
     - !Parameters$SceneObjects$PoplarTree
       density: 0.6
-#lighting:
-#  volumetricScattering:
-#    # Number of samples along each light ray
-#    numSamples: 100
-#    # Density of samples along each light ray
-#    sampleDensity: 0.9
-#    # Impact decay of each sample
-#    decay: 0.9 # range [0.0, 1.0]
-#    # Scalar for brightness of each ray
-#    exposure: 0.004
+
