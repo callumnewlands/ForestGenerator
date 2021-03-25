@@ -101,28 +101,29 @@ public class Trees extends InstancedGroundObject {
 		}
 		turtleInterpreter.interpretInstructions(instructions);
 
+		Textures.TreeTextures treeTextures = Textures.treeTextures.get(index);
 		Mesh branches = turtleInterpreter.getMesh();
-		branches.addTexture("diffuseTexture", Textures.bark);
-		branches.addTexture("normalTexture", Textures.barkNormal);
+		branches.addTexture("diffuseTexture", treeTextures.bark);
+		branches.addTexture("normalTexture", treeTextures.barkNormal);
 		branches.setShaderProgram(instancedNormalTextureShaderProgram);
 
 		Mesh canopy = turtleInterpreter.getCombinedSubModelMeshes().get(0);
-		canopy.addTexture("leaf_front", Textures.leafFront);
-		canopy.addTexture("leaf_transl_front", Textures.leafFrontT);
-		canopy.addTexture("leaf_TSNM_front", Textures.leafFrontNorm);
-		canopy.addTexture("leaf_TSHLM_front_t", Textures.leafFrontHL);
-		canopy.addTexture("leaf_back", Textures.leafBack);
-		canopy.addTexture("leaf_transl_back", Textures.leafBackT);
-		canopy.addTexture("leaf_TSNM_back", Textures.leafBackNorm);
-		canopy.addTexture("leaf_TSHLM_back_t", Textures.leafBackHL);
+		canopy.addTexture("leaf_front", treeTextures.leafFront);
+		canopy.addTexture("leaf_transl_front", treeTextures.leafFrontT);
+		canopy.addTexture("leaf_TSNM_front", treeTextures.leafFrontNorm);
+		canopy.addTexture("leaf_TSHLM_front_t", treeTextures.leafFrontHL);
+		canopy.addTexture("leaf_back", treeTextures.leafBack);
+		canopy.addTexture("leaf_transl_back", treeTextures.leafBackT);
+		canopy.addTexture("leaf_TSNM_back", treeTextures.leafBackNorm);
+		canopy.addTexture("leaf_TSHLM_back_t", treeTextures.leafBackHL);
 		canopy.setShaderProgram(instancedLeafShaderProgram);
 
 		// Uses leaf geometry to construct billboard
 		Mesh board = MeshUtils.transform(Trees.leaf, new Matrix4f()
 				.scale(1f, 10f / params.scale, 1f / params.scale)
 				.rotate((float) Math.PI / 2, out));
-		board.addTexture("diffuseTexture", Textures.bark);
-		board.addTexture("normalTexture", Textures.barkNormal);
+		board.addTexture("diffuseTexture", treeTextures.bark);
+		board.addTexture("normalTexture", treeTextures.barkNormal);
 		board.setShaderProgram(billboardShaderProgram);
 
 		Mesh LODCanopy = new Mesh(canopy);
@@ -235,11 +236,17 @@ public class Trees extends InstancedGroundObject {
 			int finalI = i;
 			Function<Map<String, Float>, Float> heightFraction = vars -> {
 				float w0 = vars.get("w"); // Width of current segment
+				if (w0 == wB) {
+					return 1f;
+				}
 				float w1 = vars.get("w") + wB / (maxi - 1); // Width of lower segment
 				return MathsUtils.lerp(w0 / wB, w1 / wB, (float) finalI / nB);  // Fraction of height of current position (0 = top of tree)
 			};
 			Function<Map<String, Float>, Float> branchLen = vars -> {
 				float pos = heightFraction.apply(vars);
+				if (pos == 0 && tH == 0) {
+					return 1f;
+				}
 				return lSm + (1 - lSm) * (pos <= tH ? pos / tH : (1 - pos) / (1 - tH));
 			};
 //			float angle = (float) Math.toRadians(aB); // Branch angle to trunk

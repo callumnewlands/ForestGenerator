@@ -65,12 +65,12 @@ public abstract class InstancedGroundObject {
 						.translate(x, quadtree.getHeight(x, z) + getHeightOffset(), z);
 				if (!yRotationOnly) {
 					model = model.rotate(
-							r.nextFloat() * (float) Math.PI / 10,
+							r.nextFloat() * (float) Math.PI / 10,  // TODO param for x-z angle range
 							new Vector3f(r.nextFloat(), 0, r.nextFloat()).normalize()
 					);
 				}
 				return model.rotate(r.nextFloat() * (float) Math.PI * 2, new Vector3f(0, 1, 0))
-						.scale(getScale() * (r.nextFloat() + 0.5f));
+						.scale(getScale() * (r.nextFloat() + 0.5f)); // TODO param for scale range
 			});
 			models.add(lodModel);
 		}

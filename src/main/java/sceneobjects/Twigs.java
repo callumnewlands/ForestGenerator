@@ -52,8 +52,8 @@ public class Twigs extends InstancedGroundObject {
 		List<Module> instructions = twigSystem().performDerivations(r.nextInt(2) + 5);
 		twigTurtleInterpreter.interpretInstructions(instructions);
 		Mesh twig = MeshUtils.transform(twigTurtleInterpreter.getMesh(), new Matrix4f().rotate((float) Math.PI / 2, new Vector3f(1, 0, 0)));
-		twig.addTexture("diffuseTexture", Textures.bark);
-		twig.addTexture("normalTexture", Textures.barkNormal);
+		twig.addTexture("diffuseTexture", Textures.twigBark);
+		twig.addTexture("normalTexture", Textures.twigBarkNormal);
 		twig.setShaderProgram(instancedNormalTextureShaderProgram);
 		return Map.of(LevelOfDetail.HIGH, List.of(twig));
 	}

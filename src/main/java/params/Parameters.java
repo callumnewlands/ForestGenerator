@@ -59,7 +59,6 @@ public class Parameters {
 		}
 	}
 
-
 	@NoArgsConstructor
 	@Setter
 	public static class Camera {
@@ -70,11 +69,28 @@ public class Parameters {
 
 	@NoArgsConstructor
 	@Setter
+	public static class Texture {
+		public String diffuse;
+		public String normal = null;
+
+		public Texture(String diffuse, String normal) {
+			this.diffuse = diffuse;
+			this.normal = normal;
+		}
+
+		public Texture(String diffuse) {
+			this.diffuse = diffuse;
+		}
+	}
+
+	@NoArgsConstructor
+	@Setter
 	public static class Terrain {
-		public float width = 200f;
+		public float width = 100f;
 		public float verticalScale = 3.0f;
 		public Noise noise = new Noise();
-		public float vertexDensity = 1f;
+		public float vertexDensity = 0.7f;
+		public Texture texture = new Texture("/textures/floor2.png");
 
 		@NoArgsConstructor
 		@Setter
@@ -105,15 +121,21 @@ public class Parameters {
 				new MonopodialTree(),
 				new PoplarTree()
 		);
-		public LSystemObject twigs = new LSystemObject(2, 5);
+		public LSystemObject twigs = new LSystemObject(2, 5,
+				new Texture("/textures/Bark_Pine_baseColor.jpg", "/textures/Bark_Pine_normal.jpg"));
 		public SceneObject rocks = new SceneObject();
-		public SceneObject grass = new SceneObject();
+		public SceneObject grass = new SceneObject(new Texture("/textures/grass.png/"));
 		public SceneObject fallenLeaves = new SceneObject();
 
 		@NoArgsConstructor
 		@Setter
 		public static class SceneObject {
 			public float density = 1.0f;
+			public Texture texture;
+
+			public SceneObject(Texture texture) {
+				this.texture = texture;
+			}
 		}
 
 		@NoArgsConstructor
@@ -122,6 +144,7 @@ public class Parameters {
 		public static class LSystemObject extends SceneObject {
 			public int typesPerQuad = 1; // TODO change to instance fraction
 			public int numSides = 5;
+			public Texture texture;
 		}
 
 		@NoArgsConstructor
@@ -130,6 +153,10 @@ public class Parameters {
 		public static class Tree extends SceneObject {
 			public String name = "Tree";
 			public Map<String, Number> lSystemParams;
+			public Texture barkTexture = new Texture(
+					"/textures/Bark_Pine_baseColor.jpg",
+					"/textures/Bark_Pine_normal.jpg");
+			public LeafTextures leafTextures = new LeafTextures();
 			public float instanceFraction = 0.2f;
 			public int numSides = 5;
 			public float scale = 1.0f;
@@ -137,6 +164,20 @@ public class Parameters {
 			public int minIterations = 7;
 			public int maxIterations = 9;
 			// TODO textures
+		}
+
+		@NoArgsConstructor
+		@AllArgsConstructor
+		@Setter
+		public static class LeafTextures {
+			public String frontAlbedo = "/textures/Leaf2/Leaf2_front.tga";
+			public String frontNormal = "/textures/Leaf2/Leaf2_normals_front.tga";
+			public String frontTranslucency = "/textures/Leaf2/Leaf2_front_t.tga";
+			public String frontHalfLife = "/textures/Leaf2/Leaf2_halflife_front_t.tga";
+			public String backAlbedo = "/textures/Leaf2/Leaf2_back.tga";
+			public String backNormal = "/textures/Leaf2/Leaf2_normals_back.tga";
+			public String backTranslucency = "/textures/Leaf2/Leaf2_back_t.tga";
+			public String backHalfLife = "/textures/Leaf2/Leaf2_halflife_back_t.tga";
 		}
 
 		@Setter
@@ -153,10 +194,21 @@ public class Parameters {
 						"lr", 1.109f,
 						"vr", 1.832f,
 						"e", 0.052f));
+				leafTextures = new LeafTextures(
+						"/textures/Leaf1/Leaf1_front.tga",
+						"/textures/Leaf1/Leaf1_normals_front.tga",
+						"/textures/Leaf1/Leaf1_front_t.tga",
+						"/textures/Leaf1/Leaf1_halflife_front_t.tga",
+						"/textures/Leaf1/Leaf1_back.tga",
+						"/textures/Leaf1/Leaf1_normals_back.tga",
+						"/textures/Leaf1/Leaf1_back_t.tga",
+						"/textures/Leaf1/Leaf1_halflife_back_t.tga"
+				);
 				name = "Tree 1";
 				numSides = 6;
 				scale = 0.01f;
 				leafScale = 0.7f;
+				density = 0.8f;
 			}
 
 			@NoArgsConstructor
@@ -197,6 +249,20 @@ public class Parameters {
 				leafScale = 0.28f;
 				minIterations = 10;
 				maxIterations = 12;
+				density = 0.7f;
+				barkTexture = new Texture(
+						"/textures/Aspen_bark_001_COLOR.jpg",
+						"/textures/Aspen_bark_001_NORM.jpg");
+//				leafTextures = new LeafTextures(
+//						"/textures/Leaf3/Leaf3_front.tga",
+//						"/textures/Leaf3/Leaf3_normals_front.tga",
+//						"/textures/Leaf3/Leaf3_front_t.tga",
+//						"/textures/Leaf3/Leaf3_halflife_front_t.tga",
+//						"/textures/Leaf3/Leaf3_back.tga",
+//						"/textures/Leaf3/Leaf3_normals_back.tga",
+//						"/textures/Leaf3/Leaf3_back_t.tga",
+//						"/textures/Leaf3/Leaf3_halflife_back_t.tga"
+//				);
 			}
 		}
 
@@ -228,6 +294,19 @@ public class Parameters {
 				leafScale = 0.15f;
 				minIterations = 13;
 				maxIterations = 15;
+				barkTexture = new Texture(
+						"/textures/Bark_Pine_baseColor.jpg",
+						"/textures/Bark_Pine_normal.jpg");
+//				leafTextures = new LeafTextures(
+//						"/textures/Leaf2/Leaf2_front.tga",
+//						"/textures/Leaf2/Leaf2_normals_front.tga",
+//						"/textures/Leaf2/Leaf2_front_t.tga",
+//						"/textures/Leaf2/Leaf2_halflife_front_t.tga",
+//						"/textures/Leaf2/Leaf2_back.tga",
+//						"/textures/Leaf2/Leaf2_normals_back.tga",
+//						"/textures/Leaf2/Leaf2_back_t.tga",
+//						"/textures/Leaf2/Leaf2_halflife_back_t.tga"
+//				);
 			}
 		}
 	}

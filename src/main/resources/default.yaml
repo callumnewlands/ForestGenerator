@@ -33,7 +33,7 @@ camera:
 
 terrain:
   # The size of the scene to generate
-  width: 200.0
+  width: 100.0
   # The vertical scaling on the terrain geometry (larger value = taller terrain)
   verticalScale: 3.0
   noise:
@@ -46,7 +46,10 @@ terrain:
     # The frequency multiplier for successive octaves (>1 => each octave will contribute finer details)
     lacunarity: 2.0
   # Density of vertices in the terrain mesh (higher = more vertices)
-  vertexDensity: 1.0
+  vertexDensity: 0.7
+  texture:
+    diffuse: "/textures/floor2.png/"
+    normal: null
 
 quadtree:
   # Levels of detail (LODs) in the quad-tree
@@ -78,6 +81,18 @@ sceneObjects:
       scale: 0.01
       # Size scalar for the leaf models
       leafScale: 0.7
+      barkTexture:
+        diffuse: "/textures/Bark_Pine_baseColor.jpg"
+        normal: "/textures/Bark_Pine_normal.jpg"
+      leafTextures:
+        frontAlbedo: "/textures/Leaf1/Leaf1_front.tga"
+        frontNormal: "/textures/Leaf1/Leaf1_normals_front.tga"
+        frontTranslucency: "/textures/Leaf1/Leaf1_front_t.tga"
+        frontHalfLife: "/textures/Leaf1/Leaf1_halflife_front_t.tga"
+        backAlbedo: "/textures/Leaf1/Leaf1_back.tga"
+        backNormal: "/textures/Leaf1/Leaf1_normals_back.tga"
+        backTranslucency: "/textures/Leaf1/Leaf1_back_t.tga"
+        backHalfLife: "/textures/Leaf1/Leaf1_halflife_back_t.tga"
       # Number of sides to use in the cross section of the branches
       numSides: 6
       # Minimum number of iterations of the L-system
@@ -85,7 +100,7 @@ sceneObjects:
       # Maximum number of iterations of the L-system
       maxIterations: 9 # exclusive
       # Density of models in the scene
-      density: 1.0
+      density: 0.8
 
     - !Parameters$SceneObjects$MonopodialTree
       name: Aspen
@@ -115,6 +130,18 @@ sceneObjects:
       scale: 1.0
       # Size scalar for the leaf models
       leafScale: 0.28
+      barkTexture:
+        diffuse: "/textures/Aspen_bark_001_COLOR.jpg"
+        normal: "/textures/Aspen_bark_001_NORM.jpg"
+      leafTextures:
+        frontAlbedo: "/textures/Leaf2/Leaf2_front.tga"
+        frontNormal: "/textures/Leaf2/Leaf2_normals_front.tga"
+        frontTranslucency: "/textures/Leaf2/Leaf2_front_t.tga"
+        frontHalfLife: "/textures/Leaf2/Leaf2_halflife_front_t.tga"
+        backAlbedo: "/textures/Leaf2/Leaf2_back.tga"
+        backNormal: "/textures/Leaf2/Leaf2_normals_back.tga"
+        backTranslucency: "/textures/Leaf2/Leaf2_back_t.tga"
+        backHalfLife: "/textures/Leaf2/Leaf2_halflife_back_t.tga"
       # Number of sides to use in the cross section of the branches
       numSides: 6
       # Minimum number of iterations of the L-system
@@ -122,7 +149,7 @@ sceneObjects:
       # Maximum number of iterations of the L-system
       maxIterations: 12 # exclusive
       # Density of models in the scene
-      density: 1.0
+      density: 0.7
 
     - !Parameters$SceneObjects$PoplarTree
       name: Lombardy Poplar
@@ -152,6 +179,18 @@ sceneObjects:
       scale: 0.7
       # Size scalar for the leaf models
       leafScale: 0.15
+      barkTexture:
+        diffuse: "/textures/Bark_Pine_baseColor.jpg"
+        normal: "/textures/Bark_Pine_normal.jpg"
+      leafTextures:
+        frontAlbedo: "/textures/Leaf2/Leaf2_front.tga"
+        frontNormal: "/textures/Leaf2/Leaf2_normals_front.tga"
+        frontTranslucency: "/textures/Leaf2/Leaf2_front_t.tga"
+        frontHalfLife: "/textures/Leaf2/Leaf2_halflife_front_t.tga"
+        backAlbedo: "/textures/Leaf2/Leaf2_back.tga"
+        backNormal: "/textures/Leaf2/Leaf2_normals_back.tga"
+        backTranslucency: "/textures/Leaf2/Leaf2_back_t.tga"
+        backHalfLife: "/textures/Leaf2/Leaf2_halflife_back_t.tga"
       # Number of sides to use in the cross section of the branches
       numSides: 6
       # Minimum number of iterations of the L-system
@@ -159,9 +198,12 @@ sceneObjects:
       # Maximum number of iterations of the L-system
       maxIterations: 15 # exclusive
       # Density of models in the scene
-      density: 1.0
+      density: 0.7
   twigs:
     typesPerQuad: 2
+    texture:
+      diffuse: "/textures/Bark_Pine_baseColor.jpg"
+      normal: "/textures/Bark_Pine_normal.jpg"
     numSides: 5
     # Density of models in the scene (to disable set to 0)
     density: 1.0
@@ -169,6 +211,9 @@ sceneObjects:
     # Density of models in the scene (to disable set to 0)
     density: 1.0
   grass:
+    texture:
+      diffuse: "/textures/grass.png/"
+      normal: null
     # Density of models in the scene (to disable set to 0)
     density: 1.0
   fallenLeaves:

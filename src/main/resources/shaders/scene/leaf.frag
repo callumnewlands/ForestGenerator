@@ -35,12 +35,14 @@ void main() {
     vec4 vertexCol;
     vec4 translColour;
     if (dot(normalDir, viewDir) > 0) {
+        // Viewing front of leaf
         vec3 mapNormal = (texture(leaf_TSNM_front, textureCoord).rgb * 2.0 - 1.0);
         norm = normalize(TBN * mapNormal);// TBN maps from tangent space to world space
         vertexCol = texture(leaf_front, textureCoord);
         mapHalflife = texture(leaf_TSHLM_front_t, textureCoord).rgb;
         translColour = texture(leaf_transl_front, textureCoord);
     } else {
+        // Viewing back of leaf
         vec3 mapNormal = (texture(leaf_TSNM_back, textureCoord).rgb * 2.0 - 1.0);
         norm = normalize(TBN * mapNormal);// TBN maps from tangent space to world space
         vertexCol = texture(leaf_back, textureCoord);
