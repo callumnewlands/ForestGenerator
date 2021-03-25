@@ -82,8 +82,8 @@ sceneObjects:
       # Size scalar for the leaf models
       leafScale: 0.7
       barkTexture:
-        diffuse: "/textures/Bark_Pine_baseColor.jpg"
-        normal: "/textures/Bark_Pine_normal.jpg"
+        diffuse: "/textures/Bark_02_2K_Base_Color.png"
+        normal: "/textures/Bark_02_2K_Normal.png"
       leafTextures:
         frontAlbedo: "/textures/Leaf1/Leaf1_front.tga"
         frontNormal: "/textures/Leaf1/Leaf1_normals_front.tga"
@@ -142,6 +142,10 @@ sceneObjects:
         backNormal: "/textures/Leaf2/Leaf2_normals_back.tga"
         backTranslucency: "/textures/Leaf2/Leaf2_back_t.tga"
         backHalfLife: "/textures/Leaf2/Leaf2_halflife_back_t.tga"
+      leafColourFilter:
+        colour: [ 1.0, 0.79, 0.1 ]
+        mixFactor: 0.9
+        expMix: true
       # Number of sides to use in the cross section of the branches
       numSides: 6
       # Minimum number of iterations of the L-system
@@ -180,8 +184,8 @@ sceneObjects:
       # Size scalar for the leaf models
       leafScale: 0.15
       barkTexture:
-        diffuse: "/textures/Bark_Pine_baseColor.jpg"
-        normal: "/textures/Bark_Pine_normal.jpg"
+        diffuse: "/textures/Bark_06_BaseColor.jpg"
+        normal: "/textures/Bark_06_Normal.jpg"
       leafTextures:
         frontAlbedo: "/textures/Leaf2/Leaf2_front.tga"
         frontNormal: "/textures/Leaf2/Leaf2_normals_front.tga"
@@ -191,6 +195,10 @@ sceneObjects:
         backNormal: "/textures/Leaf2/Leaf2_normals_back.tga"
         backTranslucency: "/textures/Leaf2/Leaf2_back_t.tga"
         backHalfLife: "/textures/Leaf2/Leaf2_halflife_back_t.tga"
+      leafColourFilter:
+        colour: [ 0.055, 0.21, 0.055 ]
+        mixFactor: 0.7
+        expMix: false
       # Number of sides to use in the cross section of the branches
       numSides: 6
       # Minimum number of iterations of the L-system

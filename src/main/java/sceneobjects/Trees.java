@@ -15,6 +15,7 @@ import static rendering.ShaderPrograms.instancedNormalTextureShaderProgram;
 
 import generation.TerrainQuadtree;
 import generation.TurtleInterpreter;
+import lombok.Getter;
 import lsystems.LSystem;
 import lsystems.Production;
 import lsystems.ProductionBuilder;
@@ -57,6 +58,7 @@ public class Trees extends InstancedGroundObject {
 					VertexAttribute.TANGENT,
 					VertexAttribute.TEXTURE)
 	);
+	@Getter
 	private final int index;
 
 	public Trees(int numberOfTypes, int numberOfInstances, Vector2f regionCentre, float regionWidth, TerrainQuadtree quadtree, boolean yRotationOnly, int index) {
@@ -117,6 +119,7 @@ public class Trees extends InstancedGroundObject {
 		canopy.addTexture("leaf_TSNM_back", treeTextures.leafBackNorm);
 		canopy.addTexture("leaf_TSHLM_back_t", treeTextures.leafBackHL);
 		canopy.setShaderProgram(instancedLeafShaderProgram);
+		canopy.setColourFilter(params.leafColourFilter);
 
 		// Uses leaf geometry to construct billboard
 		Mesh board = MeshUtils.transform(Trees.leaf, new Matrix4f()
@@ -133,6 +136,7 @@ public class Trees extends InstancedGroundObject {
 				MeshUtils.transform(board, new Matrix4f().rotate((float) Math.PI / 2, up)),
 				LODCanopy
 		);
+		LODCanopy.setColourFilter(params.leafColourFilter);
 
 		return Map.of(
 				LevelOfDetail.HIGH, List.of(new Mesh(branches), new Mesh(canopy)),

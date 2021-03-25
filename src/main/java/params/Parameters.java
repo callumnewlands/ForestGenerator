@@ -84,6 +84,22 @@ public class Parameters {
 	}
 
 	@NoArgsConstructor
+	@AllArgsConstructor
+	@Setter
+	public static class ColourFilter {
+		@JsonDeserialize(using = ParameterLoader.Vec3Deserializer.class)
+		public Vector3f colour = new Vector3f(1, 0, 1);
+		public float mixFactor = 0f;
+		public boolean expMix = false;
+
+		public ColourFilter(ColourFilter old) {
+			this.colour = new Vector3f(old.colour);
+			this.mixFactor = old.mixFactor;
+			this.expMix = old.expMix;
+		}
+	}
+
+	@NoArgsConstructor
 	@Setter
 	public static class Terrain {
 		public float width = 100f;
@@ -157,6 +173,7 @@ public class Parameters {
 					"/textures/Bark_Pine_baseColor.jpg",
 					"/textures/Bark_Pine_normal.jpg");
 			public LeafTextures leafTextures = new LeafTextures();
+			public ColourFilter leafColourFilter = new ColourFilter();
 			public float instanceFraction = 0.2f;
 			public int numSides = 5;
 			public float scale = 1.0f;
@@ -194,6 +211,9 @@ public class Parameters {
 						"lr", 1.109f,
 						"vr", 1.832f,
 						"e", 0.052f));
+				barkTexture = new Texture(
+						"/textures/Bark_02_2K_Base_Color.png",
+						"/textures/Bark_02_2K_Normal.png");
 				leafTextures = new LeafTextures(
 						"/textures/Leaf1/Leaf1_front.tga",
 						"/textures/Leaf1/Leaf1_normals_front.tga",
@@ -209,6 +229,7 @@ public class Parameters {
 				scale = 0.01f;
 				leafScale = 0.7f;
 				density = 0.8f;
+
 			}
 
 			@NoArgsConstructor
@@ -243,6 +264,10 @@ public class Parameters {
 						Map.entry("l1", 0.1f), // Length of trunk sections
 						Map.entry("lr", 0.5f), // Offset of side branches from centre
 						Map.entry("e", 0))); // Elasticity
+				leafColourFilter = new ColourFilter(new Vector3f(1f, 0.79f, 0.1f), 0.9f, true);
+				barkTexture = new Texture(
+						"/textures/Aspen_bark_001_COLOR.jpg",
+						"/textures/Aspen_bark_001_NORM.jpg");
 				name = "Aspen";
 				numSides = 6;
 				scale = 1f;
@@ -250,19 +275,6 @@ public class Parameters {
 				minIterations = 10;
 				maxIterations = 12;
 				density = 0.7f;
-				barkTexture = new Texture(
-						"/textures/Aspen_bark_001_COLOR.jpg",
-						"/textures/Aspen_bark_001_NORM.jpg");
-//				leafTextures = new LeafTextures(
-//						"/textures/Leaf3/Leaf3_front.tga",
-//						"/textures/Leaf3/Leaf3_normals_front.tga",
-//						"/textures/Leaf3/Leaf3_front_t.tga",
-//						"/textures/Leaf3/Leaf3_halflife_front_t.tga",
-//						"/textures/Leaf3/Leaf3_back.tga",
-//						"/textures/Leaf3/Leaf3_normals_back.tga",
-//						"/textures/Leaf3/Leaf3_back_t.tga",
-//						"/textures/Leaf3/Leaf3_halflife_back_t.tga"
-//				);
 			}
 		}
 
@@ -289,24 +301,15 @@ public class Parameters {
 						Map.entry("l1", 0.5f), // Length of trunk sections
 						Map.entry("lr", 0f), // Offset of side branches from centre
 						Map.entry("e", -0.01f)));  // Elasticity
+				leafColourFilter = new ColourFilter(new Vector3f(0.055f, 0.21f, 0.055f), 0.7f, false);
+				barkTexture = new Texture(
+						"/textures/Bark_06_BaseColor.jpg",
+						"/textures/Bark_06_Normal.jpg");
 				name = "Lombardy Poplar";
 				scale = 0.7f;
 				leafScale = 0.15f;
 				minIterations = 13;
 				maxIterations = 15;
-				barkTexture = new Texture(
-						"/textures/Bark_Pine_baseColor.jpg",
-						"/textures/Bark_Pine_normal.jpg");
-//				leafTextures = new LeafTextures(
-//						"/textures/Leaf2/Leaf2_front.tga",
-//						"/textures/Leaf2/Leaf2_normals_front.tga",
-//						"/textures/Leaf2/Leaf2_front_t.tga",
-//						"/textures/Leaf2/Leaf2_halflife_front_t.tga",
-//						"/textures/Leaf2/Leaf2_back.tga",
-//						"/textures/Leaf2/Leaf2_normals_back.tga",
-//						"/textures/Leaf2/Leaf2_back_t.tga",
-//						"/textures/Leaf2/Leaf2_halflife_back_t.tga"
-//				);
 			}
 		}
 	}

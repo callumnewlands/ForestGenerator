@@ -10,6 +10,7 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.joml.Matrix4f;
 import org.joml.Vector2f;
 import org.joml.Vector3f;
+import params.Parameters;
 import rendering.ShaderProgram;
 
 @Getter
@@ -20,6 +21,7 @@ public class Mesh {
 	private int[] indices;
 	private List<VertexAttribute> vertexAttributes;
 	private Matrix4f model = new Matrix4f().identity();
+	private Parameters.ColourFilter colourFilter = new Parameters.ColourFilter();
 	protected Map<String, Texture> textures = new HashMap<>();
 	protected VertexArray vertexArray;
 	private boolean isInstanced;
@@ -58,6 +60,7 @@ public class Mesh {
 		this.shaderProgram = mesh.shaderProgram;
 		this.isInstanced = isInstanced;
 		this.vertexArray = createVAO();
+		this.colourFilter = new Parameters.ColourFilter(mesh.colourFilter);
 	}
 
 	public void addTexture(String uniform, Texture texture) {
@@ -107,6 +110,9 @@ public class Mesh {
 			shaderProgram.setUniform(texture.getKey(), texture.getValue().getUnitID());
 			texture.getValue().bind();
 		}
+		shaderProgram.setUniform("colourFilter", colourFilter.colour);
+		shaderProgram.setUniform("mixFactor", colourFilter.mixFactor);
+		shaderProgram.setUniform("expMix", colourFilter.expMix);
 	}
 
 	private void unbindFromRender() {

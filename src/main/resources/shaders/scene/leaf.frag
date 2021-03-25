@@ -24,6 +24,28 @@ uniform sampler2D leaf_transl_back;
 uniform sampler2D leaf_TSNM_back;
 uniform sampler2D leaf_TSHLM_back_t;
 
+uniform vec3 colourFilter;
+uniform float mixFactor;
+uniform bool expMix;
+
+vec4 colourise(vec4 inp) {
+    if (inp.a < 0.01) {
+        return inp;
+    }
+    float luminance = dot(inp.rgb, vec3(0.2126f, 0.7152f, 0.0722f));
+    vec4 greyscale = vec4(vec3(luminance), 1.0);
+
+    vec4 colourised;
+    if (expMix) {
+        float colorAverage = (colourFilter.r + colourFilter.g + colourFilter.b) / 3;
+        vec4 colorPow = 1.0 + (colorAverage - vec4(colourFilter, 1.0)) * 2.0;
+        colourised = pow(greyscale, colorPow);
+    } else {
+        colourised = greyscale * vec4(colourFilter, 1.0);
+    }
+    return mix(inp, colourised, mixFactor);
+}
+
 void main() {
     mat3 TBN_inv = transpose(TBN);
     vec3 viewDir = normalize(viewPos - worldPos);
@@ -38,16 +60,16 @@ void main() {
         // Viewing front of leaf
         vec3 mapNormal = (texture(leaf_TSNM_front, textureCoord).rgb * 2.0 - 1.0);
         norm = normalize(TBN * mapNormal);// TBN maps from tangent space to world space
-        vertexCol = texture(leaf_front, textureCoord);
+        vertexCol = colourise(texture(leaf_front, textureCoord));
         mapHalflife = texture(leaf_TSHLM_front_t, textureCoord).rgb;
-        translColour = texture(leaf_transl_front, textureCoord);
+        translColour = colourise(texture(leaf_transl_front, textureCoord));
     } else {
         // Viewing back of leaf
         vec3 mapNormal = (texture(leaf_TSNM_back, textureCoord).rgb * 2.0 - 1.0);
         norm = normalize(TBN * mapNormal);// TBN maps from tangent space to world space
-        vertexCol = texture(leaf_back, textureCoord);
+        vertexCol = colourise(texture(leaf_back, textureCoord));
         mapHalflife = texture(leaf_TSHLM_back_t, textureCoord).rgb;
-        translColour = texture(leaf_transl_back, textureCoord);
+        translColour = colourise(texture(leaf_transl_back, textureCoord));
     }
 
     if (vertexCol.a < 0.01) {
