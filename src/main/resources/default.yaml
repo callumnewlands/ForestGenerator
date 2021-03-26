@@ -63,7 +63,7 @@ sceneObjects:
   display: true
   # List of tree types and their generation parameters
   trees:
-    - !Parameters$SceneObjects$BranchingTree
+    - !TreeTypes$BranchingTree
       name: tree 1
       lSystemParams:
         a: 0.3308
@@ -80,7 +80,8 @@ sceneObjects:
       # Size scalar for the models
       scale: 0.01
       # Size scalar for the leaf models
-      leafScale: 0.7
+      leafXScale: 0.7
+      leafYScale: 0.7
       barkTexture:
         diffuse: "/textures/Bark_02_2K_Base_Color.png"
         normal: "/textures/Bark_02_2K_Normal.png"
@@ -102,7 +103,67 @@ sceneObjects:
       # Density of models in the scene
       density: 0.8
 
-    - !Parameters$SceneObjects$MonopodialTree
+    - !TreeTypes$MonopodialTree
+      name: Monopodial Tree
+      lSystemParams:
+        lB: 2.0   # Base length
+        lS: 1.1   # Side branch length
+        lSm: 0.5  # Min ratio for side branch length (of ls) and width (of ws)
+        wB: 0.5   # Base width
+        wS: 0.3   # Side branch width
+        wS2: 0.4  # 3rd level side branch width
+        vr: 0.3   # Width of start of side branch
+        aB: 80.0  # Branch angle to trunk
+        aS: 110.0  # Branch angle around trunk
+        aS2: 100.0 # 3rd level side branch angle
+        aS3: 80.0  # 3rd level side branch angle downwards
+        aS4: -45.0 # 3rd level side branch angle upwards for 2nd part
+        aS5: 0.0   # Initial angle of rotation around branch for 3rd level side branches
+        lS2: 0.333 # Distance ratio for gap between 3rd level branches (ignored for pine style branches)
+        lS3: 0.25  # Distance ratio for first part of 3rd level branches (ignored for pine style branches)
+        lS4: 0.25  # Distance ratio for second part of 3rd level branches (ignored for pine style branches)
+        tH: 0.9    # Threshold for switching expansion/contraction (1 = bottom, 0 = top)
+        aU: 0.0    # Angle to curve the side branches upwards
+        nB: 8      # Number of side branches (and trunk height segments) per iteration
+        nB2: 12    # Branching factor of side branches (ignored for pine style branches)
+        l1: 0.2    # Length of trunk sections between branches
+        l2: 0.0    # Length of trunk sections after branches
+        lr: 0.5    # Offset of side branches from centre
+        lr2: 1.0   # Ratio of decrease of l2
+        e: 0.0     # Elasticity
+      # The fraction of all models of this tree which are instanced from a given generated mesh (random configuration) (Larger = more repeated instances)
+      instanceFraction: 0.2
+      # Size scalar for the models
+      scale: 0.75
+      # Size scalar for the leaf models
+      leafXScale: 0.17
+      leafYScale: 0.17
+      barkTexture:
+        diffuse: "/textures/Bark_02_2K_Base_Color.png"
+        normal: "/textures/Bark_02_2K_Normal.png"
+      leafTextures:
+        frontAlbedo: "/textures/Leaf3/Leaf3_front.tga"
+        frontNormal: "/textures/Leaf3/Leaf3_normals_front.tga"
+        frontTranslucency: "/textures/Leaf3/Leaf3_front_t.tga"
+        frontHalfLife: "/textures/Leaf3/Leaf3_halflife_front_t.tga"
+        backAlbedo: "/textures/Leaf3/Leaf3_back.tga"
+        backNormal: "/textures/Leaf3/Leaf3_normals_back.tga"
+        backTranslucency: "/textures/Leaf3/Leaf3_back_t.tga"
+        backHalfLife: "/textures/Leaf3/Leaf3_halflife_back_t.tga"
+      # Number of sides to use in the cross section of the branches
+      numSides: 6
+      # Minimum number of iterations of the L-system
+      minIterations: 7 # inclusive
+      # Maximum number of iterations of the L-system
+      maxIterations: 9 # exclusive
+      # Density of models in the scene
+      density: 0.7
+      # Vary branch angle with height (higher branches point upwards, flattening around tH then pointing down)
+      heightVaryingAngles: true
+      # Use pine tree style branching (opposite and recursive)
+      pineStyleBranches: false
+
+    - !TreeTypes$AspenTree
       name: Aspen
       lSystemParams:
         lB: 4.0   # Base length
@@ -117,19 +178,26 @@ sceneObjects:
         aS2: 140.0 # 3rd level side branch angle
         aS3: 60.0 # 3rd level side branch angle upwards
         aS4: 45.0 # 3rd level side branch angle upwards for 2nd part
+        aS5: 0.0   # Initial angle of rotation around branch for 3rd level side branches
+        lS2: 0.333 # Distance ratio for gap between 3rd level branches (ignored for pine style branches)
+        lS3: 0.333  # Distance ratio for first part of 3rd level branches (ignored for pine style branches)
+        lS4: 0.25  # Distance ratio for second part of 3rd level branches (ignored for pine style branches)
         tH: 0.7   # Threshold for switching expansion/contraction (1 = bottom, 0 = top)
-        aD: -1.0  # Angle to curve the side branches downward
+        aU: 1.0  # Angle to curve the side branches upwards
         nB: 8     # Number of side branches (and trunk height segments) per iteration
-        nB2: 17   # Branching factor of side branches
-        l1: 0.1   # Length of trunk sections
+        nB2: 17   # Branching factor of side branches (ignored for pine style branches)
+        l1: 0.1   # Length of trunk sections between branches
+        l2: 0.0   # Length of trunk sections after branches
         lr: 0.5   # Offset of side branches from centre
-        e: 0      # Elasticity
+        lr2: 1.0  # Ratio of decrease of l2
+        e: 0.0    # Elasticity
       # The fraction of all models of this tree which are instanced from a given generated mesh (random configuration) (Larger = more repeated instances)
       instanceFraction: 0.2
       # Size scalar for the models
       scale: 1.0
       # Size scalar for the leaf models
-      leafScale: 0.28
+      leafXScale: 0.28
+      leafYScale: 0.28
       barkTexture:
         diffuse: "/textures/Aspen_bark_001_COLOR.jpg"
         normal: "/textures/Aspen_bark_001_NORM.jpg"
@@ -154,8 +222,12 @@ sceneObjects:
       maxIterations: 12 # exclusive
       # Density of models in the scene
       density: 0.7
+      # Vary branch angle with height (higher branches point upwards, flattening around tH then pointing down)
+      heightVaryingAngles: true
+      # Use pine tree style branching (opposite and recursive)
+      pineStyleBranches: false
 
-    - !Parameters$SceneObjects$PoplarTree
+    - !TreeTypes$PoplarTree
       name: Lombardy Poplar
       lSystemParams:
         lB: 0.0   # Base length
@@ -170,19 +242,26 @@ sceneObjects:
         aS2: 140.0 # 3rd level side branch angle
         aS3: 30.0 # 3rd level side branch angle upwards
         aS4: -20.0 # 3rd level side branch angle upwards for 2nd part
+        aS5: 0.0   # Initial angle of rotation around branch for 3rd level side branches
+        lS2: 0.333 # Distance ratio for gap between 3rd level branches (ignored for pine style branches)
+        lS3: 0.25  # Distance ratio for first part of 3rd level branches (ignored for pine style branches)
+        lS4: 0.25  # Distance ratio for second part of 3rd level branches (ignored for pine style branches)
         tH: 1.0   # Threshold for switching expansion/contraction (1 = bottom, 0 = top)
-        aD: -1.2  # Angle to curve the side branches downward
+        aU: 1.2  # Angle to curve the side branches upwards
         nB: 2     # Number of side branches (and trunk height segments) per iteration
-        nB2: 25   # Branching factor of side branches
-        l1: 0.5   # Length of trunk sections
+        nB2: 25   # Branching factor of side branches (ignored for pine style branches)
+        l1: 0.5   # Length of trunk sections between branches
+        l2: 0.0   # Length of trunk sections after branches
         lr: 0.0   # Offset of side branches from centre
+        lr2: 1.0   # Ratio of decrease of l2
         e: -0.01  # Elasticity
       # The fraction of all models of this tree which are instanced from a given generated mesh (random configuration) (Larger = more repeated instances)
       instanceFraction: 0.2
       # Size scalar for the models
       scale: 0.7
       # Size scalar for the leaf models
-      leafScale: 0.15
+      leafXScale: 0.15
+      leafYScale: 0.15
       barkTexture:
         diffuse: "/textures/Bark_06_BaseColor.jpg"
         normal: "/textures/Bark_06_Normal.jpg"
@@ -207,6 +286,71 @@ sceneObjects:
       maxIterations: 15 # exclusive
       # Density of models in the scene
       density: 0.7
+      # Vary branch angle with height (higher branches point upwards, flattening around tH then pointing down)
+      heightVaryingAngles: false
+      # Use pine tree style branching (opposite and recursive)
+      pineStyleBranches: false
+
+    - !TreeTypes$PineTree
+      name: Pine Tree
+      lSystemParams:
+        lB: 1.2   # Base length
+        lS: 0.6   # Side branch length
+        lSm: 0.025  # Min ratio for side branch length (of ls) and width (of ws)
+        wB: 0.2   # Base width
+        wS: 0.3   # Side branch width
+        wS2: 0.8  # 3rd level side branch width
+        vr: 0.25   # Width of start of side branch
+        aB: 90.0  # Branch angle to trunk
+        aS: 60.0  # Branch angle around trunk
+        aS2: 0.0 # 3rd level side branch angle
+        aS3: -45.0  # 3rd level side branch angle downwards
+        aS4: 45.0 # 3rd level side branch angle upwards for 2nd part
+        aS5: 0.0   # Initial angle of rotation around branch for 3rd level side branches
+        lS2: 1.0 # Distance ratio for gap between 3rd level branches (ignored for pine style branches)
+        lS3: 1.0  # Distance ratio for first part of 3rd level branches (ignored for pine style branches)
+        lS4: 1.0  # Distance ratio for second part of 3rd level branches (ignored for pine style branches)
+        tH: 1.0    # Threshold for switching expansion/contraction (1 = bottom, 0 = top)
+        aU: 2.5    # Angle to curve the side branches upwards
+        nB: 6      # Number of side branches (and trunk height segments) per iteration
+        nB2: 1    # Branching factor of side branches (ignored for pine style branches)
+        l1: 0.0    # Length of trunk sections between branches
+        l2: 0.5    # Length of trunk sections after branches
+        lr: 0.5    # Offset of side branches from centre
+        lr2: 0.95   # Ratio of decrease of l2
+        e: 0.0     # Elasticity
+      # The fraction of all models of this tree which are instanced from a given generated mesh (random configuration) (Larger = more repeated instances)
+      instanceFraction: 0.2
+      # Size scalar for the models
+      scale: 1.5
+      # Size scalar for the leaf models
+      leafXScale: 0.03
+      leafYScale: 0.4
+      barkTexture:
+        diffuse: "/textures/Bark_02_2K_Base_Color.png"
+        normal: "/textures/Bark_02_2K_Normal.png"
+      leafTextures:
+        frontAlbedo: "/textures/Leaf3/Leaf3_front.tga"
+        frontNormal: "/textures/Leaf3/Leaf3_normals_front.tga"
+        frontTranslucency: "/textures/Leaf3/Leaf3_front_t.tga"
+        frontHalfLife: "/textures/Leaf3/Leaf3_halflife_front_t.tga"
+        backAlbedo: "/textures/Leaf3/Leaf3_back.tga"
+        backNormal: "/textures/Leaf3/Leaf3_normals_back.tga"
+        backTranslucency: "/textures/Leaf3/Leaf3_back_t.tga"
+        backHalfLife: "/textures/Leaf3/Leaf3_halflife_back_t.tga"
+      # Number of sides to use in the cross section of the branches
+      numSides: 6
+      # Minimum number of iterations of the L-system
+      minIterations: 8 # inclusive
+      # Maximum number of iterations of the L-system
+      maxIterations: 16 # exclusive
+      # Density of models in the scene
+      density: 0.7
+      # Vary branch angle with height (higher branches point upwards, flattening around tH then pointing down)
+      heightVaryingAngles: true
+      # Use pine tree style branching (opposite and recursive)
+      pineStyleBranches: true
+
   twigs:
     typesPerQuad: 2
     texture:

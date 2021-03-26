@@ -34,6 +34,7 @@ import org.joml.Vector2f;
 import org.joml.Vector3f;
 import params.ParameterLoader;
 import params.Parameters;
+import params.TreeTypes;
 import rendering.LevelOfDetail;
 import rendering.Textures;
 import utils.MathsUtils;
@@ -82,19 +83,20 @@ public class Trees extends InstancedGroundObject {
 		Parameters.SceneObjects.Tree params = parameters.sceneObjects.trees.get(index);
 		int numEdges = params.numSides;
 		TurtleInterpreter turtleInterpreter = new TurtleInterpreter(numEdges);
-		turtleInterpreter.setSubModels(List.of(MeshUtils.transform(leaf, new Matrix4f().scale(params.leafScale / params.scale))));
+		turtleInterpreter.setSubModels(List.of(MeshUtils.transform(leaf,
+				new Matrix4f().scale(params.leafYScale / params.scale, 1, params.leafXScale / params.scale))));
 		Random r = ParameterLoader.getParameters().random.generator;
 		int minI = params.minIterations;
 		int maxI = params.maxIterations;
 		List<Module> instructions;
-		if (params instanceof Parameters.SceneObjects.BranchingTree) {
+		if (params instanceof TreeTypes.BranchingTree) {
 			turtleInterpreter.setIgnored(List.of('A'));
 			instructions = branchingTreeSystem()
 					.performDerivations(r.nextInt(maxI - minI) + minI)
 					.stream()
 					.map(m -> m.getName() == 'A' ? new ParametricValueModule('~', 0f) : m)
 					.collect(Collectors.toList());
-		} else if (params instanceof Parameters.SceneObjects.MonopodialTree) {
+		} else if (params instanceof TreeTypes.MonopodialTree) {
 			turtleInterpreter.setIgnored(List.of('A', 'B'));
 			instructions = monopodialTreeSystem()
 					.performDerivations(r.nextInt(maxI - minI) + minI);
@@ -149,8 +151,8 @@ public class Trees extends InstancedGroundObject {
 		float lr = params.lSystemParams.get("lr").floatValue();
 		float vr = params.lSystemParams.get("vr").floatValue();
 		float e = params.lSystemParams.get("e").floatValue();
-		List<Parameters.SceneObjects.BranchingTree.Branching> branchings =
-				((Parameters.SceneObjects.BranchingTree) params).branchings;
+		List<TreeTypes.BranchingTree.Branching> branchings =
+				((TreeTypes.BranchingTree) params).branchings;
 
 		CharModule A = new CharModule('A');
 		ParametricParameterModule ExIn = new ParametricParameterModule('!', List.of("w"));
@@ -159,7 +161,7 @@ public class Trees extends InstancedGroundObject {
 		Module FOut = new ParametricExpressionModule('F', List.of("l"), vars -> List.of(vars.get("l") * lr));
 
 		List<Production> productions = new ArrayList<>();
-		for (Parameters.SceneObjects.BranchingTree.Branching entry : branchings) {
+		for (TreeTypes.BranchingTree.Branching entry : branchings) {
 			List<Module> successors = new ArrayList<>(List.of(
 					new ParametricValueModule('!', vr),
 					new ParametricValueModule('F', 50f))
@@ -202,36 +204,34 @@ public class Trees extends InstancedGroundObject {
 
 
 	private LSystem monopodialTreeSystem() {
-		Parameters.SceneObjects.Tree params = parameters.sceneObjects.trees.get(index);
+		TreeTypes.MonopodialTree params = (TreeTypes.MonopodialTree) parameters.sceneObjects.trees.get(index);
 		float e = params.lSystemParams.get("e").floatValue();
 		float lB = params.lSystemParams.get("lB").floatValue();
 		float lS = params.lSystemParams.get("lS").floatValue();
 		float lSm = params.lSystemParams.get("lSm").floatValue();
 		float wB = params.lSystemParams.get("wB").floatValue();
 		float wS = params.lSystemParams.get("wS").floatValue();
-		float wS2 = params.lSystemParams.get("wS2").floatValue();
 		float aB = params.lSystemParams.get("aB").floatValue();
 		float aS = params.lSystemParams.get("aS").floatValue();
-		float aS2 = params.lSystemParams.get("aS2").floatValue();
-		float aS3 = params.lSystemParams.get("aS3").floatValue();
-		float aS4 = params.lSystemParams.get("aS4").floatValue();
+		float aS5 = params.lSystemParams.get("aS5").floatValue();
 		float tH = params.lSystemParams.get("tH").floatValue();
-		float aD = params.lSystemParams.get("aD").floatValue();
 		int nB = params.lSystemParams.get("nB").intValue();
-		int nB2 = params.lSystemParams.get("nB2").intValue();
 		float l1 = params.lSystemParams.get("l1").floatValue();
+		float l2 = params.lSystemParams.get("l2").floatValue();
 		float vr = params.lSystemParams.get("vr").floatValue();
 		float lr = params.lSystemParams.get("lr").floatValue();
+		float lr2 = params.lSystemParams.get("lr2").floatValue();
 		int maxi = params.maxIterations;
+		boolean heightVaryingAngles = params.heightVaryingAngles;
+		boolean pineStyleBranches = params.pineStyleBranches;
 
 		List<AxiomaticModule> axiom = List.of(
 				new ParametricValueModule('T', List.of(0f, -1f, 0f, e)),
 				new ParametricValueModule('!', wB),
 				new ParametricValueModule('F', lB),
-				new ParametricValueModule('A', List.of(wB, l1))
+				new ParametricValueModule('A', List.of(wB, l2))
 		);
 
-		boolean variableAngles = false;
 
 		// Trunk
 		ParametricParameterModule AIn = new ParametricParameterModule('A', List.of("w", "l"));
@@ -253,29 +253,53 @@ public class Trees extends InstancedGroundObject {
 				}
 				return lSm + (1 - lSm) * (pos <= tH ? pos / tH : (1 - pos) / (1 - tH));
 			};
-//			float angle = (float) Math.toRadians(aB); // Branch angle to trunk
 			AOut.addAll(List.of(
 					new ParametricValueModule('/', (float) Math.toRadians(aS)), // Rotates around trunk
 					LB,
 					new ParametricExpressionModule('&', List.of("w"), vars -> List.of((float) Math.toRadians(
-							variableAngles
-									? (30 + 85 * heightFraction.apply(vars))
-									: aB))), // TODO min-max angles
+							heightVaryingAngles
+									? (30 + 85 * heightFraction.apply(vars)) // TODO min-max angles
+									: aB))),
 					new ParametricExpressionModule('!', List.of("w"), vars -> List.of(vars.get("w") * vr * branchLen.apply(vars))),
 					new ParametricExpressionModule('F', List.of("w"), vars -> List.of(vars.get("w") * lr)), // Move the base of the side branches away from the trunk centre
+					new ParametricValueModule('/', (float) Math.toRadians(aS5)),
 					new ParametricExpressionModule('B', List.of("w"), vars -> List.of(
 							vars.get("w") * wS * branchLen.apply(vars),
 							lS * branchLen.apply(vars))),
 					RB,
 					new ParametricExpressionModule('!', List.of("w"), vars -> List.of(vars.get("w") - finalI * (wB / (maxi - 1)) / (nB))), // Taper trunk
-					new ParametricExpressionModule('F', List.of("l"), vars -> List.of(vars.get("l")))
+					new ParametricValueModule('F', l1)
 			));
 		}
+		AOut.add(new ParametricExpressionModule('F', List.of("l"), vars -> List.of(vars.get("l"))));
 		AOut.add(new ParametricExpressionModule('A', List.of("w", "l"), vars -> List.of(
 				Math.max(vars.get("w") - wB / (maxi - 1), 0),
-				vars.get("l"))));
+				vars.get("l") * lr2)));
 
 		// Side branches
+		List<Production> branchProductions = pineStyleBranches
+				? getPineSideBranches(params)
+				: getAlternatingSideBranches(params);
+
+		List<Production> productions = new ArrayList<>();
+		productions.add(new ProductionBuilder(List.of(AIn), AOut).build());
+		productions.addAll(branchProductions);
+
+		return new LSystem(axiom, List.of(), productions);
+	}
+
+	private List<Production> getAlternatingSideBranches(TreeTypes.MonopodialTree params) {
+
+		float wS2 = params.lSystemParams.get("wS2").floatValue();
+		float aS2 = params.lSystemParams.get("aS2").floatValue();
+		float aS3 = params.lSystemParams.get("aS3").floatValue();
+		float aS4 = params.lSystemParams.get("aS4").floatValue();
+		float lS2 = params.lSystemParams.get("lS2").floatValue();
+		float lS3 = params.lSystemParams.get("lS3").floatValue();
+		float lS4 = params.lSystemParams.get("lS4").floatValue();
+		float aU = params.lSystemParams.get("aU").floatValue();
+		int nB2 = params.lSystemParams.get("nB2").intValue();
+
 		ParametricParameterModule BIn = new ParametricParameterModule('B', List.of("w", "l"));
 		List<Module> BOut = new ArrayList<>();
 		for (int i = 0; i < nB2; i++) {
@@ -283,20 +307,20 @@ public class Trees extends InstancedGroundObject {
 			Function<Map<String, Float>, Float> wI = vars -> vars.get("w") - vars.get("w") * finalI / nB2;
 			BOut.addAll(List.of(
 					new ParametricExpressionModule('!', List.of("w"), vars -> List.of(wI.apply(vars))),
-					new ParametricExpressionModule('F', List.of("l"), vars -> List.of(vars.get("l") / 3)), // distance between 3rd level branches
+					new ParametricExpressionModule('F', List.of("l"), vars -> List.of(vars.get("l") * lS2)),
 					LB,
 					new ParametricValueModule('/', (float) Math.toRadians(aS2) * finalI),
 					new ParametricValueModule('&', (float) Math.toRadians(aS3)),
 					new ParametricExpressionModule('!', List.of("w"), vars -> List.of(wS2 * wI.apply(vars))),
 					new ParametricExpressionModule('F', List.of("l"), vars -> List.of(
-							(float) Math.sqrt(nB2 - finalI) * vars.get("l") / 4, // TODO /3 for aspen
+							(float) Math.sqrt(nB2 - finalI) * vars.get("l") * lS3,
 							(float) (int) ((Math.sqrt(nB2 - finalI) + 2) * 4 * vars.get("l")),
 							0f,
-							(float) Math.toRadians(140),
+							(float) Math.toRadians(140), // TODO number and angles of leaves
 							(float) Math.toRadians(40))),
 					new ParametricValueModule('&', (float) Math.toRadians(aS4)),
 					new ParametricExpressionModule('F', List.of("l"), vars -> List.of(
-							(float) Math.sqrt(nB2 - finalI) * vars.get("l") / 4,
+							(float) Math.sqrt(nB2 - finalI) * vars.get("l") * lS4,
 							(float) (int) ((Math.sqrt(nB2 - finalI) + 2) * 4 * vars.get("l")),
 							0f,
 							(float) Math.toRadians(140),
@@ -304,20 +328,76 @@ public class Trees extends InstancedGroundObject {
 					new CharModule('%'),
 					RB,
 					// TODO +() for aspen
-					new ParametricValueModule('&', (float) Math.toRadians(aD)) // Causes slight curve inwards
+					new ParametricValueModule('&', (float) Math.toRadians(-aU)) // Causes slight curve downwards
 			));
 		}
 //		BOut.add(new ParametricExpressionModule('F', List.of("l"), vars -> List.of(vars.get("l") / 2f))); // TODO for aspen
+		return List.of(new ProductionBuilder(List.of(BIn), BOut).build());
+	}
 
+	private List<Production> getPineSideBranches(TreeTypes.MonopodialTree params) {
 
-		return new LSystem(
-				axiom,
-				List.of(),
-				List.of(
-						new ProductionBuilder(List.of(AIn), AOut).build(),
-						new ProductionBuilder(List.of(BIn), BOut).build()
-				));
+		float wS2 = params.lSystemParams.get("wS2").floatValue();
+		float aS2 = params.lSystemParams.get("aS2").floatValue();
+		float aS3 = params.lSystemParams.get("aS3").floatValue();
+		float aS4 = params.lSystemParams.get("aS4").floatValue();
+		float aU = params.lSystemParams.get("aU").floatValue();
 
+		ParametricParameterModule BIn = new ParametricParameterModule('B', List.of("w", "l"));
+		List<Module> startModules = List.of(
+				new ParametricValueModule('/', (float) Math.toRadians(aS2)),
+				new ParametricExpressionModule('!', List.of("w"), vars -> List.of(vars.get("w"))),
+				new ParametricValueModule('&', (float) Math.toRadians(-aU)),
+				new ParametricExpressionModule('F', List.of("l"), vars -> List.of(
+						vars.get("l"),
+						300 * vars.get("l"),
+						0f,
+						(float) Math.toRadians(140),
+						(float) Math.toRadians(40)))
+		);
+		List<Module> sideModules = List.of(
+				LB,
+				new ParametricValueModule('+', (float) Math.toRadians(aS3)),
+				new ParametricExpressionModule('B', List.of("w"), vars -> List.of(
+						vars.get("w") * wS2,
+						vars.get("l") * 0.7f)),
+				RB,
+				LB,
+				new ParametricValueModule('+', (float) Math.toRadians(aS4)),
+				new ParametricExpressionModule('B', List.of("w"), vars -> List.of(
+						vars.get("w") * wS2,
+						vars.get("l") * 0.7f)),
+				RB
+		);
+		List<Module> endModules = List.of(
+				new ParametricExpressionModule('B', List.of("w"), vars -> List.of(
+						vars.get("w") * wS2,
+						vars.get("l") * 0.7f))
+		);
+
+		// Side branching
+		List<Module> B1Out = new ArrayList<>();
+		B1Out.addAll(startModules);
+		B1Out.addAll(sideModules);
+		B1Out.addAll(endModules);
+
+		// Straight
+		List<Module> B2Out = new ArrayList<>();
+		B2Out.addAll(startModules);
+		B2Out.addAll(endModules);
+
+		return List.of(
+				new ProductionBuilder(List.of(BIn), B1Out)
+						.withCondition(vars -> vars.get("l") >= 0.6f).build(),
+				new ProductionBuilder(List.of(BIn), B1Out)
+						.withCondition(vars -> vars.get("l") >= 0.3f && vars.get("l") < 0.6f)
+						.withProbability(0.6f).build(),
+				new ProductionBuilder(List.of(BIn), B2Out)
+						.withCondition(vars -> vars.get("l") >= 0.3f && vars.get("l") < 0.6f)
+						.withProbability(0.4f).build(),
+				new ProductionBuilder(List.of(BIn), B2Out)
+						.withCondition(vars -> vars.get("l") < 0.3f).build()
+		);
 	}
 
 }

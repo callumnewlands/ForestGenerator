@@ -31,7 +31,11 @@ public class LSystem {
 	}
 
 	private List<Production> getAllWhichMatch(List<Module> pred) {
-		return this.productions.stream().filter(p -> p.matchesPred(pred)).collect(Collectors.toList());
+		return this.productions
+				.stream()
+				.filter(p -> p.matchesPred(pred))
+				.filter(p -> p.conditionSatisfied(pred))
+				.collect(Collectors.toList());
 	}
 
 	public String performDerivationStep() {

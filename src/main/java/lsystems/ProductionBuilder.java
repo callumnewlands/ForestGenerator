@@ -13,7 +13,7 @@ public class ProductionBuilder {
 	private List<PredecessorModule> rightContext;
 	private final List<Module> successor;
 	private Predicate<Map<String, Float>> condition;
-	private Float probability;
+	private float probability = 1.0f;
 
 	public ProductionBuilder(List<PredecessorModule> predecessor, List<Module> successor) {
 		this.successor = successor;

@@ -18,7 +18,7 @@ public class Production {
 	private final List<PredecessorModule> rightContext;
 	private final Predicate<Map<String, Float>> condition;
 	private final List<Module> successor;
-	private final Float probability;
+	private final float probability;
 
 	public Production(List<PredecessorModule> leftContext,
 					  List<PredecessorModule> predecessor,
@@ -38,9 +38,16 @@ public class Production {
 		return predecessor.size();
 	}
 
-	// TODO consider context (and (param.) condition)
+	// TODO consider context
 	public boolean matchesPred(List<Module> pred) {
 		return predecessor.equals(pred);
+	}
+
+	public boolean conditionSatisfied(List<Module> pred) {
+		if (this.condition == null) {
+			return true;
+		}
+		return condition.test(getParamsFromModules(pred));
 	}
 
 	// Given the modules in "currentPred" match this production, what are the values of the params?

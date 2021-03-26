@@ -117,6 +117,7 @@ public final class Textures {
 	}
 
 	// TODO null textures
+	// TODO check if file already loaded?
 	public static class TreeTextures {
 		public Texture2D bark;
 		public Texture2D barkNormal;

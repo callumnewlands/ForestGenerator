@@ -59,7 +59,7 @@ float shadowCalculation(vec4 fragPosLightSpace, vec3 normal, vec3 lightDir) {
     shadow /= 9.0;
 
     if (projCoords.z > 1.0) {
-        shadow = 1.0;// Default to shadowed if past far plane of view frustum
+        shadow = 0.0;// Default to unshadowed if past far plane of view frustum
     }
     return shadow;
 }

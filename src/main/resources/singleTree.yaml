@@ -7,20 +7,21 @@ output:
     height: 780
 #  frameImages: true
 terrain:
-  width: 10
+  width: 10.0
 quadtree:
   levels: 0
   frustumCulling: false
 sceneObjects:
   trees:
-    - !Parameters$SceneObjects$MonopodialTree
+    - !TreeTypes$PineTree
+      #    - !Parameters$SceneObjects$MonopodialTree
       #    - !Parameters$SceneObjects$BranchingTree
       instanceFraction: 1.0
       density: 0.4
   twigs:
     density: 0
   rocks:
-    density: .0
+    density: 0
   grass:
     density: 0
   fallenLeaves:

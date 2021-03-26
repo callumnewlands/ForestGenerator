@@ -11,5 +11,13 @@ quadtree:
   levels: 3
 sceneObjects:
   trees:
-    - !Parameters$SceneObjects$BranchingTree
+    - !TreeTypes$BranchingTree
+      density: 0.6
+    - !TreeTypes$MonopodialTree
+      density: 0.7
+    - !TreeTypes$AspenTree
+      density: 0.6
+    - !TreeTypes$PoplarTree
+      density: 0.6
+    - !TreeTypes$PineTree
       density: 0.6
