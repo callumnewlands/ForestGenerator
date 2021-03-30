@@ -223,7 +223,6 @@ public class TreeTypes {
 	public static class PineTree extends MonopodialTree {
 		public PineTree() {
 			super();
-			// TODO see if you can update params map instead of overwriting on load from yaml
 			lSystemParams = new HashMap<>(Map.ofEntries(
 					Map.entry("lB", 1.2f),  // Base length
 					Map.entry("lS", 0.6f),     // Side branch length

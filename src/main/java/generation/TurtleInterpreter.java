@@ -461,8 +461,6 @@ public class TurtleInterpreter {
 	// Call after interpretInstructions
 	public List<Mesh> getCombinedSubModelMeshes() {
 
-		// Would using instancing instead of combining data help? - would save space but may cost time?
-
 		List<Mesh> meshes = new ArrayList<>();
 
 		for (int i = 0; i < subModels.size(); i++) {

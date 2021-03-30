@@ -170,7 +170,6 @@ class LSystemTest {
 			d 	180.00 	252.00 	36.00 	1.070 	-0.61,0.77,-0.19 	0.40 	6
 		 */
 
-		// TODO constant modules so values can just be injected at the end? - what about expressions? - could combine partial functions?
 		float d1 = 94.74f;
 		float d2 = 132.63f;
 		float a = 18.95f;

@@ -5,14 +5,12 @@ import java.util.List;
 import java.util.Random;
 import java.util.stream.Collectors;
 
-import static rendering.ShaderPrograms.instancedNormalTextureShaderProgram;
 import static rendering.ShaderPrograms.textureShaderProgram;
 
 import modeldata.meshdata.Mesh;
 import modeldata.meshdata.Texture2D;
 import org.joml.Matrix4f;
 import org.joml.Vector2f;
-import org.joml.Vector3f;
 import params.ParameterLoader;
 import params.Parameters;
 import rendering.LevelOfDetail;
@@ -232,10 +230,7 @@ public class TerrainQuadtree {
 				rocks.render(levelOfDetail);
 				grass.render(levelOfDetail);
 
-				// TODO replace with different shader uniform for texture colouring and add variation to leaves on model
-				instancedNormalTextureShaderProgram.setUniform("lightColour", new Vector3f(0.74f, 0.37f, 0.27f));
 				leaves.render(levelOfDetail);
-				instancedNormalTextureShaderProgram.setUniform("lightColour", new Vector3f(0.9f));
 			}
 
 		}

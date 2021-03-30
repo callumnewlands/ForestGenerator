@@ -38,8 +38,7 @@ public class Production {
 		return predecessor.size();
 	}
 
-	// TODO consider context
-	public boolean matchesPred(List<Module> pred) {
+	public boolean predecessorSatisfied(List<Module> pred) {
 		return predecessor.equals(pred);
 	}
 
@@ -48,6 +47,34 @@ public class Production {
 			return true;
 		}
 		return condition.test(getParamsFromModules(pred));
+	}
+
+	public boolean contextSatisfied(List<Module> prev, List<Module> remaining, List<Module> ignored) {
+		return leftContextSatisfied(prev, ignored) && rightContextSatisfied(remaining, ignored);
+	}
+
+	private boolean sideContextSatisfied(List<Module> actual, List<PredecessorModule> expected, List<Module> ignored) {
+		int contextLength = expected.size();
+		List<Module> actualContext = actual
+				.stream()
+				.filter(m -> !ignored.contains(m))
+				.collect(Collectors.toList());
+		actualContext = actualContext.subList(actualContext.size() - contextLength, actualContext.size());
+		return expected.equals(actualContext);
+	}
+
+	private boolean leftContextSatisfied(List<Module> prev, List<Module> ignored) {
+		if (leftContext == null) {
+			return true;
+		}
+		return sideContextSatisfied(prev, leftContext, ignored);
+	}
+
+	private boolean rightContextSatisfied(List<Module> remaining, List<Module> ignored) {
+		if (rightContext == null) {
+			return true;
+		}
+		return sideContextSatisfied(remaining, rightContext, ignored);
 	}
 
 	// Given the modules in "currentPred" match this production, what are the values of the params?

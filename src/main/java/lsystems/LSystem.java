@@ -17,11 +17,6 @@ public class LSystem {
 	private final List<Production> productions;
 	private final int longestPred;
 
-	// TODO context sensitivity
-	// 		"ignored" are not symbols which shouldn't be replaced with themself (as above) but rather ones
-	//	  	which are not considered when determining context
-	// TODO environmentally sensitive/open L-system?
-
 	public LSystem(List<AxiomaticModule> axiom, List<Module> ignored, List<Production> productions) {
 		this.axiom = axiom;
 		this.ignored = ignored;
@@ -30,11 +25,12 @@ public class LSystem {
 		this.longestPred = this.productions.stream().mapToInt(Production::getPredLength).max().orElse(1);
 	}
 
-	private List<Production> getAllWhichMatch(List<Module> pred) {
+	private List<Production> getAllWhichMatch(List<Module> prev, List<Module> pred, List<Module> remaining) {
 		return this.productions
 				.stream()
-				.filter(p -> p.matchesPred(pred))
+				.filter(p -> p.predecessorSatisfied(pred))
 				.filter(p -> p.conditionSatisfied(pred))
+				.filter(p -> p.contextSatisfied(prev, remaining, ignored))
 				.collect(Collectors.toList());
 	}
 
@@ -44,16 +40,19 @@ public class LSystem {
 		while (head < this.state.size()) {
 			// Maximal length matching
 			for (int len = this.longestPred; len > 0; len--) {
-				List<Module> pred = (List<Module>) this.state.subList(head, head + len);
-				List<Production> matches = getAllWhichMatch(pred);
+				List<Module> state = this.getState();
+				List<Module> previous = state.subList(0, head);
+				List<Module> current = state.subList(head, head + len);
+				List<Module> remaining = state.subList(head + len, state.size());
+				List<Production> matches = getAllWhichMatch(previous, current, remaining);
 				Production production = null;
 				if (matches.size() == 1) {
 					production = matches.get(0);
 				} else if (matches.size() > 1) {
-					production = chooseStochasticProduction(matches, pred);
+					production = chooseStochasticProduction(matches, current);
 				}
 				if (matches.size() > 0) {
-					result.addAll(production.apply(pred));
+					result.addAll(production.apply(current));
 					head += len;
 					break;
 				}

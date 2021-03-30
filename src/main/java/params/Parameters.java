@@ -167,6 +167,7 @@ public class Parameters {
 		@Setter
 		public static class Tree extends SceneObject {
 			public String name = "Tree";
+			// TODO see if you can update params map instead of overwriting on load from yaml
 			public Map<String, Number> lSystemParams;
 			public Texture barkTexture = new Texture(
 					"/textures/Bark_Pine_baseColor.jpg",

@@ -129,7 +129,7 @@ public class LoadedModel implements Model {
 				.collect(Collectors.toList());
 
 		List<Vector2f> texVectors = IntStream.range(0, positions.size() / 3)
-				.mapToObj(n -> new Vector2f(normals.get(n * 2), normals.get(n * 2 + 1)))
+				.mapToObj(n -> new Vector2f(textureCoordinates.get(n * 2), textureCoordinates.get(n * 2 + 1)))
 				.collect(Collectors.toList());
 
 		if (posVectors.size() != normVectors.size() ||
