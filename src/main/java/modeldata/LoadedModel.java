@@ -1,13 +1,13 @@
 package modeldata;
 
 import java.io.File;
-import java.io.IOException;
 import java.nio.IntBuffer;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
+import java.util.Map;
 
+import static org.lwjgl.assimp.Assimp.aiGetMaterialTexture;
 import static org.lwjgl.assimp.Assimp.aiImportFile;
 import static org.lwjgl.assimp.Assimp.aiProcess_CalcTangentSpace;
 import static org.lwjgl.assimp.Assimp.aiProcess_FixInfacingNormals;
@@ -15,20 +15,28 @@ import static org.lwjgl.assimp.Assimp.aiProcess_FlipUVs;
 import static org.lwjgl.assimp.Assimp.aiProcess_GenSmoothNormals;
 import static org.lwjgl.assimp.Assimp.aiProcess_JoinIdenticalVertices;
 import static org.lwjgl.assimp.Assimp.aiProcess_Triangulate;
+import static org.lwjgl.assimp.Assimp.aiTextureType_DIFFUSE;
+import static org.lwjgl.assimp.Assimp.aiTextureType_HEIGHT;
+import static org.lwjgl.assimp.Assimp.aiTextureType_NORMALS;
+import static org.lwjgl.opengl.GL11C.GL_REPEAT;
+import static org.lwjgl.opengl.GL11C.GL_RGBA;
+import static org.lwjgl.opengl.GL21C.GL_SRGB_ALPHA;
+import static rendering.ShaderPrograms.instancedNormalTextureShaderProgram;
 
 import modeldata.meshdata.Mesh;
 import modeldata.meshdata.Texture;
+import modeldata.meshdata.Texture2D;
 import modeldata.meshdata.Vertex;
 import modeldata.meshdata.VertexAttribute;
 import org.joml.Matrix4f;
 import org.joml.Vector2f;
 import org.joml.Vector3f;
-import org.joml.Vector4f;
 import org.lwjgl.PointerBuffer;
-import org.lwjgl.assimp.AIColor4D;
 import org.lwjgl.assimp.AIFace;
+import org.lwjgl.assimp.AIMaterial;
 import org.lwjgl.assimp.AIMesh;
 import org.lwjgl.assimp.AIScene;
+import org.lwjgl.assimp.AIString;
 import org.lwjgl.assimp.AIVector3D;
 import params.ParameterLoader;
 import params.Parameters;
@@ -36,116 +44,56 @@ import rendering.ShaderProgram;
 
 public class LoadedModel implements Model {
 
-	private final SingleModel model;
 	static final Parameters parameters = ParameterLoader.getParameters();
+	private final SingleModel model;
+	private final Map<String, Texture> loadedTextures = new HashMap<>();
+	private final String texturesDir;
 
-	public LoadedModel(final String resourcePath) throws IOException {
+	public LoadedModel(final String resourcePath, final String texturesDir) {
 		this(resourcePath,
-//				texturesDir,
+				texturesDir,
 				aiProcess_JoinIdenticalVertices
 						| aiProcess_CalcTangentSpace
 						| aiProcess_GenSmoothNormals
 						| aiProcess_Triangulate
 						| aiProcess_FixInfacingNormals
-						| aiProcess_FlipUVs);
+						| aiProcess_FlipUVs
+		);
 	}
 
-	public LoadedModel(final String resourcePath, final int flags) throws IOException {
+	public LoadedModel(final String resourcePath, final String texturesDir, final int flags) {
+		this.texturesDir = texturesDir;
 
 		AIScene scene = aiImportFile(new File(parameters.resourcesRoot + resourcePath).getAbsolutePath(), flags);
 		if (scene == null || scene.mRootNode() == null) {
 			throw new RuntimeException("Error loading model");
 		}
 
-//		loadMaterials(scene);
-		List<Mesh> meshes = loadMeshes(scene);
+		List<Map<String, Texture>> textures = loadTextures(scene);
+		List<Mesh> meshes = loadMeshes(scene, textures);
 		model = new SingleModel(meshes);
 	}
 
-	private static Vector4f aiColor4DToVector4f(final AIColor4D colour) {
-		return new Vector4f(colour.r(), colour.g(), colour.b(), colour.a());
-	}
-
-	private static float[] listsToFloatArray(
-			final List<Float> positions,
-			final List<Float> normals,
-			final List<Float> textureCoordinates) {
-		int size = positions.size() + normals.size() + textureCoordinates.size();
-		float[] array = new float[size];
-
-		int vertexCount = 0;
-		int arrayCount = 0;
-		int posSize = VertexAttribute.POSITION.getNumberOfFloatComponents();
-		int normSize = VertexAttribute.NORMAL.getNumberOfFloatComponents();
-		int texSize = VertexAttribute.TEXTURE.getNumberOfFloatComponents();
-		int numberOfVertices = positions.size() / posSize;
-
-		while (vertexCount < numberOfVertices) {
-			array[arrayCount] = positions.get(vertexCount * posSize);
-			arrayCount++;
-			array[arrayCount] = positions.get(vertexCount * posSize + 1);
-			arrayCount++;
-			array[arrayCount] = positions.get(vertexCount * posSize + 2);
-			arrayCount++;
-			if (normals.size() > 0) {
-				array[arrayCount] = normals.get(vertexCount * normSize);
-				arrayCount++;
-				array[arrayCount] = normals.get(vertexCount * normSize + 1);
-				arrayCount++;
-				array[arrayCount] = normals.get(vertexCount * normSize + 2);
-				arrayCount++;
-			}
-			if (textureCoordinates.size() > 0) {
-				array[arrayCount] = textureCoordinates.get(vertexCount * texSize);
-				arrayCount++;
-				array[arrayCount] = textureCoordinates.get(vertexCount * texSize + 1);
-				arrayCount++;
-			}
-			vertexCount++;
-		}
-
-		return array;
-	}
-
 	private static List<Vertex> listsToVertexArray(
-			final List<Float> positions,
-			final List<Float> normals,
-			final List<Float> tangents,
-			final List<Float> textureCoordinates) {
+			final List<Vector3f> positions,
+			final List<Vector3f> normals,
+			final List<Vector3f> tangents,
+			final List<Vector2f> textureCoordinates) {
 
-		int posSize = VertexAttribute.POSITION.getNumberOfFloatComponents();
-		List<Vector3f> posVectors = IntStream.range(0, positions.size() / posSize)
-				.mapToObj(n -> new Vector3f(positions.get(n * 3), positions.get(n * 3 + 1), positions.get(n * 3 + 2)))
-				.collect(Collectors.toList());
-
-		int normSize = VertexAttribute.NORMAL.getNumberOfFloatComponents();
-		List<Vector3f> normVectors = IntStream.range(0, positions.size() / normSize)
-				.mapToObj(n -> new Vector3f(normals.get(n * 3), normals.get(n * 3 + 1), normals.get(n * 3 + 2)))
-				.collect(Collectors.toList());
-
-		int tangSize = VertexAttribute.NORMAL.getNumberOfFloatComponents();
-		List<Vector3f> tangVectors = IntStream.range(0, tangents.size() / tangSize)
-				.mapToObj(n -> new Vector3f(tangents.get(n * 3), tangents.get(n * 3 + 1), tangents.get(n * 3 + 2)))
-				.collect(Collectors.toList());
-
-		List<Vector2f> texVectors = IntStream.range(0, positions.size() / 3)
-				.mapToObj(n -> new Vector2f(textureCoordinates.get(n * 2), textureCoordinates.get(n * 2 + 1)))
-				.collect(Collectors.toList());
-
-		if (posVectors.size() != normVectors.size() ||
-				tangVectors.size() != 0 && posVectors.size() != tangVectors.size() ||
-				texVectors.size() != 0 && posVectors.size() != texVectors.size()) {
+		if (positions.size() != normals.size() ||
+				tangents.size() != 0 && positions.size() != tangents.size() ||
+				textureCoordinates.size() != 0 && positions.size() != textureCoordinates.size()) {
 			throw new RuntimeException("Unequal object data");
 		}
 
 		List<Vertex> vertices = new ArrayList<>();
-		for (int i = 0; i < posVectors.size(); i++) {
-			if (texVectors.size() != 0 && tangVectors.size() != 0) {
-				vertices.add(new Vertex(posVectors.get(i), normVectors.get(i), tangVectors.get(i), texVectors.get(i)));
-			} else if (texVectors.size() != 0) {
-				vertices.add(new Vertex(posVectors.get(i), normVectors.get(i), texVectors.get(i)));
+		for (int i = 0; i < positions.size(); i++) {
+			if (tangents.size() != 0 && textureCoordinates.size() != 0) {
+				vertices.add(new Vertex(positions.get(i), normals.get(i), tangents.get(i), textureCoordinates.get(i)));
+			} else if (textureCoordinates.size() != 0) {
+				vertices.add(new Vertex(positions.get(i), normals.get(i), textureCoordinates.get(i)));
 			} else {
-				vertices.add(new Vertex(posVectors.get(i), normVectors.get(i)));
+				vertices.add(new Vertex(positions.get(i), normals.get(i)));
 			}
 		}
 
@@ -153,10 +101,10 @@ public class LoadedModel implements Model {
 	}
 
 	private static List<VertexAttribute> getAttributes(
-			final List<Float> positions,
-			final List<Float> normals,
-			final List<Float> tangents,
-			final List<Float> textureCoordinates) {
+			final List<Vector3f> positions,
+			final List<Vector3f> normals,
+			final List<Vector3f> tangents,
+			final List<Vector2f> textureCoordinates) {
 		List<VertexAttribute> attributes = new ArrayList<>();
 		if (positions.size() > 0) {
 			attributes.add(VertexAttribute.POSITION);
@@ -173,24 +121,86 @@ public class LoadedModel implements Model {
 		return attributes;
 	}
 
-	// TODO materials
 
-	private List<Mesh> loadMeshes(final AIScene scene) {
+	private List<Map<String, Texture>> loadTextures(final AIScene scene) {
+		List<Map<String, Texture>> textures = new ArrayList<>();
+		int noOfMaterials = scene.mNumMaterials();
+		PointerBuffer aiMaterials = scene.mMaterials();
+		for (int i = 0; i < noOfMaterials; i++) {
+			AIMaterial aiMaterial = AIMaterial.create(aiMaterials.get(i));
+			textures.add(processMaterial(aiMaterial));
+		}
+		return textures;
+	}
+
+	// Currently only loads 1st texture of each mesh
+	private Map<String, Texture> processMaterial(final AIMaterial material) {
+
+		AIString texturePathPointer = AIString.calloc();
+		aiGetMaterialTexture(material, aiTextureType_DIFFUSE, 0, texturePathPointer,
+				(IntBuffer) null, null, null, null, null, null);
+		String texturePath = texturePathPointer.dataString();
+		Texture diffuseTexture = null;
+		if (texturePath != null && texturePath.length() > 0) {
+			if (loadedTextures.containsKey(texturePath)) {
+				diffuseTexture = loadedTextures.get(texturePath);
+			} else {
+				// TODO check textureUnit
+				diffuseTexture = new Texture2D(texturesDir + "/" + texturePath, new Vector3f(), 6,
+						GL_SRGB_ALPHA, GL_REPEAT);
+				loadedTextures.put(texturePath, diffuseTexture);
+			}
+		}
+
+		aiGetMaterialTexture(material, aiTextureType_NORMALS, 0, texturePathPointer,
+				(IntBuffer) null, null, null, null, null, null);
+		texturePath = texturePathPointer.dataString();
+		Texture normalTexture = null;
+		if (texturePath == null || texturePath.length() == 0) {
+			// Try aiTextureType_HEIGHT
+			aiGetMaterialTexture(material, aiTextureType_HEIGHT, 0, texturePathPointer,
+					(IntBuffer) null, null, null, null, null, null);
+			texturePath = texturePathPointer.dataString();
+		}
+		if (texturePath != null && texturePath.length() > 0) {
+			if (loadedTextures.containsKey(texturePath)) {
+				normalTexture = loadedTextures.get(texturePath);
+			} else {
+				// TODO check textureUnit
+				normalTexture = new Texture2D(texturesDir + "/" + texturePath, new Vector3f(), 7,
+						GL_RGBA, GL_REPEAT);
+				loadedTextures.put(texturePath, diffuseTexture);
+			}
+		}
+
+		Map<String, Texture> materialTextures = new HashMap<>();
+		if (diffuseTexture != null) {
+			materialTextures.put("diffuseTexture", diffuseTexture);
+		}
+		if (normalTexture != null) {
+			materialTextures.put("normalTexture", normalTexture);
+		}
+
+		return materialTextures;
+	}
+
+
+	private List<Mesh> loadMeshes(final AIScene scene, List<Map<String, Texture>> textures) {
 		List<Mesh> meshes = new ArrayList<>();
 		final int noOfMeshes = scene.mNumMeshes();
 		PointerBuffer aiMeshes = scene.mMeshes();
 		for (int i = 0; i < noOfMeshes; i++) {
 			AIMesh aiMesh = AIMesh.create(aiMeshes.get(i));
-			meshes.add(processMesh(aiMesh, scene));
+			meshes.add(processMesh(aiMesh, textures));
 		}
 		return meshes;
 	}
 
-	private Mesh processMesh(final AIMesh mesh, final AIScene scene) {
-		List<Float> positions = processPositions(mesh);
-		List<Float> normals = processNormals(mesh);
-		List<Float> tangents = processTangents(mesh);
-		List<Float> textureCoordinates = processTexCoords(mesh);
+	private Mesh processMesh(final AIMesh mesh, List<Map<String, Texture>> textures) {
+		List<Vector3f> positions = processPositions(mesh);
+		List<Vector3f> normals = processNormals(mesh);
+		List<Vector3f> tangents = processTangents(mesh);
+		List<Vector2f> textureCoordinates = processTexCoords(mesh);
 		List<Vertex> vertices = listsToVertexArray(positions, normals, tangents, textureCoordinates);
 
 		List<Integer> indices = processIndices(mesh);
@@ -201,69 +211,62 @@ public class LoadedModel implements Model {
 
 		List<VertexAttribute> attributes = getAttributes(positions, normals, tangents, textureCoordinates);
 
-//		final int materialIndex = mesh.mMaterialIndex();
-//		if (materialIndex >= 0) {
-//			Material material = materials.get(materialIndex);
-//			return new Mesh(vertexData, attributes, indexData, material, shaderProgram);
-//		} else {
-		return new Mesh(vertices, indexData, attributes);
-//		}
+		Mesh meshData = new Mesh(vertices, indexData, attributes);
+		int materialIndex = mesh.mMaterialIndex();
+		if (materialIndex >= 0) {
+			Map<String, Texture> meshTextures = textures.get(materialIndex);
+			for (Map.Entry<String, Texture> texture : meshTextures.entrySet()) {
+				meshData.addTexture(texture.getKey(), texture.getValue());
+			}
+		}
+		meshData.setShaderProgram(instancedNormalTextureShaderProgram);
+		return meshData;
 
 	}
 
-	private List<Float> processPositions(final AIMesh mesh) {
-		List<Float> positions = new ArrayList<>();
+	private List<Vector3f> processPositions(final AIMesh mesh) {
+		List<Vector3f> positions = new ArrayList<>();
 		AIVector3D.Buffer aiVertices = mesh.mVertices();
 		while (aiVertices.remaining() > 0) {
-			AIVector3D aiVertex = aiVertices.get();
-			positions.add(aiVertex.x());
-			positions.add(aiVertex.y());
-			positions.add(aiVertex.z());
+			positions.add(aiVectorToJoml(aiVertices.get()));
 		}
 		return positions;
 	}
 
-	private List<Float> processNormals(final AIMesh mesh) {
-		List<Float> normals = new ArrayList<>();
+	private List<Vector3f> processNormals(final AIMesh mesh) {
+		List<Vector3f> normals = new ArrayList<>();
 		AIVector3D.Buffer aiNormals = mesh.mNormals();
 		if (aiNormals == null) {
 			return normals;
 		}
 		while (aiNormals.remaining() > 0) {
-			AIVector3D aiNormal = aiNormals.get();
-			normals.add(aiNormal.x());
-			normals.add(aiNormal.y());
-			normals.add(aiNormal.z());
+			normals.add(aiVectorToJoml(aiNormals.get()).negate());
 		}
 		return normals;
 	}
 
-	private List<Float> processTangents(final AIMesh mesh) {
-		List<Float> tangents = new ArrayList<>();
+	private List<Vector3f> processTangents(final AIMesh mesh) {
+		List<Vector3f> tangents = new ArrayList<>();
 		AIVector3D.Buffer aiTangents = mesh.mTangents();
 		if (aiTangents == null) {
 			return tangents;
 		}
 		while (aiTangents.remaining() > 0) {
-			AIVector3D aiTangent = aiTangents.get();
-			tangents.add(aiTangent.x());
-			tangents.add(aiTangent.y());
-			tangents.add(aiTangent.z());
+			tangents.add(aiVectorToJoml(aiTangents.get()));
 		}
 		return tangents;
 	}
 
 
-	private List<Float> processTexCoords(final AIMesh mesh) {
-		List<Float> textureCoordinates = new ArrayList<>();
+	private List<Vector2f> processTexCoords(final AIMesh mesh) {
+		List<Vector2f> textureCoordinates = new ArrayList<>();
 		if (mesh.mTextureCoords(0) == null) {
 			return textureCoordinates;
 		}
 		AIVector3D.Buffer aiTexCoords = mesh.mTextureCoords(0);
 		while (aiTexCoords.remaining() > 0) {
-			AIVector3D aiTexCoord = aiTexCoords.get();
-			textureCoordinates.add(aiTexCoord.x());
-			textureCoordinates.add(aiTexCoord.y());
+			AIVector3D texCoord = aiTexCoords.get();
+			textureCoordinates.add(new Vector2f(texCoord.x(), texCoord.y()));
 		}
 		return textureCoordinates;
 	}
@@ -280,6 +283,10 @@ public class LoadedModel implements Model {
 			}
 		}
 		return indices;
+	}
+
+	private Vector3f aiVectorToJoml(AIVector3D vector3D) {
+		return new Vector3f(vector3D.x(), vector3D.y(), vector3D.z());
 	}
 
 	public void render() {

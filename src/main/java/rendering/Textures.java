@@ -60,19 +60,19 @@ public final class Textures {
 			GL_SRGB_ALPHA,
 			GL_CLAMP_TO_EDGE);
 
-	public static Texture2D rock = new Texture2D(
-			"textures/Mossy_rock_01_2K_Base_Color.png",
-			new Vector3f(0.3f, 0.3f, 0.3f),
-			6,
-			GL_SRGB_ALPHA,
-			GL_REPEAT);
-
-	public static Texture2D rockNormal = new Texture2D(
-			"textures/Mossy_rock_01_2K_Normal.png",
-			new Vector3f(0.3f, 0.3f, 0.3f),
-			7,
-			GL_RGBA,
-			GL_REPEAT);
+//	public static Texture2D rock = new Texture2D(
+//			"textures/Mossy_rock_01_2K_Base_Color.png",
+//			new Vector3f(0.3f, 0.3f, 0.3f),
+//			6,
+//			GL_SRGB_ALPHA,
+//			GL_REPEAT);
+//
+//	public static Texture2D rockNormal = new Texture2D(
+//			"textures/Mossy_rock_01_2K_Normal.png",
+//			new Vector3f(0.3f, 0.3f, 0.3f),
+//			7,
+//			GL_RGBA,
+//			GL_REPEAT);
 
 	//	public static CubemapTexture skybox = new CubemapTexture(
 //			List.of("right.jpg",
