@@ -14,9 +14,9 @@ import org.joml.Vector2f;
 import params.ParameterLoader;
 import params.Parameters;
 import rendering.LevelOfDetail;
+import sceneobjects.CrossedBillboard;
+import sceneobjects.ExternalModels;
 import sceneobjects.FallenLeaves;
-import sceneobjects.Grass;
-import sceneobjects.Rocks;
 import sceneobjects.Trees;
 import sceneobjects.Twigs;
 
@@ -24,9 +24,10 @@ public class TerrainQuadtree {
 
 	private static final Parameters parameters = ParameterLoader.getParameters();
 	private static final float GROUND_WIDTH = parameters.terrain.width;
+	private static final float DEFAULT_ROCK_DENSITY = 0.02f;
+	private static final float DEFAULT_GRASS_DENSITY = 2.30f;
+	private static final float DEFAULT_TREE_DENSITY = 0.02f;
 	private static final int NUM_OF_INSTANCED_TWIGS = (int) (GROUND_WIDTH * GROUND_WIDTH * 0.04 * parameters.sceneObjects.twigs.density);
-	private static final int NUM_OF_INSTANCED_ROCKS = (int) (GROUND_WIDTH * GROUND_WIDTH * 0.01 * parameters.sceneObjects.rocks.density);
-	private static final int NUM_OF_INSTANCED_GRASS = (int) (GROUND_WIDTH * GROUND_WIDTH * 2.30 * parameters.sceneObjects.grass.density);
 	private static final int NUM_OF_INSTANCED_LEAVES = (int) (GROUND_WIDTH * GROUND_WIDTH * 1.30 * parameters.sceneObjects.fallenLeaves.density);
 
 	private final Quad quad;
@@ -202,34 +203,48 @@ public class TerrainQuadtree {
 		private class SceneObjects {
 			private final List<Trees> trees;
 			private final Twigs twigs;
-			private final Rocks rocks;
+			private final List<ExternalModels> externalModels;
 			private final FallenLeaves leaves;
-			private final Grass grass;
+			private final List<CrossedBillboard> billboards;
 
 			public SceneObjects() {
 				trees = new ArrayList<>();
 				int numTreeTypes = parameters.sceneObjects.trees.size();
 				for (int i = 0; i < numTreeTypes; i++) {
 					int typesPerQuad = (int) (1 / parameters.sceneObjects.trees.get(i).instanceFraction);
-					int numInstances = (int) (GROUND_WIDTH * GROUND_WIDTH * 0.025 * parameters.sceneObjects.trees.get(i).density / numTreeTypes);
+					int numInstances = (int) (GROUND_WIDTH * GROUND_WIDTH * DEFAULT_TREE_DENSITY * parameters.sceneObjects.trees.get(i).density / numTreeTypes);
 					trees.add(new Trees(typesPerQuad, getNumber(numInstances), centre, width, TerrainQuadtree.this, true, i));
 				}
+
 				leaves = new FallenLeaves(1, getNumber(NUM_OF_INSTANCED_LEAVES), centre, width, TerrainQuadtree.this, false);
 				twigs = new Twigs(parameters.sceneObjects.twigs.typesPerQuad, getNumber(NUM_OF_INSTANCED_TWIGS), centre, width, TerrainQuadtree.this, false);
-				rocks = new Rocks(1, getNumber(NUM_OF_INSTANCED_ROCKS), centre, width, TerrainQuadtree.this, false);
-				grass = new Grass(1, getNumber(NUM_OF_INSTANCED_GRASS), centre, width, TerrainQuadtree.this, false);
+
+				externalModels = new ArrayList<>();
+				int numExternalModels = parameters.sceneObjects.externalModels.size();
+				for (int i = 0; i < numExternalModels; i++) {
+					int numInstances = (int) (GROUND_WIDTH * GROUND_WIDTH * DEFAULT_ROCK_DENSITY * parameters.sceneObjects.externalModels.get(i).density / numExternalModels);
+					externalModels.add(new ExternalModels(1, getNumber(numInstances), centre, width, TerrainQuadtree.this, false, i));
+				}
+
+				billboards = new ArrayList<>();
+				int numBillboardTypes = parameters.sceneObjects.crossedBillboards.size();
+				for (int i = 0; i < numBillboardTypes; i++) {
+					int numInstances = (int) (GROUND_WIDTH * GROUND_WIDTH * DEFAULT_GRASS_DENSITY * parameters.sceneObjects.crossedBillboards.get(i).density / numBillboardTypes);
+					billboards.add(new CrossedBillboard(1, getNumber(numInstances), centre, width, TerrainQuadtree.this, false, i));
+				}
 			}
 
 			private void render(LevelOfDetail levelOfDetail) {
-
 				for (Trees tree : trees) {
 					tree.render(levelOfDetail);
 				}
-
 				twigs.render(levelOfDetail);
-				rocks.render(levelOfDetail);
-				grass.render(levelOfDetail);
-
+				for (ExternalModels model : externalModels) {
+					model.render(levelOfDetail);
+				}
+				for (CrossedBillboard billboard : billboards) {
+					billboard.render(levelOfDetail);
+				}
 				leaves.render(levelOfDetail);
 			}
 

@@ -8,6 +8,7 @@ import static org.lwjgl.opengl.GL11C.GL_RGBA;
 import static org.lwjgl.opengl.GL12C.GL_CLAMP_TO_EDGE;
 import static org.lwjgl.opengl.GL21C.GL_SRGB_ALPHA;
 
+import modeldata.meshdata.Texture;
 import modeldata.meshdata.Texture2D;
 import org.joml.Vector3f;
 import params.ParameterLoader;
@@ -53,26 +54,16 @@ public final class Textures {
 			GL_RGBA,
 			GL_REPEAT);
 
-	public static Texture2D grass = new Texture2D(
-			parameters.sceneObjects.grass.texture.diffuse,
-			new Vector3f(0.1f, 0.3f, 0.1f),
-			5,
-			GL_SRGB_ALPHA,
-			GL_CLAMP_TO_EDGE);
-
-//	public static Texture2D rock = new Texture2D(
-//			"textures/Mossy_rock_01_2K_Base_Color.png",
-//			new Vector3f(0.3f, 0.3f, 0.3f),
-//			6,
-//			GL_SRGB_ALPHA,
-//			GL_REPEAT);
-//
-//	public static Texture2D rockNormal = new Texture2D(
-//			"textures/Mossy_rock_01_2K_Normal.png",
-//			new Vector3f(0.3f, 0.3f, 0.3f),
-//			7,
-//			GL_RGBA,
-//			GL_REPEAT);
+	public static List<Texture> billboardTextures = parameters.sceneObjects.crossedBillboards
+			.stream()
+			.map(params -> new Texture2D(
+					params.texture.diffuse,
+					new Vector3f(0.1f, 0.3f, 0.1f),
+					5,
+					GL_SRGB_ALPHA,
+					GL_CLAMP_TO_EDGE)
+			)
+			.collect(Collectors.toList());
 
 	//	public static CubemapTexture skybox = new CubemapTexture(
 //			List.of("right.jpg",

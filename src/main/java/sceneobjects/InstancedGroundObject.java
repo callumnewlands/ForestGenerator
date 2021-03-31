@@ -79,24 +79,18 @@ public abstract class InstancedGroundObject {
 	private int getNumber(int instances, int types) {
 		Random r = ParameterLoader.getParameters().random.generator;
 		float val = (float) instances / types;
-		// If fewer than 1 should be present in this quad generate 1 with probability (instances/types)
+		// If fewer than 1 should be present in this quad, generate 1 with probability (instances/types)
 		if (val < 1) {
 			return r.nextInt(types) < instances ? 1 : 0;
 		}
 		return (int) val;
 	}
 
-	abstract float getScale();
+	abstract float getScale(); // TODO param
 
-	abstract float getHeightOffset();
+	abstract float getHeightOffset(); // TODO param
 
 	abstract Map<LevelOfDetail, List<Mesh>> getMeshes();
-
-//	abstract Map<LevelOfDetail, List<Texture2D>> getDiffuseTextures();
-//
-//	Map<LevelOfDetail, List<Texture2D>> getNormalTextures() {
-//		return null;
-//	}
 
 	public void render(LevelOfDetail levelOfDetail) {
 		if (!generated) {

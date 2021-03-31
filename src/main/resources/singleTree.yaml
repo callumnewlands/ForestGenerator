@@ -17,13 +17,11 @@ sceneObjects:
       #    - !Parameters$SceneObjects$MonopodialTree
       #    - !Parameters$SceneObjects$BranchingTree
       instanceFraction: 1.0
-      density: 0.4
+      density: 0.6
   twigs:
     density: 0
-  rocks:
-    density: 0
-  grass:
-    density: 0
+  externalModels: [ ]
+  crossedBillboards: [ ]
   fallenLeaves:
     density: 0
 lighting:

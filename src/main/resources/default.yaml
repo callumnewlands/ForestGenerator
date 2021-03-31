@@ -359,15 +359,50 @@ sceneObjects:
     numSides: 5
     # Density of models in the scene (to disable set to 0)
     density: 1.0
-  rocks:
-    # Density of models in the scene (to disable set to 0)
-    density: 1.0
-  grass:
-    texture:
-      diffuse: "/textures/grass.png/"
-      normal: null
-    # Density of models in the scene (to disable set to 0)
-    density: 1.0
+  externalModels:
+    # Path to model (.obj) file
+    - modelPath: "/models/Rock1/Rock1.obj"
+      # Path to directory containing model textures defined in material file (.mtl)
+      texturesDir: "/models/Rock1"
+      # Texture to overwrite the model texture with (default = null)
+      overwriteTexture:
+        diffuse: null
+        normal: null
+      # Size scalar for the model
+      scale: 0.3
+      # Density of models in the scene
+      density: 1.0
+  crossedBillboards:
+    # texture to use on the billboards
+    - texture:
+        diffuse: "/textures/grass2.png"
+        normal: null
+      # width scalar
+      xScale: 1.0
+      # height scalar
+      yScale: 0.35
+      # Density of models in the scene
+      density: 20.0
+      # texture to use on the billboards
+    - texture:
+        diffuse: "/textures/fern1_rotated.png"
+        normal: null
+      # width scalar
+      xScale: 1.2
+      # height scalar
+      yScale: 1.2
+      # Density of models in the scene
+      density: 0.2
+      # texture to use on the billboards
+    - texture:
+        diffuse: "/textures/fern2_rotated.png"
+        normal: null
+      # width scalar
+      xScale: 1.2
+      # height scalar
+      yScale: 1.2
+      # Density of models in the scene
+      density: 0.2
   fallenLeaves:
     # Density of models in the scene (to disable set to 0)
     density: 1.0

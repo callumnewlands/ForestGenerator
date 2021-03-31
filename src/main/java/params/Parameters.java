@@ -138,8 +138,14 @@ public class Parameters {
 				new TreeTypes.PoplarTree()
 		);
 		public Twigs twigs = new Twigs();
-		public SceneObject rocks = new SceneObject();
-		public Grass grass = new Grass();
+		public List<ExternalModel> externalModels = List.of(
+				new ExternalModel("/models/Rock1/Rock1.obj", "/models/Rock1", null, 0.3f)
+		);
+		public List<CrossedBillboard> crossedBillboards = List.of(
+				new CrossedBillboard(new Texture("/textures/grass2.png"), 1.0f, 0.35f, 20.0f),
+				new CrossedBillboard(new Texture("/textures/fern1_rotated.png"), 1.2f, 1.2f, 0.2f),
+				new CrossedBillboard(new Texture("/textures/fern2_rotated.png"), 1.2f, 1.2f, 0.2f)
+		);
 		public SceneObject fallenLeaves = new SceneObject();
 
 		@NoArgsConstructor
@@ -157,17 +163,35 @@ public class Parameters {
 		}
 
 		@NoArgsConstructor
+		@AllArgsConstructor
 		@Setter
-		public static class Grass extends SceneObject {
-			public Texture texture = new Texture("/textures/grass.png/");
+		public static class CrossedBillboard extends SceneObject {
+			public Texture texture = new Texture("/textures/grass.png");
+			public float xScale = 1.0f;
+			public float yScale = 1.0f;
+
+			public CrossedBillboard(Texture texture, float xScale, float yScale, float density) {
+				this(texture, xScale, yScale);
+				this.density = density;
+			}
 		}
 
 		@NoArgsConstructor
 		@AllArgsConstructor
 		@Setter
+		public static class ExternalModel extends SceneObject {
+			public String modelPath = "/models/Rock1/Rock1.obj";
+			public String texturesDir = "/models/Rock1";
+			public Texture overwriteTexture = null; // TODO when null textures handles
+			public float scale = 1.0f;
+		}
+
+
+		@NoArgsConstructor
+		@Setter
 		public static class Tree extends SceneObject {
 			public String name = "Tree";
-			// TODO see if you can update params map instead of overwriting on load from yaml
+			// TODO see if you can update params map instead of overwriting on load from yaml https://www.logicbig.com/tutorials/misc/jackson/reader-for-updating.html
 			public Map<String, Number> lSystemParams;
 			public Texture barkTexture = new Texture(
 					"/textures/Bark_Pine_baseColor.jpg",

@@ -16,15 +16,15 @@ public final class MeshUtils {
 			return vertices.stream()
 					.map(v -> new Vertex(
 							model.transformPosition(new Vector3f(v.getPosition())),
-							model.transformDirection(new Vector3f(v.getNormal())),
-							model.transformDirection(new Vector3f(v.getTangent())),
+							model.transformDirection(new Vector3f(v.getNormal())).normalize(),
+							model.transformDirection(new Vector3f(v.getTangent())).normalize(),
 							v.getTexCoord()))
 					.collect(Collectors.toList());
 		}
 		return vertices.stream()
 				.map(v -> new Vertex(
 						model.transformPosition(new Vector3f(v.getPosition())),
-						model.transformDirection(new Vector3f(v.getNormal())),
+						model.transformDirection(new Vector3f(v.getNormal())).normalize(),
 						v.getTexCoord()))
 				.collect(Collectors.toList());
 	}

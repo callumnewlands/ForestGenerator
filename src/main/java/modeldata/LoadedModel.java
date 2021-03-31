@@ -64,9 +64,10 @@ public class LoadedModel implements Model {
 	public LoadedModel(final String resourcePath, final String texturesDir, final int flags) {
 		this.texturesDir = texturesDir;
 
-		AIScene scene = aiImportFile(new File(parameters.resourcesRoot + resourcePath).getAbsolutePath(), flags);
+		String absPath = new File(parameters.resourcesRoot + resourcePath).getAbsolutePath();
+		AIScene scene = aiImportFile(absPath, flags);
 		if (scene == null || scene.mRootNode() == null) {
-			throw new RuntimeException("Error loading model");
+			throw new RuntimeException("Error loading model: " + absPath);
 		}
 
 		List<Map<String, Texture>> textures = loadTextures(scene);
