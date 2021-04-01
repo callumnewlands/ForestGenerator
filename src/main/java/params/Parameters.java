@@ -197,7 +197,7 @@ public class Parameters {
 					"/textures/Bark_Pine_baseColor.jpg",
 					"/textures/Bark_Pine_normal.jpg");
 			public LeafTextures leafTextures = new LeafTextures();
-			public ColourFilter leafColourFilter = new ColourFilter();
+			public ColourFilter leafColourFilter = null;
 			public float instanceFraction = 0.2f;
 			public int numSides = 5;
 			public float scale = 1.0f;

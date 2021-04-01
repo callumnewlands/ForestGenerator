@@ -11,19 +11,29 @@ layout (location = 3) out vec3 gOcclusion;
 layout (location = 4) out vec4 gTranslucency;
 
 uniform vec3 viewPos;
+uniform bool hasNormalMap;
 uniform sampler2D diffuseTexture;
 uniform sampler2D normalTexture;
 
 void main() {
 
-    // diffuse
-    vec3 mapNormal = (texture(normalTexture, textureCoord).rgb * 2.0 - 1.0);
-    vec3 norm = normalize(TBN * mapNormal);// TBN maps from tangent space to world space
+    vec3 normalDir = normalize(normal);
+    vec3 norm;
+    if (hasNormalMap) {
+        vec3 mapNormal = (texture(normalTexture, textureCoord).rgb * 2.0 - 1.0);
+        norm = normalize(TBN * mapNormal);// TBN maps from tangent space to world space
+    } else {
+        norm = normalDir;
+    }
 
+    vec3 viewDir = normalize(viewPos - worldPos);
+    if (dot(normalDir, viewDir) < 0) {
+        // If viewing back face, invert normal
+        norm = -norm;
+    }
 
     vec4 vertexCol = texture(diffuseTexture, textureCoord);
-    vec3 viewDir = normalize(viewPos - worldPos);
-    float alpha = pow(abs(dot(viewDir, normalize(normal))), 1.2);
+    float alpha = pow(abs(dot(viewDir, normalDir)), 1.2);
     if (vertexCol.a < 0.01 || alpha < 0.01) {
         discard;
     }

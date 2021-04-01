@@ -11,7 +11,7 @@ import static lsystems.modules.DefinedModules.LB;
 import static lsystems.modules.DefinedModules.RB;
 import static rendering.ShaderPrograms.billboardShaderProgram;
 import static rendering.ShaderPrograms.instancedLeafShaderProgram;
-import static rendering.ShaderPrograms.instancedNormalTextureShaderProgram;
+import static rendering.ShaderPrograms.textureShader;
 
 import generation.TerrainQuadtree;
 import generation.TurtleInterpreter;
@@ -109,17 +109,17 @@ public class Trees extends InstancedGroundObject {
 		Mesh branches = turtleInterpreter.getMesh();
 		branches.addTexture("diffuseTexture", treeTextures.bark);
 		branches.addTexture("normalTexture", treeTextures.barkNormal);
-		branches.setShaderProgram(instancedNormalTextureShaderProgram);
+		branches.setShaderProgram(textureShader);
 
 		Mesh canopy = turtleInterpreter.getCombinedSubModelMeshes().get(0);
-		canopy.addTexture("leaf_front", treeTextures.leafFront);
-		canopy.addTexture("leaf_transl_front", treeTextures.leafFrontT);
-		canopy.addTexture("leaf_TSNM_front", treeTextures.leafFrontNorm);
-		canopy.addTexture("leaf_TSHLM_front_t", treeTextures.leafFrontHL);
-		canopy.addTexture("leaf_back", treeTextures.leafBack);
-		canopy.addTexture("leaf_transl_back", treeTextures.leafBackT);
-		canopy.addTexture("leaf_TSNM_back", treeTextures.leafBackNorm);
-		canopy.addTexture("leaf_TSHLM_back_t", treeTextures.leafBackHL);
+		canopy.addTexture("leafFront", treeTextures.leafFront);
+		canopy.addTexture("leafFrontTranslucency", treeTextures.leafFrontT);
+		canopy.addTexture("leafFrontNorm", treeTextures.leafFrontNorm);
+		canopy.addTexture("leafFrontHalfLife", treeTextures.leafFrontHL);
+		canopy.addTexture("leafBack", treeTextures.leafBack);
+		canopy.addTexture("leafBackTranslucency", treeTextures.leafBackT);
+		canopy.addTexture("leafBackNorm", treeTextures.leafBackNorm);
+		canopy.addTexture("leafBackHalfLife", treeTextures.leafBackHL);
 		canopy.setShaderProgram(instancedLeafShaderProgram);
 		canopy.setColourFilter(params.leafColourFilter);
 

@@ -47,12 +47,15 @@ public final class Textures {
 			GL_SRGB_ALPHA,
 			GL_REPEAT);
 
-	public static Texture2D twigBarkNormal = new Texture2D(
-			parameters.sceneObjects.twigs.texture.normal,
-			new Vector3f(0.34f, 0.17f, 0.07f),
-			4,
-			GL_RGBA,
-			GL_REPEAT);
+	public static Texture2D twigBarkNormal = parameters.sceneObjects.twigs.texture.normal != null
+			?
+			new Texture2D(
+					parameters.sceneObjects.twigs.texture.normal,
+					new Vector3f(0.34f, 0.17f, 0.07f),
+					4,
+					GL_RGBA,
+					GL_REPEAT)
+			: null;
 
 	public static List<Texture> billboardTextures = parameters.sceneObjects.crossedBillboards
 			.stream()
@@ -128,60 +131,81 @@ public final class Textures {
 					3,
 					GL_SRGB_ALPHA,
 					GL_REPEAT);
-			barkNormal = new Texture2D(
-					barkPaths.normal,
-					new Vector3f(0.34f, 0.17f, 0.07f),
-					4,
-					GL_RGBA,
-					GL_REPEAT);
+			barkNormal = barkPaths.normal != null
+					?
+					new Texture2D(
+							barkPaths.normal,
+							new Vector3f(0.34f, 0.17f, 0.07f),
+							4,
+							GL_RGBA,
+							GL_REPEAT)
+					: null;
 			leafFront = new Texture2D(
 					leafPaths.frontAlbedo,
 					new Vector3f(0.1f, 0.3f, 0.1f),
 					9,
 					GL_SRGB_ALPHA,
 					GL_CLAMP_TO_EDGE);
-			leafFrontT = new Texture2D(
-					leafPaths.frontTranslucency,
-					new Vector3f(0.1f, 0.3f, 0.1f),
-					10,
-					GL_SRGB_ALPHA,
-					GL_CLAMP_TO_EDGE);
+			leafFrontT = leafPaths.frontTranslucency != null
+					?
+					new Texture2D(
+							leafPaths.frontTranslucency,
+							new Vector3f(0.1f, 0.3f, 0.1f),
+							10,
+							GL_SRGB_ALPHA,
+							GL_CLAMP_TO_EDGE)
+					: null;
 			leafBack = new Texture2D(
 					leafPaths.backAlbedo,
 					new Vector3f(0.1f, 0.3f, 0.1f),
 					11,
 					GL_SRGB_ALPHA,
 					GL_CLAMP_TO_EDGE);
-			leafBackT = new Texture2D(
-					leafPaths.backTranslucency,
-					new Vector3f(0.1f, 0.3f, 0.1f),
-					12,
-					GL_SRGB_ALPHA,
-					GL_CLAMP_TO_EDGE);
-			leafFrontHL = new Texture2D(
-					leafPaths.frontHalfLife,
-					new Vector3f(0.1f, 0.3f, 0.1f),
-					13,
-					GL_RGBA,
-					GL_CLAMP_TO_EDGE);
-			leafFrontNorm = new Texture2D(
-					leafPaths.frontNormal,
-					new Vector3f(0.1f, 0.3f, 0.1f),
-					14,
-					GL_RGBA,
-					GL_CLAMP_TO_EDGE);
-			leafBackHL = new Texture2D(
-					leafPaths.backHalfLife,
-					new Vector3f(0.1f, 0.3f, 0.1f),
-					15,
-					GL_RGBA,
-					GL_CLAMP_TO_EDGE);
-			leafBackNorm = new Texture2D(
-					leafPaths.backNormal,
-					new Vector3f(0.1f, 0.3f, 0.1f),
-					16,
-					GL_RGBA,
-					GL_CLAMP_TO_EDGE);
+			leafBackT = leafPaths.backTranslucency != null
+					?
+					new Texture2D(
+							leafPaths.backTranslucency,
+							new Vector3f(0.1f, 0.3f, 0.1f),
+							12,
+							GL_SRGB_ALPHA,
+							GL_CLAMP_TO_EDGE)
+					: null;
+			leafFrontHL = leafPaths.frontHalfLife != null
+					?
+					new Texture2D(
+							leafPaths.frontHalfLife,
+							new Vector3f(0.1f, 0.3f, 0.1f),
+							13,
+							GL_RGBA,
+							GL_CLAMP_TO_EDGE)
+					: null;
+			leafFrontNorm = leafPaths.frontNormal != null
+					?
+					new Texture2D(
+							leafPaths.frontNormal,
+							new Vector3f(0.1f, 0.3f, 0.1f),
+							14,
+							GL_RGBA,
+							GL_CLAMP_TO_EDGE)
+					: null;
+			leafBackHL = leafPaths.backHalfLife != null
+					?
+					new Texture2D(
+							leafPaths.backHalfLife,
+							new Vector3f(0.1f, 0.3f, 0.1f),
+							15,
+							GL_RGBA,
+							GL_CLAMP_TO_EDGE)
+					: null;
+			leafBackNorm = leafPaths.backNormal != null
+					?
+					new Texture2D(
+							leafPaths.backNormal,
+							new Vector3f(0.1f, 0.3f, 0.1f),
+							16,
+							GL_RGBA,
+							GL_CLAMP_TO_EDGE)
+					: null;
 		}
 	}
 

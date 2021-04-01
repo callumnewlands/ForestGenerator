@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.experimental.Accessors;
 import org.apache.commons.lang3.ArrayUtils;
 import org.joml.Matrix4f;
 import org.joml.Vector2f;
@@ -17,25 +18,41 @@ import rendering.ShaderProgram;
 @Setter
 public class Mesh {
 
+	protected Map<String, Texture> textures = new HashMap<>();
+	protected VertexArray vertexArray;
 	private List<Vertex> vertices;
 	private int[] indices;
 	private List<VertexAttribute> vertexAttributes;
 	private Matrix4f model = new Matrix4f().identity();
-	private Parameters.ColourFilter colourFilter = new Parameters.ColourFilter();
-	protected Map<String, Texture> textures = new HashMap<>();
-	protected VertexArray vertexArray;
+	private Parameters.ColourFilter colourFilter;
 	private boolean isInstanced;
+	@Accessors(fluent = true)
+	private boolean hasNormalMap;
+	@Accessors(fluent = true)
+	private boolean hasTranslucencyMap;
+	@Accessors(fluent = true)
+	private boolean hasHalfLifeBasisMap;
 	private ShaderProgram shaderProgram;
 
 	public Mesh(List<Vertex> vertices, int[] indices, List<VertexAttribute> vertexAttributes) {
-		this(vertices, indices, vertexAttributes, false);
+		this(vertices, indices, vertexAttributes, false, false, false, false);
 	}
 
-	public Mesh(List<Vertex> vertices, int[] indices, List<VertexAttribute> vertexAttributes, boolean isInstanced) {
+	public Mesh(List<Vertex> vertices,
+				int[] indices,
+				List<VertexAttribute> vertexAttributes,
+				boolean isInstanced,
+				boolean hasNormalMap,
+				boolean hasTranslucencyMap,
+				boolean hasHalfLifeBasisMap) {
 		this.vertices = vertices;
 		this.indices = indices;
 		this.vertexAttributes = vertexAttributes;
 		this.isInstanced = isInstanced;
+		this.hasNormalMap = hasNormalMap;
+		this.hasTranslucencyMap = hasTranslucencyMap;
+		this.hasHalfLifeBasisMap = hasHalfLifeBasisMap;
+		this.colourFilter = null;
 		this.vertexArray = createVAO();
 	}
 
@@ -59,11 +76,22 @@ public class Mesh {
 		this.model = new Matrix4f(mesh.model);
 		this.shaderProgram = mesh.shaderProgram;
 		this.isInstanced = isInstanced;
+		this.hasNormalMap = mesh.hasNormalMap;
+		this.hasTranslucencyMap = mesh.hasTranslucencyMap;
+		this.hasHalfLifeBasisMap = mesh.hasHalfLifeBasisMap;
 		this.vertexArray = createVAO();
-		this.colourFilter = new Parameters.ColourFilter(mesh.colourFilter);
+		this.colourFilter = mesh.colourFilter != null ? new Parameters.ColourFilter(mesh.colourFilter) : null;
 	}
 
 	public void addTexture(String uniform, Texture texture) {
+		if (texture == null) {
+			return;
+		}
+		switch (uniform) {
+			case "normalTexture", "leafFrontNorm", "leafBackNorm" -> this.hasNormalMap = true;
+			case "leafFrontTranslucency", "leafBackTranslucency" -> this.hasTranslucencyMap = true;
+			case "leafFrontHalfLife", "leafBackHalfLife" -> this.hasHalfLifeBasisMap = true;
+		}
 		textures.put(uniform, texture);
 	}
 
@@ -103,6 +131,9 @@ public class Mesh {
 		if (!isInstanced) {
 			shaderProgram.setUniform("model", model);
 		}
+		shaderProgram.setUniform("isInstanced", isInstanced);
+		shaderProgram.setUniform("hasNormalMap", hasNormalMap);
+		shaderProgram.setUniform("hasTranslucencyMap", hasTranslucencyMap);
 		for (Map.Entry<String, Texture> texture : textures.entrySet()) {
 			if (texture.getKey().equals("diffuseTexture")) {
 				shaderProgram.setUniform("modelColour", texture.getValue().getColour());
@@ -110,9 +141,13 @@ public class Mesh {
 			shaderProgram.setUniform(texture.getKey(), texture.getValue().getUnitID());
 			texture.getValue().bind();
 		}
-		shaderProgram.setUniform("colourFilter", colourFilter.colour);
-		shaderProgram.setUniform("mixFactor", colourFilter.mixFactor);
-		shaderProgram.setUniform("expMix", colourFilter.expMix);
+		if (colourFilter != null) {
+			shaderProgram.setUniform("colourFilter", colourFilter.colour);
+			shaderProgram.setUniform("mixFactor", colourFilter.mixFactor);
+			shaderProgram.setUniform("expMix", colourFilter.expMix);
+		} else {
+			shaderProgram.setUniform("mixFactor", 0.0f);
+		}
 	}
 
 	private void unbindFromRender() {

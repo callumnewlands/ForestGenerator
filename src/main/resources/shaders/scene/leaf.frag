@@ -13,23 +13,26 @@ layout (location = 4) out vec4 gTranslucency;
 uniform vec3 lightPos;
 uniform vec3 viewPos;
 
-// TS = tangent space, NM = normal map
-uniform sampler2D leaf_front;
-uniform sampler2D leaf_transl_front;
-uniform sampler2D leaf_TSNM_front;
-uniform sampler2D leaf_TSHLM_front_t;
+uniform sampler2D leafFront;
+uniform sampler2D leafFrontTranslucency;
+uniform sampler2D leafFrontNorm;
+uniform sampler2D leafFrontHalfLife;
 
-uniform sampler2D leaf_back;
-uniform sampler2D leaf_transl_back;
-uniform sampler2D leaf_TSNM_back;
-uniform sampler2D leaf_TSHLM_back_t;
+uniform sampler2D leafBack;
+uniform sampler2D leafBackTranslucency;
+uniform sampler2D leafBackNorm;
+uniform sampler2D leafBackHalfLife;
 
 uniform vec3 colourFilter;
 uniform float mixFactor;
 uniform bool expMix;
 
+uniform bool hasNormalMap;
+uniform bool hasTranslucencyMap;
+uniform bool hasHalfLifeBasisMap;
+
 vec4 colourise(vec4 inp) {
-    if (inp.a < 0.01) {
+    if (inp.a < 0.01 || mixFactor == 0.0) {
         return inp;
     }
     float luminance = dot(inp.rgb, vec3(0.2126f, 0.7152f, 0.0722f));
@@ -58,18 +61,30 @@ void main() {
     vec4 translColour;
     if (dot(normalDir, viewDir) > 0) {
         // Viewing front of leaf
-        vec3 mapNormal = (texture(leaf_TSNM_front, textureCoord).rgb * 2.0 - 1.0);
-        norm = normalize(TBN * mapNormal);// TBN maps from tangent space to world space
-        vertexCol = colourise(texture(leaf_front, textureCoord));
-        mapHalflife = texture(leaf_TSHLM_front_t, textureCoord).rgb;
-        translColour = colourise(texture(leaf_transl_front, textureCoord));
+        if (hasNormalMap) {
+            vec3 mapNormal = (texture(leafFrontNorm, textureCoord).rgb * 2.0 - 1.0);
+            norm = normalize(TBN * mapNormal);// TBN maps from tangent space to world space
+        } else {
+            norm = normalize(normal);
+        }
+        vertexCol = colourise(texture(leafFront, textureCoord));
+        mapHalflife = hasHalfLifeBasisMap ? texture(leafFrontHalfLife, textureCoord).rgb : vec3(0.5);
+        translColour = hasTranslucencyMap ? texture(leafFrontTranslucency, textureCoord) : vertexCol;
+        translColour = colourise(translColour);
     } else {
         // Viewing back of leaf
-        vec3 mapNormal = (texture(leaf_TSNM_back, textureCoord).rgb * 2.0 - 1.0);
-        norm = normalize(TBN * mapNormal);// TBN maps from tangent space to world space
-        vertexCol = colourise(texture(leaf_back, textureCoord));
-        mapHalflife = texture(leaf_TSHLM_back_t, textureCoord).rgb;
-        translColour = colourise(texture(leaf_transl_back, textureCoord));
+        if (hasNormalMap) {
+            vec3 mapNormal = (texture(leafBackNorm, textureCoord).rgb * 2.0 - 1.0);
+            norm = normalize(TBN * mapNormal);// TBN maps from tangent space to world space
+        } else {
+            norm = normalize(normal);
+        }
+        // Invert normal so it is coming
+        norm = -norm;
+        vertexCol = colourise(texture(leafBack, textureCoord));
+        mapHalflife = hasHalfLifeBasisMap ? texture(leafBackHalfLife, textureCoord).rgb : vec3(0.5);
+        translColour = hasTranslucencyMap ? texture(leafBackTranslucency, textureCoord) : vertexCol;
+        translColour = colourise(translColour);
     }
 
     if (vertexCol.a < 0.01) {

@@ -2,8 +2,8 @@
 layout (location = 0) in vec3 pos;
 layout (location = 1) in vec3 norm;
 layout (location = 2) in vec2 texCoord;
+layout (location = 3) in mat4 instanceModel;
 layout (location = 7) in vec3 tang;
-
 
 out vec3 worldPos;
 out vec3 normal;
@@ -13,12 +13,14 @@ out vec2 textureCoord;
 uniform mat4 model;
 uniform mat4 view;
 uniform mat4 projection;
+uniform bool isInstanced;
 
 void main()
 {
-    worldPos = vec3(model * vec4(pos, 1.0));
+    mat4 correctModel = isInstanced ? instanceModel : model;
+    worldPos = vec3(correctModel * vec4(pos, 1.0));
 
-    mat3 normalMatrix = transpose(inverse(mat3(model)));
+    mat3 normalMatrix = transpose(inverse(mat3(correctModel)));
     vec3 T = normalize(normalMatrix * tang);
     vec3 N = normalize(normalMatrix * norm);
     // re-orthogonalize T with respect to N

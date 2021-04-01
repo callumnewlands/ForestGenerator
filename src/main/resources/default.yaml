@@ -94,6 +94,7 @@ sceneObjects:
         backNormal: "/textures/Leaf1/Leaf1_normals_back.tga"
         backTranslucency: "/textures/Leaf1/Leaf1_back_t.tga"
         backHalfLife: "/textures/Leaf1/Leaf1_halflife_back_t.tga"
+      leafColourFilter: null
       # Number of sides to use in the cross section of the branches
       numSides: 6
       # Minimum number of iterations of the L-system
@@ -150,6 +151,7 @@ sceneObjects:
         backNormal: "/textures/Leaf3/Leaf3_normals_back.tga"
         backTranslucency: "/textures/Leaf3/Leaf3_back_t.tga"
         backHalfLife: "/textures/Leaf3/Leaf3_halflife_back_t.tga"
+      leafColourFilter: null
       # Number of sides to use in the cross section of the branches
       numSides: 6
       # Minimum number of iterations of the L-system

@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.Random;
 import java.util.stream.Collectors;
 
-import static rendering.ShaderPrograms.textureShaderProgram;
+import static rendering.ShaderPrograms.textureShader;
 
 import modeldata.meshdata.Mesh;
 import modeldata.meshdata.Texture2D;
@@ -86,7 +86,7 @@ public class TerrainQuadtree {
 			this.width = width;
 			this.depth = depth;
 			this.mesh = terrainGenerator.getGroundTile(centre, width, verticesPerTile, textureWidth, texture);
-			this.mesh.setShaderProgram(textureShaderProgram);
+			this.mesh.setShaderProgram(textureShader);
 		}
 
 		private boolean containsSeedPoint() {

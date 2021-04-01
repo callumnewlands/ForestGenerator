@@ -53,7 +53,7 @@ public class Texture2D extends Texture {
 			}
 			glGenerateMipmap(GL_TEXTURE_2D);
 		} catch (IOException e) {
-			e.printStackTrace();
+			throw new RuntimeException(e);
 		}
 	}
 

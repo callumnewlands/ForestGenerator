@@ -10,7 +10,9 @@ layout (location = 2) out vec4 gAlbedoSpec;
 layout (location = 3) out vec3 gOcclusion;
 layout (location = 4) out vec4 gTranslucency;
 
+uniform bool hasNormalMap;
 uniform sampler2D diffuseTexture;
+uniform sampler2D normalTexture;
 
 void main() {
 
@@ -19,7 +21,13 @@ void main() {
         discard;
     }
 
-    vec3 norm = normalize(normal);
+    vec3 norm;
+    if (hasNormalMap) {
+        vec3 mapNormal = (texture(normalTexture, textureCoord).rgb * 2.0 - 1.0);
+        norm = normalize(TBN * mapNormal);// TBN maps from tangent space to world space
+    } else {
+        norm = normalize(normal);
+    }
 
     gPosition = worldPos;
     gNormal = norm;

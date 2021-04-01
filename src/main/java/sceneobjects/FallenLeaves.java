@@ -3,7 +3,7 @@ package sceneobjects;
 import java.util.List;
 import java.util.Map;
 
-import static rendering.ShaderPrograms.instancedNormalTextureShaderProgram;
+import static rendering.ShaderPrograms.textureShader;
 
 import generation.TerrainQuadtree;
 import modeldata.meshdata.Mesh;
@@ -33,7 +33,7 @@ public class FallenLeaves extends InstancedGroundObject {
 		Mesh leafMesh = new Mesh(Trees.leaf);
 		leafMesh.addTexture("diffuseTexture", Textures.leaf);
 		leafMesh.addTexture("normalTexture", Textures.leafNormal);
-		leafMesh.setShaderProgram(instancedNormalTextureShaderProgram);
+		leafMesh.setShaderProgram(textureShader);
 		return Map.of(LevelOfDetail.LOW, List.of(leafMesh));
 	}
 

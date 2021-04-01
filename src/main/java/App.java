@@ -547,6 +547,7 @@ public class App {
 		// gamrig_8k.hdr
 		// qwantani_8k.hdr
 		// TODO resolution param
+		// TODO HDR param
 		HDRTexture skyboxTexture = new HDRTexture("textures/gamrig_8k.hdr", 2048, new Vector3f(.529f, .808f, .922f), 8);
 		sunPosition = skyboxTexture.getBrightestArea();
 		skybox.addTexture("skyboxTexture", skyboxTexture);

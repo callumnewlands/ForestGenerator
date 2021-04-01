@@ -36,7 +36,7 @@ public class CubemapTexture extends Texture {
 				glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_SRGB_ALPHA, image.width, image.height,
 						0, image.format, GL_UNSIGNED_BYTE, image.imageData);
 			} catch (IOException e) {
-				e.printStackTrace();
+				throw new RuntimeException(e);
 			}
 		}
 	}

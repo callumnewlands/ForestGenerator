@@ -21,7 +21,7 @@ import static org.lwjgl.assimp.Assimp.aiTextureType_NORMALS;
 import static org.lwjgl.opengl.GL11C.GL_REPEAT;
 import static org.lwjgl.opengl.GL11C.GL_RGBA;
 import static org.lwjgl.opengl.GL21C.GL_SRGB_ALPHA;
-import static rendering.ShaderPrograms.instancedNormalTextureShaderProgram;
+import static rendering.ShaderPrograms.textureShader;
 
 import modeldata.meshdata.Mesh;
 import modeldata.meshdata.Texture;
@@ -220,7 +220,7 @@ public class LoadedModel implements Model {
 				meshData.addTexture(texture.getKey(), texture.getValue());
 			}
 		}
-		meshData.setShaderProgram(instancedNormalTextureShaderProgram);
+		meshData.setShaderProgram(textureShader);
 		return meshData;
 
 	}

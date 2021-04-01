@@ -6,7 +6,7 @@ import java.util.Random;
 
 import static lsystems.modules.DefinedModules.LB;
 import static lsystems.modules.DefinedModules.RB;
-import static rendering.ShaderPrograms.instancedNormalTextureShaderProgram;
+import static rendering.ShaderPrograms.textureShader;
 
 import generation.TerrainQuadtree;
 import generation.TurtleInterpreter;
@@ -54,7 +54,7 @@ public class Twigs extends InstancedGroundObject {
 		Mesh twig = MeshUtils.transform(twigTurtleInterpreter.getMesh(), new Matrix4f().rotate((float) Math.PI / 2, new Vector3f(1, 0, 0)));
 		twig.addTexture("diffuseTexture", Textures.twigBark);
 		twig.addTexture("normalTexture", Textures.twigBarkNormal);
-		twig.setShaderProgram(instancedNormalTextureShaderProgram);
+		twig.setShaderProgram(textureShader);
 		return Map.of(LevelOfDetail.HIGH, List.of(twig));
 	}
 

@@ -49,7 +49,7 @@ public class CrossedBillboard extends InstancedGroundObject {
 		Random r = ParameterLoader.getParameters().random.generator;
 		return new Matrix4f()
 				.rotate(yAngle, up)
-				.rotate(r.nextFloat() * (float) Math.PI / 4,
+				.rotate((float) (r.nextFloat() * Math.PI / 4 + Math.PI / 6),
 						new Vector3f(r.nextFloat(), 0, r.nextFloat()).normalize());
 	}
 

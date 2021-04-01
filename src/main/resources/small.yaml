@@ -27,6 +27,19 @@ sceneObjects:
     - !TreeTypes$MonopodialTree
       density: 0.7
     - !TreeTypes$AspenTree
+      leafTextures:
+        frontAlbedo: "/textures/Leaf4/Autumn_leaf_08_1K_front_Base_Color.png"
+        frontNormal: "/textures/Leaf4/Autumn_leaf_08_1K_front_Normal.png"
+        frontTranslucency: null
+        frontHalfLife: null
+        backAlbedo: "/textures/Leaf4/Autumn_leaf_08_1K_back_Base_Color.png"
+        backNormal: "/textures/Leaf4/Autumn_leaf_08_1K_back_Normal.png"
+        backTranslucency: null
+        backHalfLife: null
+      leafColourFilter:
+        colour: [ 1.0, 0.79, 0.1 ]
+        mixFactor: 0.9
+        expMix: true
       density: 0.6
     - !TreeTypes$PoplarTree
       density: 0.6
