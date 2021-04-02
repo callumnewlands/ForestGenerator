@@ -66,11 +66,15 @@ public class TerrainQuadtree {
 		return terrainGenerator.getHeight(x, z);
 	}
 
-	public void render(Matrix4f MVP) {
+	public void render(Matrix4f MVP, boolean renderForShadows) {
 		List<Quad> tiles = quad.getVisibleQuads(MVP);
 		for (Quad tile : tiles) {
-			tile.render();
+			tile.render(renderForShadows);
 		}
+	}
+
+	public void render(Matrix4f MVP) {
+		render(MVP, false);
 	}
 
 	private class Quad {
@@ -169,10 +173,10 @@ public class TerrainQuadtree {
 			return children.stream().flatMap(q -> q.getMeshes().stream()).collect(Collectors.toList());
 		}
 
-		public void render() {
+		public void render(boolean renderForShadows) {
 
 			for (Mesh mesh : getMeshes()) {
-				mesh.render();
+				mesh.render(renderForShadows);
 			}
 
 			LevelOfDetail levelOfDetail;
@@ -184,7 +188,7 @@ public class TerrainQuadtree {
 
 			if (parameters.sceneObjects.display) {
 				for (SceneObjects objects : getSceneObjects()) {
-					objects.render(levelOfDetail);
+					objects.render(levelOfDetail, renderForShadows);
 				}
 			}
 
@@ -234,18 +238,18 @@ public class TerrainQuadtree {
 				}
 			}
 
-			private void render(LevelOfDetail levelOfDetail) {
+			private void render(LevelOfDetail levelOfDetail, boolean renderForShadows) {
 				for (Trees tree : trees) {
-					tree.render(levelOfDetail);
+					tree.render(levelOfDetail, renderForShadows);
 				}
-				twigs.render(levelOfDetail);
+				twigs.render(levelOfDetail, renderForShadows);
 				for (ExternalModels model : externalModels) {
-					model.render(levelOfDetail);
+					model.render(levelOfDetail, renderForShadows);
 				}
 				for (CrossedBillboard billboard : billboards) {
-					billboard.render(levelOfDetail);
+					billboard.render(levelOfDetail, renderForShadows);
 				}
-				leaves.render(levelOfDetail);
+				leaves.render(levelOfDetail, renderForShadows);
 			}
 
 		}

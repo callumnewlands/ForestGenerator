@@ -166,6 +166,7 @@ import static rendering.ShaderPrograms.billboardShaderProgram;
 import static rendering.ShaderPrograms.instancedLeafShaderProgram;
 import static rendering.ShaderPrograms.lightingPassShader;
 import static rendering.ShaderPrograms.scatteringShader;
+import static rendering.ShaderPrograms.shadowsShader;
 import static rendering.ShaderPrograms.skyboxShaderProgram;
 import static rendering.ShaderPrograms.ssaoBlurShader;
 import static rendering.ShaderPrograms.ssaoShader;
@@ -630,8 +631,7 @@ public class App {
 		glViewport(0, 0, parameters.lighting.shadows.resolution, parameters.lighting.shadows.resolution);
 		glBindFramebuffer(GL_FRAMEBUFFER, shadowBuffer);
 		glClear(GL_DEPTH_BUFFER_BIT);
-		//	TODO rework shader system and use much simpler shader to render scene for shadow map depth sampling
-		float shadowMapScale = parameters.terrain.width;
+
 		float halfTerrainWidth = parameters.terrain.width / 2;
 //		Vector3f sunPos = parameters.lighting.sun.position;
 		List<Vector3f> terrainCorners = List.of(
@@ -641,14 +641,20 @@ public class App {
 				new Vector3f(halfTerrainWidth, 0, halfTerrainWidth)
 		);
 		float furthestDistance = 0;
+		float closestDistance = Float.MAX_VALUE;
 		for (Vector3f corner : terrainCorners) {
 			float len = VectorUtils.subtract(corner, sunPosition).length();
 			if (len > furthestDistance) {
 				furthestDistance = len;
 			}
+			if (len < closestDistance) {
+				closestDistance = len;
+			}
 		}
 		float farPlane = furthestDistance + 10;
-		Matrix4f lightProjection = new Matrix4f().ortho(-shadowMapScale, shadowMapScale, -shadowMapScale, shadowMapScale, 0.1f, farPlane);
+		float nearPlane = Math.max(closestDistance - 10, 0.1f);
+		float halfMapWidth = parameters.terrain.width * (float) Math.sqrt(2) / 2;
+		Matrix4f lightProjection = new Matrix4f().ortho(-halfMapWidth, halfMapWidth, -halfMapWidth, halfMapWidth, nearPlane, farPlane);
 		Matrix4f lightView = new Matrix4f().lookAt(
 				sunPosition,
 				new Vector3f(0),
@@ -660,12 +666,13 @@ public class App {
 		//				new Vector3f(pos.x, 0, pos.z),
 		//				new Vector3f(0, 1, 0));
 
-		ShaderPrograms.forAll(sp -> sp.setUniform("projection", lightProjection));
-		ShaderPrograms.forAll(sp -> sp.setUniform("view", lightView));
+//		ShaderPrograms.forAll(sp -> sp.setUniform("projection", lightProjection));
+//		ShaderPrograms.forAll(sp -> sp.setUniform("view", lightView));
 		lightVP = lightView.mulLocal(lightProjection);
+		shadowsShader.setUniform("lightVP", lightVP);
 
 		// render all shadow casting objects
-		quadtree.render(lightVP);
+		quadtree.render(lightVP, true);
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		glCullFace(GL_BACK);
 

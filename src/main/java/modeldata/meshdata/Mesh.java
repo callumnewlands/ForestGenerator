@@ -4,6 +4,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import static rendering.ShaderPrograms.shadowsShader;
+
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
@@ -157,15 +160,39 @@ public class Mesh {
 	}
 
 	public void render() {
+		render(false);
+	}
+
+	public void render(boolean renderForShadows) {
+		ShaderProgram prevShader = null;
+		if (renderForShadows) {
+			prevShader = this.shaderProgram;
+			this.shaderProgram = shadowsShader;
+		}
 		bindForRender();
 		draw();
 		unbindFromRender();
+		if (renderForShadows) {
+			this.shaderProgram = prevShader;
+		}
 	}
 
 	public void render(int numberOfInstances) {
+		render(numberOfInstances);
+	}
+
+	public void render(int numberOfInstances, boolean renderForShadows) {
+		ShaderProgram prevShader = null;
+		if (renderForShadows) {
+			prevShader = this.shaderProgram;
+			this.shaderProgram = shadowsShader;
+		}
 		bindForRender();
 		draw(numberOfInstances);
 		unbindFromRender();
+		if (renderForShadows) {
+			this.shaderProgram = prevShader;
+		}
 	}
 
 	protected void draw() {

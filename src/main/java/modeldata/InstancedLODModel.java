@@ -45,7 +45,7 @@ public class InstancedLODModel {
 
 	}
 
-	public void render(LevelOfDetail levelOfDetail) {
+	public void render(LevelOfDetail levelOfDetail, boolean renderForShadows) {
 		if (numberOfInstances == 0) {
 			return;
 		}
@@ -58,7 +58,7 @@ public class InstancedLODModel {
 			}
 		}
 		for (Mesh mesh : lodModel.getMeshes()) {
-			mesh.render(numberOfInstances);
+			mesh.render(numberOfInstances, renderForShadows);
 		}
 	}
 }

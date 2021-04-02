@@ -92,12 +92,12 @@ public abstract class InstancedGroundObject {
 
 	abstract Map<LevelOfDetail, List<Mesh>> getMeshes();
 
-	public void render(LevelOfDetail levelOfDetail) {
+	public void render(LevelOfDetail levelOfDetail, boolean renderForShadows) {
 		if (!generated) {
 			throw new RuntimeException("Model is attempting to be rendered without being generated. Is there a subclass constructor which does not call generate()?");
 		}
 		for (InstancedLODModel model : models) {
-			model.render(levelOfDetail);
+			model.render(levelOfDetail, renderForShadows);
 		}
 	}
 }

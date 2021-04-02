@@ -14,6 +14,7 @@ public final class ShaderPrograms {
 	public static ShaderProgram sunShader;
 	public static ShaderProgram scatteringShader;
 	public static ShaderProgram hdrToCubemapShader;
+	public static ShaderProgram shadowsShader;
 
 	static {
 		try {
@@ -23,6 +24,7 @@ public final class ShaderPrograms {
 			skyboxShaderProgram = new ShaderProgram("/shaders/scene/skybox.vert", "/shaders/scene/skybox.frag");
 			sunShader = new ShaderProgram("/shaders/scene/sun.vert", "/shaders/scene/sun.frag");
 
+			shadowsShader = new ShaderProgram("/shaders/processing/shadows.vert", "/shaders/processing/shadows.frag");
 			hdrToCubemapShader = new ShaderProgram("/shaders/processing/hdrToCubemapShader.vert", "/shaders/processing/hdrToCubemapShader.frag");
 			scatteringShader = new ShaderProgram("/shaders/processing/gBufferLighting.vert", "/shaders/processing/scatter.frag");
 			ssaoShader = new ShaderProgram("/shaders/processing/gBufferLighting.vert", "/shaders/processing/ssao.frag");
@@ -48,6 +50,7 @@ public final class ShaderPrograms {
 		function.accept(sunShader);
 		function.accept(scatteringShader);
 		function.accept(hdrToCubemapShader);
+		function.accept(shadowsShader);
 	}
 
 }
