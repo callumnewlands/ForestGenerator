@@ -145,32 +145,53 @@ public class Trees extends InstancedGroundObject {
 				LevelOfDetail.LOW, billboard);
 	}
 
+	private float getFloatParam(Parameters.SceneObjects.Tree params, String name) {
+		Random r = parameters.random.generator;
+		float min = params.lSystemParamsLower.get(name).floatValue();
+		float max = params.lSystemParamsUpper.get(name).floatValue();
+		if (min == max) {
+			return min;
+		}
+		return r.nextFloat() * (max - min) + min;
+	}
+
+	private int getIntParam(Parameters.SceneObjects.Tree params, String name) {
+		Random r = parameters.random.generator;
+		int min = params.lSystemParamsLower.get(name).intValue();
+		int max = params.lSystemParamsUpper.get(name).intValue();
+		if (min == max) {
+			return min;
+		}
+		return r.nextInt(max - min) + min;
+	}
+
 	private LSystem branchingTreeSystem() {
 		Parameters.SceneObjects.Tree params = parameters.sceneObjects.trees.get(index);
-		float a = params.lSystemParams.get("a").floatValue();
-		float lr = params.lSystemParams.get("lr").floatValue();
-		float vr = params.lSystemParams.get("vr").floatValue();
-		float e = params.lSystemParams.get("e").floatValue();
+		float a = getFloatParam(params, "a");
+		float e = getFloatParam(params, "e");
 		List<TreeTypes.BranchingTree.Branching> branchings =
 				((TreeTypes.BranchingTree) params).branchings;
 
 		CharModule A = new CharModule('A');
 		ParametricParameterModule ExIn = new ParametricParameterModule('!', List.of("w"));
-		Module ExOut = new ParametricExpressionModule('!', List.of("w"), vars -> List.of(vars.get("w") * vr));
+		Module ExOut = new ParametricExpressionModule('!', List.of("w"), vars -> List.of(
+				vars.get("w") * getFloatParam(params, "vr")));
 		ParametricParameterModule FIn = new ParametricParameterModule('F', List.of("l"));
-		Module FOut = new ParametricExpressionModule('F', List.of("l"), vars -> List.of(vars.get("l") * lr));
+		Module FOut = new ParametricExpressionModule('F', List.of("l"), vars -> List.of(
+				vars.get("l") * getFloatParam(params, "lr")));
 
 		List<Production> productions = new ArrayList<>();
 		for (TreeTypes.BranchingTree.Branching entry : branchings) {
 			List<Module> successors = new ArrayList<>(List.of(
-					new ParametricValueModule('!', vr),
+					new ParametricExpressionModule('!', List.of(),
+							vars -> List.of(getFloatParam(params, "vr"))),
 					new ParametricValueModule('F', 50f))
 			);
 
 			for (float angle : entry.angles) {
 				successors.addAll(List.of(
 						LB,
-						new ParametricValueModule('&', a),
+						new ParametricValueModule('&', (float) Math.toRadians(a)),
 						new ParametricValueModule('F', 50f),
 						A,
 						RB,
@@ -179,7 +200,7 @@ public class Trees extends InstancedGroundObject {
 			}
 
 			successors.addAll(List.of(
-					new ParametricValueModule('&', a),
+					new ParametricValueModule('&', (float) Math.toRadians(a)),
 					new ParametricValueModule('F', 50f),
 					A)
 			);
@@ -202,26 +223,16 @@ public class Trees extends InstancedGroundObject {
 		);
 	}
 
-
 	private LSystem monopodialTreeSystem() {
 		TreeTypes.MonopodialTree params = (TreeTypes.MonopodialTree) parameters.sceneObjects.trees.get(index);
-		float e = params.lSystemParams.get("e").floatValue();
-		float lB = params.lSystemParams.get("lB").floatValue();
-		float lS = params.lSystemParams.get("lS").floatValue();
-		float lSm = params.lSystemParams.get("lSm").floatValue();
-		float wB = params.lSystemParams.get("wB").floatValue();
-		float wS = params.lSystemParams.get("wS").floatValue();
-		float aB = params.lSystemParams.get("aB").floatValue();
-		float aS = params.lSystemParams.get("aS").floatValue();
-		float aS5 = params.lSystemParams.get("aS5").floatValue();
-		float tH = params.lSystemParams.get("tH").floatValue();
-		int nB = params.lSystemParams.get("nB").intValue();
-		float l1 = params.lSystemParams.get("l1").floatValue();
-		float l2 = params.lSystemParams.get("l2").floatValue();
-		float vr = params.lSystemParams.get("vr").floatValue();
-		float lr = params.lSystemParams.get("lr").floatValue();
-		float lr2 = params.lSystemParams.get("lr2").floatValue();
-		int maxi = params.maxIterations;
+
+		float e = getFloatParam(params, "e");
+		float lB = getFloatParam(params, "lB");
+		float l2 = getFloatParam(params, "l2");
+		float lr2 = getFloatParam(params, "lr2");
+		float wB = getFloatParam(params, "wB");
+		int nB = getIntParam(params, "nB");
+		int minI = params.minIterations;
 		boolean heightVaryingAngles = params.heightVaryingAngles;
 		boolean pineStyleBranches = params.pineStyleBranches;
 
@@ -237,13 +248,25 @@ public class Trees extends InstancedGroundObject {
 		ParametricParameterModule AIn = new ParametricParameterModule('A', List.of("w", "l"));
 		List<Module> AOut = new ArrayList<>();
 		for (int i = 0; i < nB; i++) {
+
+			float lS = getFloatParam(params, "lS");
+			float lSm = getFloatParam(params, "lSm");
+			float wS = getFloatParam(params, "wS");
+			float aB = getFloatParam(params, "aB");
+			float aS = getFloatParam(params, "aS");
+			float aS5 = getFloatParam(params, "aS5");
+			float tH = getFloatParam(params, "tH");
+			float l1 = getFloatParam(params, "l1");
+			float vr = getFloatParam(params, "vr");
+			float lr = getFloatParam(params, "lr");
+
 			int finalI = i;
 			Function<Map<String, Float>, Float> heightFraction = vars -> {
 				float w0 = vars.get("w"); // Width of current segment
 				if (w0 == wB) {
 					return 1f;
 				}
-				float w1 = vars.get("w") + wB / (maxi - 1); // Width of lower segment
+				float w1 = vars.get("w") + wB / minI; // Width of lower segment
 				return MathsUtils.lerp(w0 / wB, w1 / wB, (float) finalI / nB);  // Fraction of height of current position (0 = top of tree)
 			};
 			Function<Map<String, Float>, Float> branchLen = vars -> {
@@ -267,13 +290,13 @@ public class Trees extends InstancedGroundObject {
 							vars.get("w") * wS * branchLen.apply(vars),
 							lS * branchLen.apply(vars))),
 					RB,
-					new ParametricExpressionModule('!', List.of("w"), vars -> List.of(vars.get("w") - finalI * (wB / (maxi - 1)) / (nB))), // Taper trunk
+					new ParametricExpressionModule('!', List.of("w"), vars -> List.of(vars.get("w") - finalI * (wB / minI) / (nB))), // Taper trunk
 					new ParametricValueModule('F', l1)
 			));
 		}
 		AOut.add(new ParametricExpressionModule('F', List.of("l"), vars -> List.of(vars.get("l"))));
 		AOut.add(new ParametricExpressionModule('A', List.of("w", "l"), vars -> List.of(
-				Math.max(vars.get("w") - wB / (maxi - 1), 0),
+				Math.max(vars.get("w") - wB / minI, 0),
 				vars.get("l") * lr2)));
 
 		// Side branches
@@ -290,19 +313,21 @@ public class Trees extends InstancedGroundObject {
 
 	private List<Production> getAlternatingSideBranches(TreeTypes.MonopodialTree params) {
 
-		float wS2 = params.lSystemParams.get("wS2").floatValue();
-		float aS2 = params.lSystemParams.get("aS2").floatValue();
-		float aS3 = params.lSystemParams.get("aS3").floatValue();
-		float aS4 = params.lSystemParams.get("aS4").floatValue();
-		float lS2 = params.lSystemParams.get("lS2").floatValue();
-		float lS3 = params.lSystemParams.get("lS3").floatValue();
-		float lS4 = params.lSystemParams.get("lS4").floatValue();
-		float aU = params.lSystemParams.get("aU").floatValue();
-		int nB2 = params.lSystemParams.get("nB2").intValue();
+		int nB2 = getIntParam(params, "nB2");
 
 		ParametricParameterModule BIn = new ParametricParameterModule('B', List.of("w", "l"));
 		List<Module> BOut = new ArrayList<>();
 		for (int i = 0; i < nB2; i++) {
+
+			float wS2 = getFloatParam(params, "wS2");
+			float aS2 = getFloatParam(params, "aS2");
+			float aS3 = getFloatParam(params, "aS3");
+			float aS4 = getFloatParam(params, "aS4");
+			float lS2 = getFloatParam(params, "lS2");
+			float lS3 = getFloatParam(params, "lS3");
+			float lS4 = getFloatParam(params, "lS4");
+			float aU = getFloatParam(params, "aU");
+
 			int finalI = i;
 			Function<Map<String, Float>, Float> wI = vars -> vars.get("w") - vars.get("w") * finalI / nB2;
 			BOut.addAll(List.of(
@@ -327,7 +352,6 @@ public class Trees extends InstancedGroundObject {
 							(float) Math.toRadians(40))),
 					new CharModule('%'),
 					RB,
-					// TODO +() for aspen
 					new ParametricValueModule('&', (float) Math.toRadians(-aU)) // Causes slight curve downwards
 			));
 		}
@@ -337,17 +361,13 @@ public class Trees extends InstancedGroundObject {
 
 	private List<Production> getPineSideBranches(TreeTypes.MonopodialTree params) {
 
-		float wS2 = params.lSystemParams.get("wS2").floatValue();
-		float aS2 = params.lSystemParams.get("aS2").floatValue();
-		float aS3 = params.lSystemParams.get("aS3").floatValue();
-		float aS4 = params.lSystemParams.get("aS4").floatValue();
-		float aU = params.lSystemParams.get("aU").floatValue();
-
 		ParametricParameterModule BIn = new ParametricParameterModule('B', List.of("w", "l"));
 		List<Module> startModules = List.of(
-				new ParametricValueModule('/', (float) Math.toRadians(aS2)),
+				new ParametricExpressionModule('/', List.of(), vars -> List.of(
+						(float) Math.toRadians(getFloatParam(params, "aS2")))),
 				new ParametricExpressionModule('!', List.of("w"), vars -> List.of(vars.get("w"))),
-				new ParametricValueModule('&', (float) Math.toRadians(-aU)),
+				new ParametricExpressionModule('&', List.of(), vars -> List.of(
+						(float) Math.toRadians(-getFloatParam(params, "aU")))),
 				new ParametricExpressionModule('F', List.of("l"), vars -> List.of(
 						vars.get("l"),
 						300 * vars.get("l"),
@@ -357,21 +377,23 @@ public class Trees extends InstancedGroundObject {
 		);
 		List<Module> sideModules = List.of(
 				LB,
-				new ParametricValueModule('+', (float) Math.toRadians(aS3)),
+				new ParametricExpressionModule('+', List.of(), vars -> List.of(
+						(float) Math.toRadians(getFloatParam(params, "aS3")))),
 				new ParametricExpressionModule('B', List.of("w"), vars -> List.of(
-						vars.get("w") * wS2,
+						vars.get("w") * getFloatParam(params, "wS2"),
 						vars.get("l") * 0.7f)),
 				RB,
 				LB,
-				new ParametricValueModule('+', (float) Math.toRadians(aS4)),
+				new ParametricExpressionModule('+', List.of(), vars -> List.of(
+						(float) Math.toRadians(getFloatParam(params, "aS4")))),
 				new ParametricExpressionModule('B', List.of("w"), vars -> List.of(
-						vars.get("w") * wS2,
+						vars.get("w") * getFloatParam(params, "wS2"),
 						vars.get("l") * 0.7f)),
 				RB
 		);
 		List<Module> endModules = List.of(
 				new ParametricExpressionModule('B', List.of("w"), vars -> List.of(
-						vars.get("w") * wS2,
+						vars.get("w") * getFloatParam(params, "wS2"),
 						vars.get("l") * 0.7f))
 		);
 

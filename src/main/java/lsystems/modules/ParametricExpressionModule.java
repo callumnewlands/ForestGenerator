@@ -33,7 +33,8 @@ public class ParametricExpressionModule extends ParametricParameterModule {
 
 	public ParametricValueModule evaluate(Map<String, Float> params) {
 		if (!this.params.stream().allMatch(params::containsKey)) {
-			throw new RuntimeException("Parameter value not provided for (at least) one of: " + this.params.toString());
+			throw new RuntimeException("Parameter value not provided for (at least) one of: " + this.params.toString() +
+					" in " + this.toString());
 		}
 		return new ParametricValueModule(name, expression.apply(params));
 	}

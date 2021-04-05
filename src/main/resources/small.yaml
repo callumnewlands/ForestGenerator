@@ -27,6 +27,7 @@ sceneObjects:
     - !TreeTypes$MonopodialTree
       density: 0.7
     - !TreeTypes$AspenTree
+#      TODO move to defaults?
       leafTextures:
         frontAlbedo: "/textures/Leaf4/Autumn_leaf_08_1K_front_Base_Color.png"
         frontNormal: "/textures/Leaf4/Autumn_leaf_08_1K_front_Normal.png"

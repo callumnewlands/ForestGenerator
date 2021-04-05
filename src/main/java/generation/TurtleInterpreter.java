@@ -12,6 +12,7 @@ import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lsystems.modules.Module;
+import lsystems.modules.ParametricExpressionModule;
 import lsystems.modules.ParametricValueModule;
 import modeldata.meshdata.Mesh;
 import modeldata.meshdata.Vertex;
@@ -270,7 +271,6 @@ public class TurtleInterpreter {
 
 	private void parseF(Module module) {
 		switch (module.getNumberOfParameters()) {
-			case 0 -> moveForwards(this.stepSize);
 			case 1 -> {
 				float distance = getFirstValueFromParametricModule(module);
 				moveForwards(distance);
@@ -316,13 +316,11 @@ public class TurtleInterpreter {
 	}
 
 	private void parseRotation(Module module, Vector3f axis) {
-		switch (module.getNumberOfParameters()) {
-			case 0 -> turn(this.rotationAngle, axis);
-			case 1 -> {
-				float angle = getFirstValueFromParametricModule(module);
-				turn(angle, axis);
-			}
-			default -> throw new RuntimeException("Too many parameters in: " + module.toString());
+		if (module.getNumberOfParameters() == 1) {
+			float angle = getFirstValueFromParametricModule(module);
+			turn(angle, axis);
+		} else {
+			throw new RuntimeException("Undefined number of parameters in: " + module.toString());
 		}
 	}
 
@@ -353,6 +351,9 @@ public class TurtleInterpreter {
 			char name = module.getName();
 			if (ignored.contains(name)) {
 				continue;
+			}
+			if (module instanceof ParametricExpressionModule) {
+				throw new RuntimeException("ParametricExpressionModule present and not ignored in instructions: " + module.toString());
 			}
 			switch (name) {
 				case 'F' -> parseF(module);

@@ -23,6 +23,9 @@ public abstract class ParametricModule implements Module {
 			return false;
 		}
 		ParametricModule that = (ParametricModule) o;
+		if (that instanceof ParametricExpressionModule) {
+			return Objects.equals(name, that.name); // Cannot determine number of parameters of output of ParametricExpressionModule
+		}
 		return Objects.equals(name, that.name) && getNumberOfParameters() == that.getNumberOfParameters();
 	}
 

@@ -191,8 +191,8 @@ public class Parameters {
 		@Setter
 		public static class Tree extends SceneObject {
 			public String name = "Tree";
-			// TODO see if you can update params map instead of overwriting on load from yaml https://www.logicbig.com/tutorials/misc/jackson/reader-for-updating.html
-			public Map<String, Number> lSystemParams;
+			public Map<String, Number> lSystemParamsLower;
+			public Map<String, Number> lSystemParamsUpper;
 			public Texture barkTexture = new Texture(
 					"/textures/Bark_Pine_baseColor.jpg",
 					"/textures/Bark_Pine_normal.jpg");

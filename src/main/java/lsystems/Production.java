@@ -81,7 +81,7 @@ public class Production {
 	private Map<String, Float> getParamsFromModules(List<Module> currentPred) {
 		Map<String, Float> params = new HashMap<>();
 		for (int i = 0; i < this.predecessor.size(); i++) {
-			if (!(this.predecessor.get(i) instanceof ParametricParameterModule)) {
+			if (!(this.predecessor.get(i) instanceof ParametricParameterModule) || currentPred.get(i) instanceof ParametricExpressionModule) {
 				continue;
 			}
 			if (!(currentPred.get(i) instanceof ParametricValueModule)) {
@@ -110,7 +110,7 @@ public class Production {
 
 	public List<Module> apply(List<Module> currentPred) {
 		Map<String, Float> params = getParamsFromModules(currentPred);
-		if (params == null || params.size() == 0) {
+		if (params == null || params.size() == 0 && currentPred.stream().anyMatch(m -> m instanceof ParametricValueModule)) {
 			return successor; // Non-parametric
 		}
 		return successor.stream().map(m -> {

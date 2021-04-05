@@ -1,0 +1,17 @@
+random:
+  seed: -1
+
+output:
+  window:
+    fullscreen: false
+    width: 1400
+    height: 780
+
+terrain:
+  width: 50.0
+quadtree:
+  levels: 1
+sceneObjects:
+  trees:
+    - !TreeTypes$BranchingTree
+      density: 0.7f
