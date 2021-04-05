@@ -288,8 +288,10 @@ public class App {
 		initScene();
 		checkError("scene initialisation");
 		if (parameters.lighting.shadows.enabled) {
+			setUpShadowMap();
 			renderShadowMap();
 			checkError("shadow map rendering");
+			System.out.println("Shadow map generated");
 		}
 
 		checkError("initialisation");
@@ -626,14 +628,8 @@ public class App {
 		checkError("lighting init");
 	}
 
-	private void renderShadowMap() {
-		glCullFace(GL_FRONT);
-		glViewport(0, 0, parameters.lighting.shadows.resolution, parameters.lighting.shadows.resolution);
-		glBindFramebuffer(GL_FRAMEBUFFER, shadowBuffer);
-		glClear(GL_DEPTH_BUFFER_BIT);
-
+	private void setUpShadowMap() {
 		float halfTerrainWidth = parameters.terrain.width / 2;
-//		Vector3f sunPos = parameters.lighting.sun.position;
 		List<Vector3f> terrainCorners = List.of(
 				new Vector3f(-halfTerrainWidth, 0, -halfTerrainWidth),
 				new Vector3f(-halfTerrainWidth, 0, halfTerrainWidth),
@@ -651,6 +647,7 @@ public class App {
 				closestDistance = len;
 			}
 		}
+
 		float farPlane = furthestDistance + 10;
 		float nearPlane = Math.max(closestDistance - 10, 0.1f);
 		float halfMapWidth = parameters.terrain.width * (float) Math.sqrt(2) / 2;
@@ -666,17 +663,20 @@ public class App {
 		//				new Vector3f(pos.x, 0, pos.z),
 		//				new Vector3f(0, 1, 0));
 
-//		ShaderPrograms.forAll(sp -> sp.setUniform("projection", lightProjection));
-//		ShaderPrograms.forAll(sp -> sp.setUniform("view", lightView));
 		lightVP = lightView.mulLocal(lightProjection);
-		shadowsShader.setUniform("lightVP", lightVP);
+	}
+
+	private void renderShadowMap() {
+		glCullFace(GL_FRONT);
+		glViewport(0, 0, parameters.lighting.shadows.resolution, parameters.lighting.shadows.resolution);
+		glBindFramebuffer(GL_FRAMEBUFFER, shadowBuffer);
+		glClear(GL_DEPTH_BUFFER_BIT);
 
 		// render all shadow casting objects
+		shadowsShader.setUniform("lightVP", lightVP);
 		quadtree.render(lightVP, true);
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		glCullFace(GL_BACK);
-
-		System.out.println("Shadow map generated");
 	}
 
 	// FIXME occasionally (and seemingly randomly) the program runs through 2 render cycles just outputting a black
