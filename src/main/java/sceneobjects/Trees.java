@@ -178,12 +178,30 @@ public class Trees extends InstancedGroundObject {
 		List<TreeTypes.BranchingTree.Branching> branchings =
 				((TreeTypes.BranchingTree) params).branchings;
 
-
 		float e = getFloatParam(params, "e");
 		float lB = getFloatParam(params, "lB");
 		float wB = getFloatParam(params, "wB");
+		int nT = getIntParam(params, "nT");
+		boolean widenBase = params.widenBase;
 
 		CharModule A = new CharModule('A');
+
+		List<AxiomaticModule> axiom = new ArrayList<>(List.of(
+				new ParametricValueModule('T', List.of(0f, -1f, 0f, e))
+		));
+		if (widenBase) {
+			float tP = getFloatParam(params, "tP");
+			float tF = getFloatParam(params, "tF");
+			axiom.add(new ParametricValueModule('!', wB + (float) Math.pow(1, tP) * tF));
+			for (int i = 1; i <= nT; i++) {
+				axiom.add(new ParametricValueModule('!', wB + (float) Math.pow((float) (nT - i) / nT, tP) * tF));
+				axiom.add(new ParametricValueModule('F', lB / nT));
+			}
+		} else {
+			axiom.add(new ParametricValueModule('!', wB));
+			axiom.add(new ParametricValueModule('F', lB));
+		}
+		axiom.add(A);
 
 		List<Production> productions = new ArrayList<>();
 		for (TreeTypes.BranchingTree.Branching entry : branchings) {
@@ -270,13 +288,7 @@ public class Trees extends InstancedGroundObject {
 		productions.add(new ProductionBuilder(List.of(ExIn), List.of(ExOut)).build());
 
 		return new LSystem(
-				List.of(
-						new ParametricValueModule('T', List.of(0f, -1f, 0f, e)),
-						new ParametricValueModule('!', wB),
-						new ParametricValueModule('F', lB),
-//						new ParametricValueModule('/', (float) Math.PI / 4),
-						A
-				),
+				axiom,
 				List.of(),
 				productions
 		);
@@ -291,16 +303,28 @@ public class Trees extends InstancedGroundObject {
 		float lr2 = getFloatParam(params, "lr2");
 		float wB = getFloatParam(params, "wB");
 		int nB = getIntParam(params, "nB");
+		int nT = getIntParam(params, "nT");
 		int minI = params.minIterations;
 		boolean heightVaryingAngles = params.heightVaryingAngles;
 		boolean pineStyleBranches = params.pineStyleBranches;
+		boolean widenBase = params.widenBase;
 
-		List<AxiomaticModule> axiom = List.of(
-				new ParametricValueModule('T', List.of(0f, -1f, 0f, e)),
-				new ParametricValueModule('!', wB),
-				new ParametricValueModule('F', lB),
-				new ParametricValueModule('A', List.of(wB, l2))
-		);
+		List<AxiomaticModule> axiom = new ArrayList<>(List.of(
+				new ParametricValueModule('T', List.of(0f, -1f, 0f, e))
+		));
+		if (widenBase) {
+			float tP = getFloatParam(params, "tP");
+			float tF = getFloatParam(params, "tF");
+			axiom.add(new ParametricValueModule('!', wB + (float) Math.pow(1, tP) * tF));
+			for (int i = 1; i <= nT; i++) {
+				axiom.add(new ParametricValueModule('!', wB + (float) Math.pow((float) (nT - i) / nT, tP) * tF));
+				axiom.add(new ParametricValueModule('F', lB / nT));
+			}
+		} else {
+			axiom.add(new ParametricValueModule('!', wB));
+			axiom.add(new ParametricValueModule('F', lB));
+		}
+		axiom.add(new ParametricValueModule('A', List.of(wB, l2)));
 
 
 		// Trunk

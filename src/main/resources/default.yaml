@@ -204,14 +204,14 @@ sceneObjects:
         diffuse: "/textures/Aspen_bark_001_COLOR.jpg"
         normal: "/textures/Aspen_bark_001_NORM.jpg"
       leafTextures:
-        frontAlbedo: "/textures/Leaf2/Leaf2_front.tga"
-        frontNormal: "/textures/Leaf2/Leaf2_normals_front.tga"
-        frontTranslucency: "/textures/Leaf2/Leaf2_front_t.tga"
-        frontHalfLife: "/textures/Leaf2/Leaf2_halflife_front_t.tga"
-        backAlbedo: "/textures/Leaf2/Leaf2_back.tga"
-        backNormal: "/textures/Leaf2/Leaf2_normals_back.tga"
-        backTranslucency: "/textures/Leaf2/Leaf2_back_t.tga"
-        backHalfLife: "/textures/Leaf2/Leaf2_halflife_back_t.tga"
+        frontAlbedo: "/textures/Leaf4/Autumn_leaf_08_1K_front_Base_Color.png"
+        frontNormal: "/textures/Leaf4/Autumn_leaf_08_1K_front_Normal.png"
+        frontTranslucency: null
+        frontHalfLife: null
+        backAlbedo: "/textures/Leaf4/Autumn_leaf_08_1K_back_Base_Color.png"
+        backNormal: "/textures/Leaf4/Autumn_leaf_08_1K_back_Normal.png"
+        backTranslucency: null
+        backHalfLife: null
       leafColourFilter:
         colour: [ 1.0, 0.79, 0.1 ]
         mixFactor: 0.9

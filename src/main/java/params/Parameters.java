@@ -205,6 +205,7 @@ public class Parameters {
 			public float leafYScale = 1.0f;
 			public int minIterations = 7;
 			public int maxIterations = 9;
+			public boolean widenBase = true;
 		}
 
 		@NoArgsConstructor
