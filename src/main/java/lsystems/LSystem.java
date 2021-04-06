@@ -80,7 +80,7 @@ public class LSystem {
 					pred.toString(), getStateSting()));
 		}
 		Float probSum = matches.stream().map(Production::getProbability).reduce(0f, Float::sum);
-		if (probSum != 1) {
+		if (probSum - 1 > 0.000001) {
 			throw new RuntimeException(String.format(
 					"Probabilities for productions on %s in string %s do not sum to 1. Actual sum: %f",
 					pred.toString(), getStateSting(), probSum));

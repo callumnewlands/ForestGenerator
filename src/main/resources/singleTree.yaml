@@ -13,9 +13,10 @@ quadtree:
   frustumCulling: false
 sceneObjects:
   trees:
-    - !TreeTypes$PineTree
-      #    - !Parameters$SceneObjects$MonopodialTree
-      #    - !Parameters$SceneObjects$BranchingTree
+#    - !TreeTypes$PineTree
+    #    - !TreeTypes$MonopodialTree
+    #    - !TreeTypes$BranchingTree
+    - !TreeTypes$OakTree
       instanceFraction: 1.0
       density: 0.6
   twigs:

@@ -19,16 +19,35 @@ public class TreeTypes {
 
 		public BranchingTree() {
 			super();
-			lSystemParamsLower = new HashMap<>(Map.of(
-					"a", 15f,
-					"lr", 1f,
-					"vr", 1.732f,
-					"e", 0.050f));
-			lSystemParamsUpper = new HashMap<>(Map.of(
-					"a", 30f,
-					"lr", 1.5f,
-					"vr", 1.932f,
-					"e", 0.055f));
+			lSystemParamsLower = new HashMap<>(Map.ofEntries(
+					Map.entry("a1", 15f),        // Angle away after branching
+					Map.entry("a2", -15f),    // Angle around vertical axis between splittings
+					Map.entry("l1", 45f),        // Length of branches
+					Map.entry("pS", 0f),    // Probability of side branch
+					Map.entry("l2", 0f),    // Length before side branches as a fraction of l1
+					Map.entry("l3", 0f),    // Length after side branches as a fraction of l1
+					Map.entry("bO", 0f),    // offset at branching point
+					Map.entry("aS", 25f),    //Angle of side branches from main branch
+					Map.entry("lB", 150f),    // Length of trunk base
+					Map.entry("wB", 0.9f),        // Width of trunk base
+					Map.entry("lr", 1f),        // Ratio of increase of branch length (from ends to trunk)
+					Map.entry("vr", 1.6f),    // Ratio of increase of branch width (from ends to trunk)
+					Map.entry("e", 0.050f)));    // Elasticity
+			lSystemParamsUpper = new HashMap<>(Map.ofEntries(
+					Map.entry("a1", 30f),        // Angle away after branching
+					Map.entry("a2", 15f),        // Angle around vertical axis between splittings
+					Map.entry("l1", 55f),        // Length of branches
+					Map.entry("pS", 0f),    // Probability of side branch
+					Map.entry("l2", 0f),    // Length before side branches as a fraction of l1
+					Map.entry("l3", 0f),    // Length after side branches as a fraction of l1
+					Map.entry("bO", 20f),    // offset at branching point
+					Map.entry("aS", 50f),    //Angle of side branches from main branch
+					Map.entry("lB", 250f),    // Length of trunk base
+					Map.entry("wB", 1.1f),        // Width of trunk base
+					Map.entry("lr", 1.3f),    // Ratio of increase of branch length (from ends to trunk)
+					Map.entry("vr", 1.9f),    // Ratio of increase of branch width (from ends to trunk)
+					Map.entry("e", 0.057f)));    // Elasticity
+
 			barkTexture = new Parameters.Texture(
 					"/textures/Bark_02_2K_Base_Color.png",
 					"/textures/Bark_02_2K_Normal.png");
@@ -60,6 +79,68 @@ public class TreeTypes {
 			public List<Float> angles;
 			public float prob;
 		}
+	}
+
+	public static class OakTree extends BranchingTree {
+
+		public OakTree() {
+			super();
+			lSystemParamsLower = new HashMap<>(Map.ofEntries(
+					Map.entry("a1", 5f),        // Angle away after branching
+					Map.entry("a2", 25f),    // Angle around vertical axis between splittings
+					Map.entry("l1", 40f),        // Length of branches
+					Map.entry("l2", 0.4f),    // Length before side branches as a fraction of l1
+					Map.entry("l3", 0.6f),    // Length after side branches as a fraction of l1
+					Map.entry("bO", 5f),    // offset at branching point
+					Map.entry("aS", 20f),    //Angle of side branches from main branch
+					Map.entry("pS", 0.48f),    // Probability of side branch
+					Map.entry("lB", 200f),    // Length of trunk base
+					Map.entry("wB", 1f),        // Width of trunk base
+					Map.entry("lr", 1f),        // Ratio of increase of branch length (from ends to trunk)
+					Map.entry("vr", 1.3f),    // Ratio of increase of branch width (from ends to trunk)
+					Map.entry("e", 0.005f)));    // Elasticity
+			lSystemParamsUpper = new HashMap<>(Map.ofEntries(
+					Map.entry("a1", 35f),        // Angle away after branching
+					Map.entry("a2", 35f),    // Angle around vertical axis between splittings
+					Map.entry("l1", 40f),        // Length of branches
+					Map.entry("l2", 0.5f),    // Length before side branches as a fraction of l1
+					Map.entry("l3", 0.6f),    // Length after side branches as a fraction of l1
+					Map.entry("bO", 35f),    // offset at branching point
+					Map.entry("aS", 40f),    //Angle of side branches from main branch
+					Map.entry("pS", 0.48f),    // Probability of side branch
+					Map.entry("lB", 300f),    // Length of trunk base
+					Map.entry("wB", 1f),        // Width of trunk base
+					Map.entry("lr", 1.1f),        // Ratio of increase of branch length (from ends to trunk)
+					Map.entry("vr", 1.5f),    // Ratio of increase of branch width (from ends to trunk)
+					Map.entry("e", 0.005f)));    // Elasticity
+			branchings = List.of(
+					new Branching(List.of(), 0.5f),
+					new Branching(List.of((float) Math.PI), 0.5f)
+			);
+			barkTexture = new Parameters.Texture(
+					"/textures/Oak_Bark_4k_Albedo.png",
+					"/textures/Oak_Bark_4k_Normal.png");
+			leafTextures = new Parameters.SceneObjects.LeafTextures(
+					"/textures/Leaf5/LeafSet016_2K_Color_Cropped.png",
+					"/textures/Leaf5/LeafSet016_2K_Normal_Cropped.png",
+					null,
+					null,
+					"/textures/Leaf5/LeafSet016_2K_Color_Cropped.png",
+					"/textures/Leaf5/LeafSet016_2K_Normal_Cropped.png",
+					null,
+					null
+			);
+			leafColourFilter = new Parameters.ColourFilter(new Vector3f(0.7f, 0.6f, 0), 0.4f, false);
+			name = "Tree 1";
+			numSides = 6;
+			scale = 0.01f;
+			leafXScale = 0.4f;
+			leafYScale = 0.4f;
+			minIterations = 12;
+			maxIterations = 13;
+			density = 0.8f;
+		}
+
 	}
 
 	@Setter

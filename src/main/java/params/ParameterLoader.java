@@ -20,6 +20,7 @@ public final class ParameterLoader {
 		ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
 		mapper.registerSubtypes(
 				TreeTypes.BranchingTree.class,
+				TreeTypes.OakTree.class,
 				TreeTypes.MonopodialTree.class,
 				TreeTypes.AspenTree.class,
 				TreeTypes.PoplarTree.class,

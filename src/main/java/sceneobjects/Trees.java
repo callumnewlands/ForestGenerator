@@ -167,54 +167,100 @@ public class Trees extends InstancedGroundObject {
 
 	private LSystem branchingTreeSystem() {
 		Parameters.SceneObjects.Tree params = parameters.sceneObjects.trees.get(index);
-		float a = getFloatParam(params, "a");
-		float e = getFloatParam(params, "e");
 		List<TreeTypes.BranchingTree.Branching> branchings =
 				((TreeTypes.BranchingTree) params).branchings;
 
+
+		float e = getFloatParam(params, "e");
+		float lB = getFloatParam(params, "lB");
+		float wB = getFloatParam(params, "wB");
+
 		CharModule A = new CharModule('A');
-		ParametricParameterModule ExIn = new ParametricParameterModule('!', List.of("w"));
-		Module ExOut = new ParametricExpressionModule('!', List.of("w"), vars -> List.of(
-				vars.get("w") * getFloatParam(params, "vr")));
-		ParametricParameterModule FIn = new ParametricParameterModule('F', List.of("l"));
-		Module FOut = new ParametricExpressionModule('F', List.of("l"), vars -> List.of(
-				vars.get("l") * getFloatParam(params, "lr")));
 
 		List<Production> productions = new ArrayList<>();
 		for (TreeTypes.BranchingTree.Branching entry : branchings) {
-			List<Module> successors = new ArrayList<>(List.of(
+			List<Module> startModules = new ArrayList<>(List.of(
+					new ParametricExpressionModule('!', List.of(), vars -> List.of(
+							getFloatParam(params, "vr"))),
+					new ParametricExpressionModule('/', List.of(), vars -> List.of(
+							(float) Math.toRadians(getFloatParam(params, "a2")))),
+					new ParametricExpressionModule('F', List.of(), vars -> List.of(
+							getFloatParam(params, "l1"))))
+			);
+
+			List<Module> startModulesSide = List.of(
 					new ParametricExpressionModule('!', List.of(),
 							vars -> List.of(getFloatParam(params, "vr"))),
-					new ParametricValueModule('F', 50f))
+					new ParametricExpressionModule('/', List.of(), vars -> List.of(
+							(float) Math.toRadians(getFloatParam(params, "a2")))),
+					new ParametricExpressionModule('F', List.of(), vars -> List.of(
+							getFloatParam(params, "l2") * getFloatParam(params, "l1"))),
+					LB,
+					new ParametricExpressionModule('&', List.of(), vars -> List.of(
+							(float) Math.toRadians(getFloatParam(params, "aS")))),
+					A,
+					RB,
+					new ParametricExpressionModule('F', List.of(), vars -> List.of(
+							getFloatParam(params, "l3") * getFloatParam(params, "l1")))
 			);
 
+			List<Module> midModules = List.of(
+					LB,
+					new ParametricExpressionModule('&', List.of(), vars -> List.of(
+							(float) Math.toRadians(getFloatParam(params, "a1")))),
+					new ParametricExpressionModule('F', List.of(), vars -> List.of(
+							getFloatParam(params, "l1"))),
+					A,
+					RB);
+
+			List<Module> branchingModules = new ArrayList<>();
 			for (float angle : entry.angles) {
-				successors.addAll(List.of(
+				branchingModules.addAll(List.of(
+						new ParametricExpressionModule('F', List.of(), vars -> List.of(
+								getFloatParam(params, "bO"))),
+						new ParametricValueModule('/', angle),
 						LB,
-						new ParametricValueModule('&', (float) Math.toRadians(a)),
-						new ParametricValueModule('F', 50f),
+						new ParametricExpressionModule('&', List.of(), vars -> List.of(
+								(float) Math.toRadians(getFloatParam(params, "a1")))),
+						new ParametricExpressionModule('F', List.of(), vars -> List.of(
+								getFloatParam(params, "l1"))),
 						A,
-						RB,
-						new ParametricValueModule('/', angle))
-				);
+						RB
+				));
 			}
 
-			successors.addAll(List.of(
-					new ParametricValueModule('&', (float) Math.toRadians(a)),
-					new ParametricValueModule('F', 50f),
-					A)
-			);
-			productions.add(new ProductionBuilder(List.of(A), successors).withProbability(entry.prob).build()
-			);
+			// Without side branches
+			List<Module> A1Out = new ArrayList<>();
+			A1Out.addAll(startModules);
+			A1Out.addAll(midModules);
+			A1Out.addAll(branchingModules);
+
+			// With side branches
+			List<Module> A2Out = new ArrayList<>();
+			A2Out.addAll(startModulesSide);
+			A2Out.addAll(midModules);
+			A2Out.addAll(branchingModules);
+
+			float pS = getFloatParam(params, "pS");
+			productions.add(new ProductionBuilder(List.of(A), A1Out).withProbability(entry.prob * (1 - pS)).build());
+			productions.add(new ProductionBuilder(List.of(A), A2Out).withProbability(entry.prob * pS).build());
 		}
+
+		ParametricParameterModule FIn = new ParametricParameterModule('F', List.of("l"));
+		Module FOut = new ParametricExpressionModule('F', List.of("l"), vars -> List.of(
+				vars.get("l") * getFloatParam(params, "lr")));
 		productions.add(new ProductionBuilder(List.of(FIn), List.of(FOut)).build());
+
+		ParametricParameterModule ExIn = new ParametricParameterModule('!', List.of("w"));
+		Module ExOut = new ParametricExpressionModule('!', List.of("w"), vars -> List.of(
+				vars.get("w") * getFloatParam(params, "vr")));
 		productions.add(new ProductionBuilder(List.of(ExIn), List.of(ExOut)).build());
 
 		return new LSystem(
 				List.of(
 						new ParametricValueModule('T', List.of(0f, -1f, 0f, e)),
-						new ParametricValueModule('!', 1f),
-						new ParametricValueModule('F', 200f),
+						new ParametricValueModule('!', wB),
+						new ParametricValueModule('F', lB),
 //						new ParametricValueModule('/', (float) Math.PI / 4),
 						A
 				),
@@ -370,7 +416,7 @@ public class Trees extends InstancedGroundObject {
 						(float) Math.toRadians(-getFloatParam(params, "aU")))),
 				new ParametricExpressionModule('F', List.of("l"), vars -> List.of(
 						vars.get("l"),
-						300 * vars.get("l"),
+						300 * vars.get("l"), // TODO param
 						0f,
 						(float) Math.toRadians(140),
 						(float) Math.toRadians(40)))
