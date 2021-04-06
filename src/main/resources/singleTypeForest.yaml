@@ -13,6 +13,7 @@ quadtree:
   levels: 1
 sceneObjects:
   trees:
-#    - !TreeTypes$BranchingTree
+    - !TreeTypes$BranchingTree
+      density: 0.4
     - !TreeTypes$OakTree
       density: 0.4

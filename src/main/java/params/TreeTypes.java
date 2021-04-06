@@ -12,9 +12,9 @@ public class TreeTypes {
 
 	@Setter
 	public static class BranchingTree extends Parameters.SceneObjects.Tree {
-		public List<Branching> branchings = List.of( // TODO randomise and convert to degrees
-				new Branching(List.of((float) Math.PI), 0.3f),
-				new Branching(List.of(1.6535f, 2.3148f), 0.7f)
+		public List<Branching> branchings = List.of(
+				new Branching(List.of(120f), List.of(240f), 0.3f),
+				new Branching(List.of(60f, 120f), List.of(110f, 150f), 0.7f)
 		);
 
 		public BranchingTree() {
@@ -76,7 +76,8 @@ public class TreeTypes {
 		@AllArgsConstructor
 		@Setter
 		public static class Branching {
-			public List<Float> angles;
+			public List<Float> minAngles;
+			public List<Float> maxAngles;
 			public float prob;
 		}
 	}
@@ -114,8 +115,8 @@ public class TreeTypes {
 					Map.entry("vr", 1.5f),    // Ratio of increase of branch width (from ends to trunk)
 					Map.entry("e", 0.005f)));    // Elasticity
 			branchings = List.of(
-					new Branching(List.of(), 0.5f),
-					new Branching(List.of((float) Math.PI), 0.5f)
+					new Branching(List.of(), List.of(), 0.5f),
+					new Branching(List.of(120f), List.of(240f), 0.5f)
 			);
 			barkTexture = new Parameters.Texture(
 					"/textures/Oak_Bark_4k_Albedo.png",

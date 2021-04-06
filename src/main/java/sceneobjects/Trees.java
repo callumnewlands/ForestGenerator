@@ -145,6 +145,14 @@ public class Trees extends InstancedGroundObject {
 				LevelOfDetail.LOW, billboard);
 	}
 
+	private float getParamBetween(float min, float max) {
+		Random r = parameters.random.generator;
+		if (min == max) {
+			return min;
+		}
+		return r.nextFloat() * (max - min) + min;
+	}
+
 	private float getFloatParam(Parameters.SceneObjects.Tree params, String name) {
 		Random r = parameters.random.generator;
 		float min = params.lSystemParamsLower.get(name).floatValue();
@@ -214,11 +222,16 @@ public class Trees extends InstancedGroundObject {
 					RB);
 
 			List<Module> branchingModules = new ArrayList<>();
-			for (float angle : entry.angles) {
+			if (entry.minAngles.size() != entry.maxAngles.size()) {
+				throw new RuntimeException("Unmatched minimum and maximum branching angles in: " + entry.minAngles + " and " + entry.maxAngles);
+			}
+			for (int i = 0; i < entry.minAngles.size(); i++) {
+				int finalI = i;
 				branchingModules.addAll(List.of(
 						new ParametricExpressionModule('F', List.of(), vars -> List.of(
 								getFloatParam(params, "bO"))),
-						new ParametricValueModule('/', angle),
+						new ParametricExpressionModule('/', List.of(), vars -> List.of(
+								(float) Math.toRadians(getParamBetween(entry.minAngles.get(finalI), entry.maxAngles.get(finalI))))),
 						LB,
 						new ParametricExpressionModule('&', List.of(), vars -> List.of(
 								(float) Math.toRadians(getFloatParam(params, "a1")))),
