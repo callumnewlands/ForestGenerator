@@ -21,7 +21,7 @@ public class FallenLeaves extends InstancedGroundObject {
 
 	@Override
 	Map<LevelOfDetail, List<Mesh>> getMeshes() {
-		Mesh leafMesh = new Mesh(Trees.leaf);
+		Mesh leafMesh = new Mesh(Tree.leaf);
 		leafMesh.addTexture("diffuseTexture", Textures.leaf);
 		leafMesh.addTexture("normalTexture", Textures.leafNormal);
 		leafMesh.setShaderProgram(textureShader);

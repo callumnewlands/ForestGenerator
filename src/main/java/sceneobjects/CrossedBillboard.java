@@ -44,7 +44,7 @@ public class CrossedBillboard extends InstancedGroundObject {
 	@Override
 	Map<LevelOfDetail, List<Mesh>> getMeshes() {
 		Parameters.SceneObjects.CrossedBillboard params = ParameterLoader.getParameters().sceneObjects.crossedBillboards.get(index);
-		Mesh board = MeshUtils.transform(Trees.leaf, new Matrix4f()
+		Mesh board = MeshUtils.transform(Tree.leaf, new Matrix4f()
 				.rotate((float) Math.PI / 2, out)
 				.scale(params.yScale, 1, params.xScale));
 		board.addTexture("diffuseTexture", Textures.billboardTextures.get(index));

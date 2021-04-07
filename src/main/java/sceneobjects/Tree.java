@@ -10,12 +10,14 @@ import java.util.stream.Collectors;
 import static lsystems.modules.DefinedModules.LB;
 import static lsystems.modules.DefinedModules.RB;
 import static rendering.ShaderPrograms.billboardShaderProgram;
-import static rendering.ShaderPrograms.instancedLeafShaderProgram;
+import static rendering.ShaderPrograms.leafShaderProgram;
 import static rendering.ShaderPrograms.textureShader;
 
-import generation.TerrainQuadtree;
+import generation.TreePool;
 import generation.TurtleInterpreter;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.Setter;
 import lsystems.LSystem;
 import lsystems.Production;
 import lsystems.ProductionBuilder;
@@ -25,6 +27,9 @@ import lsystems.modules.Module;
 import lsystems.modules.ParametricExpressionModule;
 import lsystems.modules.ParametricParameterModule;
 import lsystems.modules.ParametricValueModule;
+import modeldata.LODModel;
+import modeldata.LODModelBuilder;
+import modeldata.SingleModel;
 import modeldata.meshdata.Mesh;
 import modeldata.meshdata.Vertex;
 import modeldata.meshdata.VertexAttribute;
@@ -40,7 +45,7 @@ import rendering.Textures;
 import utils.MathsUtils;
 import utils.MeshUtils;
 
-public class Trees extends InstancedGroundObject {
+public class Tree {
 
 	private static final Parameters parameters = ParameterLoader.getParameters();
 	private final static Vector3f up = new Vector3f(0f, 1f, 0f);
@@ -61,14 +66,29 @@ public class Trees extends InstancedGroundObject {
 	);
 	@Getter
 	private final int index;
+	private LODModel model;
 
-	public Trees(int numberOfTypes, int numberOfInstances, Vector2f regionCentre, float regionWidth, TerrainQuadtree quadtree, int index) {
-		super(numberOfTypes, numberOfInstances, regionCentre, regionWidth, quadtree, parameters.sceneObjects.trees.get(index));
+	public Tree(int index) {
 		this.index = index;
-		generate();
+		Map<LevelOfDetail, List<Mesh>> lodMeshes = getMeshes();
+
+		LODModelBuilder modelBuilder = new LODModelBuilder();
+		// For each LOD, construct the mesh representation
+		for (LevelOfDetail lod : lodMeshes.keySet()) {
+			List<Mesh> meshes = lodMeshes.get(lod);
+			modelBuilder.withLODModel(lod, new SingleModel(meshes));
+		}
+		model = modelBuilder.build();
 	}
 
-	@Override
+	public void setModelMatrix(Matrix4f modelMat) {
+		this.model.setModelMatrix(modelMat);
+	}
+
+	public void render(LevelOfDetail levelOfDetail, boolean renderForShadows) {
+		model.render(levelOfDetail, renderForShadows);
+	}
+
 	Map<LevelOfDetail, List<Mesh>> getMeshes() {
 		Parameters.SceneObjects.Tree params = parameters.sceneObjects.trees.get(index);
 		int numEdges = params.numSides;
@@ -110,11 +130,11 @@ public class Trees extends InstancedGroundObject {
 		canopy.addTexture("leafBackTranslucency", treeTextures.leafBackT);
 		canopy.addTexture("leafBackNorm", treeTextures.leafBackNorm);
 		canopy.addTexture("leafBackHalfLife", treeTextures.leafBackHL);
-		canopy.setShaderProgram(instancedLeafShaderProgram);
+		canopy.setShaderProgram(leafShaderProgram);
 		canopy.setColourFilter(params.leafColourFilter);
 
 		// Uses leaf geometry to construct billboard
-		Mesh board = MeshUtils.transform(Trees.leaf, new Matrix4f()
+		Mesh board = MeshUtils.transform(Tree.leaf, new Matrix4f()
 				.scale(1f, 10f / params.scale, 1f / params.scale)
 				.rotate((float) Math.PI / 2, out));
 		board.addTexture("diffuseTexture", treeTextures.bark);
@@ -122,7 +142,7 @@ public class Trees extends InstancedGroundObject {
 		board.setShaderProgram(billboardShaderProgram);
 
 		Mesh LODCanopy = new Mesh(canopy);
-		LODCanopy.setShaderProgram(instancedLeafShaderProgram);
+		LODCanopy.setShaderProgram(leafShaderProgram);
 		List<Mesh> billboard = List.of(
 				new Mesh(board),
 				MeshUtils.transform(board, new Matrix4f().rotate((float) Math.PI / 2, up)),
@@ -504,6 +524,19 @@ public class Trees extends InstancedGroundObject {
 				new ProductionBuilder(List.of(BIn), B2Out)
 						.withCondition(vars -> vars.get("l") < 0.3f).build()
 		);
+	}
+
+	@Getter
+	@Setter
+	@AllArgsConstructor
+	public static class Reference {
+		private int typeIndex;
+		private int treePoolIndex;
+		private Matrix4f model;
+
+		public void render(LevelOfDetail levelOfDetail, boolean renderForShadows, TreePool treePool) {
+			treePool.renderTreeWithModel(typeIndex, treePoolIndex, model, levelOfDetail, renderForShadows);
+		}
 	}
 
 }

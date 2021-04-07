@@ -10,7 +10,7 @@ output:
 terrain:
   width: 50.0
 quadtree:
-  levels: 2
+  levels: 3
 sceneObjects:
   trees:
     - !TreeTypes$BranchingTree

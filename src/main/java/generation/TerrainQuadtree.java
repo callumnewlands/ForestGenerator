@@ -17,7 +17,7 @@ import rendering.LevelOfDetail;
 import sceneobjects.CrossedBillboard;
 import sceneobjects.ExternalModels;
 import sceneobjects.FallenLeaves;
-import sceneobjects.Trees;
+import sceneobjects.Tree;
 import sceneobjects.Twigs;
 
 public class TerrainQuadtree {
@@ -30,6 +30,7 @@ public class TerrainQuadtree {
 	private static final int NUM_OF_INSTANCED_TWIGS = (int) (GROUND_WIDTH * GROUND_WIDTH * 0.04 * parameters.sceneObjects.twigs.density);
 	private static final int NUM_OF_INSTANCED_LEAVES = (int) (GROUND_WIDTH * GROUND_WIDTH * 1.30 * parameters.sceneObjects.fallenLeaves.density);
 
+	private final TreePool treePool = new TreePool();
 	private final Quad quad;
 	private final int maxDepth;
 	private final int verticesPerTile;
@@ -77,22 +78,20 @@ public class TerrainQuadtree {
 	}
 
 	private class Quad {
-		private final Vector2f centre;
-		private final float width;
-		private final int depth;
-		private final Mesh mesh;
-		private List<Quad> children = null;
-		private SceneObjects sceneObjects = null;
+		protected final Vector2f centre;
+		protected final float width;
+		protected final int depth;
+		protected final Texture2D texture;
+		protected List<Quad> children = null;
 
 		Quad(Vector2f centre, float width, int depth, Texture2D texture) {
 			this.centre = centre;
 			this.width = width;
 			this.depth = depth;
-			this.mesh = terrainGenerator.getGroundTile(centre, width, verticesPerTile, textureWidth, texture);
-			this.mesh.setShaderProgram(textureShader);
+			this.texture = texture;
 		}
 
-		private boolean containsSeedPoint() {
+		protected boolean containsSeedPoint() {
 			float minX = centre.x - width / 2;
 			float maxX = centre.x + width / 2;
 			float minY = centre.y - width / 2;
@@ -103,7 +102,7 @@ public class TerrainQuadtree {
 			return sx <= maxX && sx >= minX && sy <= maxY && sy >= minY;
 		}
 
-		private boolean isOutsideView(Matrix4f MVP) {
+		protected boolean isOutsideView(Matrix4f MVP) {
 			if (!parameters.quadtree.frustumCulling) {
 				return false;
 			}
@@ -118,35 +117,34 @@ public class TerrainQuadtree {
 			float w4 = width / 4;
 			float w2 = width / 2;
 
-			children.add(new Quad(new Vector2f(cx - w4, cy - w4), w2, depth + 1, texture));
-			children.add(new Quad(new Vector2f(cx - w4, cy + w4), w2, depth + 1, texture));
-			children.add(new Quad(new Vector2f(cx + w4, cy - w4), w2, depth + 1, texture));
-			children.add(new Quad(new Vector2f(cx + w4, cy + w4), w2, depth + 1, texture));
-		}
-
-		void updateChildren() {
-			if (depth < maxDepth) {
-				generateChildren();
-				for (Quad child : children) {
-					child.updateChildren();
-				}
-				if (depth == maxDepth - 1) {
-					nodeCount += 1;
-					System.out.printf("%.2f%% generated %n", nodeCount / Math.pow(4, depth) * 100);
-				}
+			if (depth == maxDepth - 1) {
+				children.add(new LeafQuad(new Vector2f(cx - w4, cy - w4), w2, depth + 1, texture));
+				children.add(new LeafQuad(new Vector2f(cx - w4, cy + w4), w2, depth + 1, texture));
+				children.add(new LeafQuad(new Vector2f(cx + w4, cy - w4), w2, depth + 1, texture));
+				children.add(new LeafQuad(new Vector2f(cx + w4, cy + w4), w2, depth + 1, texture));
 			} else {
-//				mesh = terrainGenerator.getGroundTile(centre, width, verticesPerTile, textureWidth, texture);
-//				mesh.setShaderProgram(textureShaderProgram);
-				sceneObjects = new SceneObjects();
-				children = null;
+				children.add(new Quad(new Vector2f(cx - w4, cy - w4), w2, depth + 1, texture));
+				children.add(new Quad(new Vector2f(cx - w4, cy + w4), w2, depth + 1, texture));
+				children.add(new Quad(new Vector2f(cx + w4, cy - w4), w2, depth + 1, texture));
+				children.add(new Quad(new Vector2f(cx + w4, cy + w4), w2, depth + 1, texture));
 			}
 		}
 
-		private List<Quad> getVisibleQuads(Matrix4f MVP) {
-			// Stop recursion to children at leaf node or if distance from camera > thresholdCoefficient * width
+		protected void updateChildren() {
+			generateChildren();
+			for (Quad child : children) {
+				child.updateChildren();
+			}
+			if (depth == maxDepth - 1) {
+				nodeCount += 1;
+				System.out.printf("%.2f%% generated %n", nodeCount / Math.pow(4, depth) * 100);
+			}
+		}
+
+		protected List<Quad> getVisibleQuads(Matrix4f MVP) {
+			// Stop recursion to children if distance from camera > thresholdCoefficient * width
 			if (Math.abs(centre.x - seedPoint.x) > parameters.quadtree.thresholdCoefficient * width ||
-					Math.abs(centre.y - seedPoint.y) > parameters.quadtree.thresholdCoefficient * width ||
-					this.children == null) {
+					Math.abs(centre.y - seedPoint.y) > parameters.quadtree.thresholdCoefficient * width) {
 				if (isOutsideView(MVP)) {
 					return List.of();
 				}
@@ -155,25 +153,15 @@ public class TerrainQuadtree {
 			return children.stream().flatMap(q -> q.getVisibleQuads(MVP).stream()).collect(Collectors.toList());
 		}
 
-		private List<SceneObjects> getSceneObjects() {
-
-			if (children == null) {
-				return sceneObjects != null ? List.of(sceneObjects) : List.of();
-			}
+		protected List<LeafQuad.SceneObjects> getSceneObjects() {
 			return children.stream().flatMap(q -> q.getSceneObjects().stream()).collect(Collectors.toList());
 		}
 
-
-		private List<Mesh> getMeshes() {
-
-			if (children == null) {
-				return mesh != null ? List.of(mesh) : List.of();
-			}
+		protected List<Mesh> getMeshes() {
 			return children.stream().flatMap(q -> q.getMeshes().stream()).collect(Collectors.toList());
 		}
 
 		public void render(boolean renderForShadows) {
-
 			for (Mesh mesh : getMeshes()) {
 				mesh.render(renderForShadows);
 			}
@@ -186,12 +174,48 @@ public class TerrainQuadtree {
 			}
 
 			if (parameters.sceneObjects.display) {
-				for (SceneObjects objects : getSceneObjects()) {
+				for (LeafQuad.SceneObjects objects : getSceneObjects()) {
 					objects.render(levelOfDetail, renderForShadows);
 				}
 			}
-
 		}
+	}
+
+	private class LeafQuad extends Quad {
+		private Mesh mesh = null;
+		private SceneObjects sceneObjects = null;
+
+		LeafQuad(Vector2f centre, float width, int depth, Texture2D texture) {
+			super(centre, width, depth, texture);
+			if (depth == maxDepth) {
+				this.mesh = terrainGenerator.getGroundTile(this.centre, this.width, verticesPerTile, textureWidth, this.texture);
+				this.mesh.setShaderProgram(textureShader);
+			}
+		}
+
+		@Override
+		protected void updateChildren() {
+//				mesh = terrainGenerator.getGroundTile(centre, width, verticesPerTile, textureWidth, texture);
+//				mesh.setShaderProgram(textureShaderProgram);
+			sceneObjects = new LeafQuad.SceneObjects();
+			children = null;
+		}
+
+		@Override
+		protected List<Quad> getVisibleQuads(Matrix4f MVP) {
+			return isOutsideView(MVP) ? List.of() : List.of(this);
+		}
+
+		@Override
+		public List<SceneObjects> getSceneObjects() {
+			return sceneObjects != null ? List.of(sceneObjects) : List.of();
+		}
+
+		@Override
+		protected List<Mesh> getMeshes() {
+			return mesh != null ? List.of(mesh) : List.of();
+		}
+
 
 		private int getNumber(int total) {
 			Random r = ParameterLoader.getParameters().random.generator;
@@ -204,7 +228,7 @@ public class TerrainQuadtree {
 		}
 
 		private class SceneObjects {
-			private final List<Trees> trees;
+			private final List<Tree.Reference> trees;
 			private final Twigs twigs;
 			private final List<ExternalModels> externalModels;
 			private final FallenLeaves leaves;
@@ -213,10 +237,11 @@ public class TerrainQuadtree {
 			public SceneObjects() {
 				trees = new ArrayList<>();
 				int numTreeTypes = parameters.sceneObjects.trees.size();
-				for (int i = 0; i < numTreeTypes; i++) {
-					int typesPerQuad = (int) (1 / parameters.sceneObjects.trees.get(i).instanceFraction);
-					int numInstances = (int) (GROUND_WIDTH * GROUND_WIDTH * DEFAULT_TREE_DENSITY * parameters.sceneObjects.trees.get(i).density / numTreeTypes);
-					trees.add(new Trees(typesPerQuad, getNumber(numInstances), centre, width, TerrainQuadtree.this, i));
+				for (int type = 0; type < numTreeTypes; type++) {
+					int numReferences = (int) (GROUND_WIDTH * GROUND_WIDTH * DEFAULT_TREE_DENSITY * parameters.sceneObjects.trees.get(type).density / numTreeTypes);
+					for (int i = 0; i < getNumber(numReferences); i++) {
+						trees.add(treePool.getTree(type, centre, width, TerrainQuadtree.this));
+					}
 				}
 
 				leaves = new FallenLeaves(1, getNumber(NUM_OF_INSTANCED_LEAVES), centre, width, TerrainQuadtree.this);
@@ -238,8 +263,8 @@ public class TerrainQuadtree {
 			}
 
 			private void render(LevelOfDetail levelOfDetail, boolean renderForShadows) {
-				for (Trees tree : trees) {
-					tree.render(levelOfDetail, renderForShadows);
+				for (Tree.Reference tree : trees) {
+					tree.render(levelOfDetail, renderForShadows, treePool);
 				}
 				twigs.render(levelOfDetail, renderForShadows);
 				for (ExternalModels model : externalModels) {

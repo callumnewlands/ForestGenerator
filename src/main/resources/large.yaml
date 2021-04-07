@@ -6,18 +6,22 @@ output:
     width: 1400
     height: 780
 terrain:
-  width: 250.0
+  width: 400.0
+  vertexDensity: 0.3
+  textureScale: 3
 quadtree:
-  levels: 3
+  levels: 2
 sceneObjects:
   trees:
     - !TreeTypes$BranchingTree
-      density: 0.6
-    - !TreeTypes$MonopodialTree
-      density: 0.7
+      density: 0.4
+    - !TreeTypes$OakTree
+      density: 0.55
     - !TreeTypes$AspenTree
       density: 0.6
     - !TreeTypes$PoplarTree
       density: 0.6
     - !TreeTypes$PineTree
       density: 0.6
+  twigs:
+    density: 0

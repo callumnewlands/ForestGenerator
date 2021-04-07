@@ -7,7 +7,7 @@ public final class ShaderPrograms {
 	public static ShaderProgram textureShader;
 	public static ShaderProgram billboardShaderProgram;
 	public static ShaderProgram skyboxShaderProgram;
-	public static ShaderProgram instancedLeafShaderProgram;
+	public static ShaderProgram leafShaderProgram;
 	public static ShaderProgram lightingPassShader;
 	public static ShaderProgram ssaoShader;
 	public static ShaderProgram ssaoBlurShader;
@@ -20,7 +20,7 @@ public final class ShaderPrograms {
 		try {
 			textureShader = new ShaderProgram("/shaders/scene/texture.vert", "/shaders/scene/texture.frag");
 			billboardShaderProgram = new ShaderProgram("/shaders/scene/texture.vert", "/shaders/scene/billboard.frag");
-			instancedLeafShaderProgram = new ShaderProgram("/shaders/scene/texture.vert", "/shaders/scene/leaf.frag");
+			leafShaderProgram = new ShaderProgram("/shaders/scene/texture.vert", "/shaders/scene/leaf.frag");
 			skyboxShaderProgram = new ShaderProgram("/shaders/scene/skybox.vert", "/shaders/scene/skybox.frag");
 			sunShader = new ShaderProgram("/shaders/scene/sun.vert", "/shaders/scene/sun.frag");
 
@@ -43,7 +43,7 @@ public final class ShaderPrograms {
 		function.accept(textureShader);
 		function.accept(billboardShaderProgram);
 		function.accept(skyboxShaderProgram);
-		function.accept(instancedLeafShaderProgram);
+		function.accept(leafShaderProgram);
 		function.accept(lightingPassShader);
 		function.accept(ssaoShader);
 		function.accept(ssaoBlurShader);

@@ -163,7 +163,7 @@ import static org.lwjgl.opengl.GL43C.glDebugMessageCallback;
 import static org.lwjgl.system.MemoryUtil.NULL;
 import static org.lwjgl.system.MemoryUtil.memByteBuffer;
 import static rendering.ShaderPrograms.billboardShaderProgram;
-import static rendering.ShaderPrograms.instancedLeafShaderProgram;
+import static rendering.ShaderPrograms.leafShaderProgram;
 import static rendering.ShaderPrograms.lightingPassShader;
 import static rendering.ShaderPrograms.scatteringShader;
 import static rendering.ShaderPrograms.shadowsShader;
@@ -695,7 +695,7 @@ public class App {
 
 			ShaderPrograms.forAll(sp -> sp.setUniform("lightPos", sunPosition));
 			billboardShaderProgram.setUniform("viewPos", camera.getPosition());
-			instancedLeafShaderProgram.setUniform("viewPos", camera.getPosition());
+			leafShaderProgram.setUniform("viewPos", camera.getPosition());
 			renderScene();
 			glBindFramebuffer(GL_FRAMEBUFFER, 0);
 

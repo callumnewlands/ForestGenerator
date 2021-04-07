@@ -144,7 +144,7 @@ public class TreeTypes {
 					null
 			);
 			leafColourFilter = new Parameters.ColourFilter(new Vector3f(0.7f, 0.6f, 0), 0.4f, false);
-			name = "Tree 1";
+			name = "Oak";
 			numSides = 6;
 			scale = 0.01f;
 			leafXScale = 0.4f;
