@@ -32,6 +32,15 @@ public class Camera {
 		updateVectorsFromAngles();
 	}
 
+	public Camera(final Vector3f position, final Vector3f direction) {
+		this.direction = direction.normalize();
+		this.pitch = (float) Math.toDegrees(Math.asin(this.direction.y));
+		this.yaw = (float) Math.toDegrees(Math.acos(this.direction.x / Math.cos(Math.toRadians(pitch))));
+		this.position = position;
+		this.front = new Vector3f(this.direction.x, 0.0f, this.direction.z);
+		updateVectorsFromAngles();
+	}
+
 	private void updateVectorsFromAngles() {
 		this.direction.x = (float) Math.cos(Math.toRadians(yaw)) * (float) Math.cos(Math.toRadians(pitch));
 		this.direction.y = (float) Math.sin(Math.toRadians(pitch));

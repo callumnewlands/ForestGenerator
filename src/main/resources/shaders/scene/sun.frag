@@ -7,10 +7,12 @@ layout (location = 2) out vec4 gAlbedoSpec;
 layout (location = 3) out vec3 gOcclusion;
 layout (location = 4) out vec4 gTranslucency;
 
+uniform vec3 lightColour;
+
 void main() {
-    fragColour = vec4(1.0f, 0.98f, 0.96f, 1.0f);
-    gAlbedoSpec.rgb = vec3(1.0f);
+    fragColour = vec4(lightColour, 1.0f);
+    gAlbedoSpec.rgb = lightColour;
     gAlbedoSpec.a = 1.0f;
-    gOcclusion = vec3(1.0f);
+    gOcclusion = lightColour;
     gTranslucency = vec4(0);
 }

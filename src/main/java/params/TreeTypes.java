@@ -29,10 +29,10 @@ public class TreeTypes {
 					Map.entry("bO", 0f),    // offset at branching point
 					Map.entry("aS", 25f),    //Angle of side branches from main branch
 					Map.entry("lB", 150f),    // Length of trunk base
-					Map.entry("wB", 0.9f),        // Width of trunk base
-					Map.entry("nT", 9), // Number of steps in taper
+					Map.entry("wB", 1.0f),        // Width of trunk base
+					Map.entry("nT", 7), // Number of steps in taper
 					Map.entry("tP", 6.0f), // Falloff power for taper
-					Map.entry("tF", 0.25f), // Taper widest width as a factor of wB
+					Map.entry("tF", 0.5f), // Taper widest width as a factor of wB
 					Map.entry("lr", 1f),        // Ratio of increase of branch length (from ends to trunk)
 					Map.entry("vr", 1.8f),    // Ratio of increase of branch width (from ends to trunk)
 					Map.entry("e", 0.050f)));    // Elasticity
@@ -47,9 +47,9 @@ public class TreeTypes {
 					Map.entry("aS", 50f),    //Angle of side branches from main branch
 					Map.entry("lB", 250f),    // Length of trunk base
 					Map.entry("wB", 1.1f),        // Width of trunk base
-					Map.entry("nT", 9), // Number of steps in taper
+					Map.entry("nT", 7), // Number of steps in taper
 					Map.entry("tP", 7.0f), // Falloff power for taper
-					Map.entry("tF", 0.40f), // Taper widest width as a factor of wB
+					Map.entry("tF", 0.7f), // Taper widest width as a factor of wB
 					Map.entry("lr", 1.3f),    // Ratio of increase of branch length (from ends to trunk)
 					Map.entry("vr", 1.82f),    // Ratio of increase of branch width (from ends to trunk)
 					Map.entry("e", 0.057f)));    // Elasticity
@@ -95,34 +95,34 @@ public class TreeTypes {
 			lSystemParamsLower = new HashMap<>(Map.ofEntries(
 					Map.entry("a1", 5f),        // Angle away after branching
 					Map.entry("a2", 25f),    // Angle around vertical axis between splittings
-					Map.entry("l1", 40f),        // Length of branches
+					Map.entry("l1", 30f),        // Length of branches
+					Map.entry("pS", 0.48f),    // Probability of side branch
 					Map.entry("l2", 0.4f),    // Length before side branches as a fraction of l1
 					Map.entry("l3", 0.6f),    // Length after side branches as a fraction of l1
 					Map.entry("bO", 5f),    // offset at branching point
 					Map.entry("aS", 20f),    //Angle of side branches from main branch
-					Map.entry("pS", 0.48f),    // Probability of side branch
 					Map.entry("lB", 200f),    // Length of trunk base
 					Map.entry("wB", 1f),        // Width of trunk base
-					Map.entry("nT", 9), // Number of steps in taper
+					Map.entry("nT", 6), // Number of steps in taper
 					Map.entry("tP", 6.0f), // Falloff power for taper
-					Map.entry("tF", 0.4f), // Taper widest width as a factor of wB
+					Map.entry("tF", 0.6f), // Taper widest width as a factor of wB
 					Map.entry("lr", 1f),        // Ratio of increase of branch length (from ends to trunk)
 					Map.entry("vr", 1.4f),    // Ratio of increase of branch width (from ends to trunk)
 					Map.entry("e", 0.005f)));    // Elasticity
 			lSystemParamsUpper = new HashMap<>(Map.ofEntries(
 					Map.entry("a1", 35f),        // Angle away after branching
 					Map.entry("a2", 35f),    // Angle around vertical axis between splittings
-					Map.entry("l1", 40f),        // Length of branches
+					Map.entry("l1", 30f),        // Length of branches
+					Map.entry("pS", 0.48f),    // Probability of side branch
 					Map.entry("l2", 0.5f),    // Length before side branches as a fraction of l1
 					Map.entry("l3", 0.6f),    // Length after side branches as a fraction of l1
 					Map.entry("bO", 35f),    // offset at branching point
 					Map.entry("aS", 40f),    //Angle of side branches from main branch
-					Map.entry("pS", 0.48f),    // Probability of side branch
 					Map.entry("lB", 300f),    // Length of trunk base
-					Map.entry("wB", 1f),        // Width of trunk base
-					Map.entry("nT", 9), // Number of steps in taper
+					Map.entry("wB", 1.1f),        // Width of trunk base
+					Map.entry("nT", 6), // Number of steps in taper
 					Map.entry("tP", 7.0f), // Falloff power for taper
-					Map.entry("tF", 0.45f), // Taper widest width as a factor of wB
+					Map.entry("tF", 0.75f), // Taper widest width as a factor of wB
 					Map.entry("lr", 1.1f),        // Ratio of increase of branch length (from ends to trunk)
 					Map.entry("vr", 1.42f),    // Ratio of increase of branch width (from ends to trunk)
 					Map.entry("e", 0.005f)));    // Elasticity
@@ -177,6 +177,8 @@ public class TreeTypes {
 					Map.entry("vr", 0.3f), // Width of start of side branch
 					Map.entry("aB", 80), // Branch angle to trunk
 					Map.entry("aS", 110), // Branch angle around trunk
+					Map.entry("aMin", 5), // Minimum varying angle
+					Map.entry("aMax", 85), // Maximum varying angle
 					Map.entry("aS2", 100), // 3rd level side branch angle
 					Map.entry("aS3", 80), // 3rd level side branch angle downwards
 					Map.entry("aS4", -45), // 3rd level side branch angle downwards for 2nd part
@@ -227,12 +229,14 @@ public class TreeTypes {
 					Map.entry("wB", 0.5f),    // Base width
 					Map.entry("nT", 10), // Number of steps in taper
 					Map.entry("tP", 7.0f), // Falloff power for taper
-					Map.entry("tF", 0.25f), // Taper widest width as a factor of wB
+					Map.entry("tF", 0.5f), // Taper widest width as a factor of wB
 					Map.entry("wS", 0.35f),    // Side branch width
 					Map.entry("wS2", 0.35f),    // 3rd level side branch width
 					Map.entry("vr", 0.04f),    // Width of start of side branch
 					Map.entry("aB", 50),        // Branch angle to trunk
 					Map.entry("aS", 65),        // Branch angle around trunk
+					Map.entry("aMin", 30), // Minimum varying angle
+					Map.entry("aMax", 115), // Maximum varying angle
 					Map.entry("aS2", 120),    // 3rd level side branch angle
 					Map.entry("aS3", 40),    // 3rd level side branch angle downwards
 					Map.entry("aS4", 35),    // 3rd level side branch angle downwards for 2nd part
@@ -256,12 +260,14 @@ public class TreeTypes {
 					Map.entry("wB", 0.7f),    // Base width
 					Map.entry("nT", 10), // Number of steps in taper
 					Map.entry("tP", 8.0f), // Falloff power for taper
-					Map.entry("tF", 0.35f), // Taper widest width as a factor of wB
+					Map.entry("tF", 0.6f), // Taper widest width as a factor of wB
 					Map.entry("wS", 0.55f),    // Side branch width
 					Map.entry("wS2", 0.45f),    // 3rd level side branch width
 					Map.entry("vr", 0.04f),    // Width of start of side branch
 					Map.entry("aB", 85),        // Branch angle to trunk
 					Map.entry("aS", 95),        // Branch angle around trunk
+					Map.entry("aMin", 30), // Minimum varying angle
+					Map.entry("aMax", 115), // Maximum varying angle
 					Map.entry("aS2", 160),    // 3rd level side branch angle
 					Map.entry("aS3", 80),    // 3rd level side branch angle downwards
 					Map.entry("aS4", 55),    // 3rd level side branch angle downwards for 2nd part
@@ -320,6 +326,8 @@ public class TreeTypes {
 					Map.entry("vr", 0.2f),    // Width of start of side branch
 					Map.entry("aB", 20),        // Branch angle to trunk
 					Map.entry("aS", 70),        // Branch angle around trunk
+					Map.entry("aMin", 0), // Minimum varying angle
+					Map.entry("aMax", 0), // Maximum varying angle
 					Map.entry("aS2", 120),    // 3rd level side branch angle
 					Map.entry("aS3", 20),    // 3rd level side branch angle downwards
 					Map.entry("aS4", -30),    // 3rd level side branch angle downwards for 2nd part
@@ -349,6 +357,8 @@ public class TreeTypes {
 					Map.entry("vr", 0.2f),    // Width of start of side branch
 					Map.entry("aB", 35),        // Branch angle to trunk
 					Map.entry("aS", 90),        // Branch angle around trunk
+					Map.entry("aMin", 0), // Minimum varying angle
+					Map.entry("aMax", 0), // Maximum varying angle
 					Map.entry("aS2", 160),    // 3rd level side branch angle
 					Map.entry("aS3", 40),    // 3rd level side branch angle downwards
 					Map.entry("aS4", -10),    // 3rd level side branch angle downwards for 2nd part
@@ -399,12 +409,14 @@ public class TreeTypes {
 					Map.entry("wB", 0.15f),    // Base width
 					Map.entry("nT", 5), // Number of steps in taper
 					Map.entry("tP", 5.0f), // Falloff power for taper
-					Map.entry("tF", 0.2f), // Taper widest width as a factor of wB
+					Map.entry("tF", 0.4f), // Taper widest width as a factor of wB
 					Map.entry("wS", 0.2f),    // Side branch width
 					Map.entry("wS2", 0.7f),    // 3rd level side branch width
 					Map.entry("vr", 0.25f),    // Width of start of side branch
 					Map.entry("aB", 70),         // Branch angle to trunk
 					Map.entry("aS", 50),         // Branch angle around trunk
+					Map.entry("aMin", 0), // Minimum varying angle
+					Map.entry("aMax", 115), // Maximum varying angle
 					Map.entry("aS2", -5),         // 3rd level side branch angle around branch
 					Map.entry("aS3", -55),    // 3rd level side branch angle downwards
 					Map.entry("aS4", 35),    // 3rd level side branch angle downwards for 2nd part
@@ -421,15 +433,17 @@ public class TreeTypes {
 					Map.entry("lB", 1.8f),  // Base length
 					Map.entry("lS", 0.8f),     // Side branch length
 					Map.entry("lSm", 0.03f),   // Min ratio for side branch length (of ls) and width (of ws)
-					Map.entry("wB", 0.35f),    // Base width
+					Map.entry("wB", 0.5f),    // Base width
 					Map.entry("nT", 5), // Number of steps in taper
 					Map.entry("tP", 6.0f), // Falloff power for taper
-					Map.entry("tF", 0.25f), // Taper widest width as a factor of wB
+					Map.entry("tF", 0.45f), // Taper widest width as a factor of wB
 					Map.entry("wS", 0.4f),    // Side branch width
 					Map.entry("wS2", 0.9f),    // 3rd level side branch width
 					Map.entry("vr", 0.25f),    // Width of start of side branch
 					Map.entry("aB", 100),         // Branch angle to trunk
 					Map.entry("aS", 70),         // Branch angle around trunk
+					Map.entry("aMin", 0), // Minimum varying angle
+					Map.entry("aMax", 115), // Maximum varying angle
 					Map.entry("aS2", 5),         // 3rd level side branch angle around branch
 					Map.entry("aS3", -35),    // 3rd level side branch angle downwards
 					Map.entry("aS4", 55),    // 3rd level side branch angle downwards for 2nd part
@@ -458,10 +472,10 @@ public class TreeTypes {
 			name = "Pine";
 			leafColourFilter = new Parameters.ColourFilter(new Vector3f(0.1f, 0.41f, 0.1f), 0.7f, false);
 			numSides = 6;
-			scale = 1.5f;
+			scale = 1.9f;
 			leafXScale = 0.03f;
 			leafYScale = 0.4f;
-			minIterations = 8;
+			minIterations = 10;
 			maxIterations = 16;
 			density = 0.7f;
 			heightVaryingAngles = true;

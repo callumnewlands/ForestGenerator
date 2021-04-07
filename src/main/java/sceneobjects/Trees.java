@@ -62,20 +62,10 @@ public class Trees extends InstancedGroundObject {
 	@Getter
 	private final int index;
 
-	public Trees(int numberOfTypes, int numberOfInstances, Vector2f regionCentre, float regionWidth, TerrainQuadtree quadtree, boolean yRotationOnly, int index) {
-		super(numberOfTypes, numberOfInstances, regionCentre, regionWidth, quadtree, yRotationOnly);
+	public Trees(int numberOfTypes, int numberOfInstances, Vector2f regionCentre, float regionWidth, TerrainQuadtree quadtree, int index) {
+		super(numberOfTypes, numberOfInstances, regionCentre, regionWidth, quadtree, parameters.sceneObjects.trees.get(index));
 		this.index = index;
 		generate();
-	}
-
-	@Override
-	float getScale() {
-		return parameters.sceneObjects.trees.get(index).scale;
-	}
-
-	@Override
-	float getHeightOffset() {
-		return 0;
 	}
 
 	@Override
@@ -150,6 +140,9 @@ public class Trees extends InstancedGroundObject {
 		if (min == max) {
 			return min;
 		}
+		if (min > max) {
+			throw new RuntimeException("max value: " + max + " < min value: " + min);
+		}
 		return r.nextFloat() * (max - min) + min;
 	}
 
@@ -160,6 +153,9 @@ public class Trees extends InstancedGroundObject {
 		if (min == max) {
 			return min;
 		}
+		if (min > max) {
+			throw new RuntimeException("max value: " + max + " < min value: " + min + " for param: " + name + " in tree: " + params.name);
+		}
 		return r.nextFloat() * (max - min) + min;
 	}
 
@@ -169,6 +165,9 @@ public class Trees extends InstancedGroundObject {
 		int max = params.lSystemParamsUpper.get(name).intValue();
 		if (min == max) {
 			return min;
+		}
+		if (min > max) {
+			throw new RuntimeException("max value: " + max + " < min value: " + min + " for param: " + name + " in tree: " + params.name);
 		}
 		return r.nextInt(max - min) + min;
 	}
@@ -192,9 +191,9 @@ public class Trees extends InstancedGroundObject {
 		if (widenBase) {
 			float tP = getFloatParam(params, "tP");
 			float tF = getFloatParam(params, "tF");
-			axiom.add(new ParametricValueModule('!', wB + (float) Math.pow(1, tP) * tF));
+			axiom.add(new ParametricValueModule('!', wB * (1 + tF)));
 			for (int i = 1; i <= nT; i++) {
-				axiom.add(new ParametricValueModule('!', wB + (float) Math.pow((float) (nT - i) / nT, tP) * tF));
+				axiom.add(new ParametricValueModule('!', wB * (1 + (float) Math.pow((float) (nT - i) / nT, tP) * tF)));
 				axiom.add(new ParametricValueModule('F', lB / nT));
 			}
 		} else {
@@ -315,9 +314,9 @@ public class Trees extends InstancedGroundObject {
 		if (widenBase) {
 			float tP = getFloatParam(params, "tP");
 			float tF = getFloatParam(params, "tF");
-			axiom.add(new ParametricValueModule('!', wB + (float) Math.pow(1, tP) * tF));
+			axiom.add(new ParametricValueModule('!', wB * (1 + tF)));
 			for (int i = 1; i <= nT; i++) {
-				axiom.add(new ParametricValueModule('!', wB + (float) Math.pow((float) (nT - i) / nT, tP) * tF));
+				axiom.add(new ParametricValueModule('!', wB * (1 + (float) Math.pow((float) (nT - i) / nT, tP) * tF)));
 				axiom.add(new ParametricValueModule('F', lB / nT));
 			}
 		} else {
@@ -342,6 +341,8 @@ public class Trees extends InstancedGroundObject {
 			float l1 = getFloatParam(params, "l1");
 			float vr = getFloatParam(params, "vr");
 			float lr = getFloatParam(params, "lr");
+			float aMin = getFloatParam(params, "aMin");
+			float aMax = getFloatParam(params, "aMax");
 
 			int finalI = i;
 			Function<Map<String, Float>, Float> heightFraction = vars -> {
@@ -364,7 +365,7 @@ public class Trees extends InstancedGroundObject {
 					LB,
 					new ParametricExpressionModule('&', List.of("w"), vars -> List.of((float) Math.toRadians(
 							heightVaryingAngles
-									? (30 + 85 * heightFraction.apply(vars)) // TODO min-max angles
+									? (aMin + (aMax - aMin) * heightFraction.apply(vars))
 									: aB))),
 					new ParametricExpressionModule('!', List.of("w"), vars -> List.of(vars.get("w") * vr * branchLen.apply(vars))),
 					new ParametricExpressionModule('F', List.of("w"), vars -> List.of(vars.get("w") * lr)), // Move the base of the side branches away from the trunk centre
@@ -438,7 +439,7 @@ public class Trees extends InstancedGroundObject {
 					new ParametricValueModule('&', (float) Math.toRadians(-aU)) // Causes slight curve downwards
 			));
 		}
-//		BOut.add(new ParametricExpressionModule('F', List.of("l"), vars -> List.of(vars.get("l") / 2f))); // TODO for aspen
+		BOut.add(new ParametricExpressionModule('F', List.of("l"), vars -> List.of(vars.get("l") / 2f)));
 		return List.of(new ProductionBuilder(List.of(BIn), BOut).build());
 	}
 
@@ -453,7 +454,7 @@ public class Trees extends InstancedGroundObject {
 						(float) Math.toRadians(-getFloatParam(params, "aU")))),
 				new ParametricExpressionModule('F', List.of("l"), vars -> List.of(
 						vars.get("l"),
-						300 * vars.get("l"), // TODO param
+						300 * vars.get("l"),
 						0f,
 						(float) Math.toRadians(140),
 						(float) Math.toRadians(40)))

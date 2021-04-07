@@ -15,6 +15,7 @@ uniform float decay;// light fall-off
 uniform float exposure;// light ray intensity
 uniform bool hdrEnabled;
 uniform float toneExposure;
+uniform float maxBrightness;
 
 out vec3 fragColor;
 
@@ -34,9 +35,8 @@ void main()
     for (int i = 0; i < numSamples; i++) {
         scatteringCoordinate -= sampleDelta;
         vec3 sampleCol = texture(occlusion, scatteringCoordinate).rgb;
-        // TODO param
-        if (length(sampleCol) > 100f) {
-            sampleCol = vec3(100f);
+        if (length(sampleCol) > maxBrightness) {
+            sampleCol = vec3(maxBrightness);
         }
         sampleCol *= illuminationDecay;
         colour += sampleCol;

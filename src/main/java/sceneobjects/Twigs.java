@@ -28,19 +28,9 @@ import utils.MeshUtils;
 
 public class Twigs extends InstancedGroundObject {
 
-	public Twigs(int numberOfTypes, int numberOfInstances, Vector2f regionCentre, float regionWidth, TerrainQuadtree quadtree, boolean yRotationOnly) {
-		super(numberOfTypes, numberOfInstances, regionCentre, regionWidth, quadtree, yRotationOnly);
+	public Twigs(int numberOfTypes, int numberOfInstances, Vector2f regionCentre, float regionWidth, TerrainQuadtree quadtree) {
+		super(numberOfTypes, numberOfInstances, regionCentre, regionWidth, quadtree, ParameterLoader.getParameters().sceneObjects.twigs);
 		generate();
-	}
-
-	@Override
-	float getScale() {
-		return 0.05f;
-	}
-
-	@Override
-	float getHeightOffset() {
-		return 0.1f;
 	}
 
 	@Override
@@ -58,6 +48,7 @@ public class Twigs extends InstancedGroundObject {
 		return Map.of(LevelOfDetail.HIGH, List.of(twig));
 	}
 
+	// TODO params for this
 	private LSystem twigSystem() {
 		float r1 = 0.9f;
 		float r2 = 0.6f;

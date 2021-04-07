@@ -23,20 +23,10 @@ public class ExternalModels extends InstancedGroundObject {
 			.collect(Collectors.toList());
 	private final int index;
 
-	public ExternalModels(int numberOfTypes, int numberOfInstances, Vector2f regionCentre, float regionWidth, TerrainQuadtree quadtree, boolean yRotationOnly, int index) {
-		super(numberOfTypes, numberOfInstances, regionCentre, regionWidth, quadtree, yRotationOnly);
+	public ExternalModels(int numberOfTypes, int numberOfInstances, Vector2f regionCentre, float regionWidth, TerrainQuadtree quadtree, int index) {
+		super(numberOfTypes, numberOfInstances, regionCentre, regionWidth, quadtree, parameters.sceneObjects.externalModels.get(index));
 		this.index = index;
 		generate();
-	}
-
-	@Override
-	float getScale() {
-		return parameters.sceneObjects.externalModels.get(index).scale;
-	}
-
-	@Override
-	float getHeightOffset() {
-		return -0.1f;
 	}
 
 	@Override

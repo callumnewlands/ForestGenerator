@@ -1,20 +1,12 @@
 random:
-  seed: 12
+  seed: -1 # 12
 
-#input:
-#  manual: false
-#  stdin: true
 output:
   window:
-    #    visible: false
     fullscreen: false
     width: 1400
     height: 780
 #  frameImages: true
-
-camera:
-  #  startPosition: [ 10.5, 3.3, -0.5  ]
-  startPosition: [ 0, 3.3, 0 ]
 
 terrain:
   width: 50.0
@@ -23,15 +15,16 @@ quadtree:
 sceneObjects:
   trees:
     - !TreeTypes$BranchingTree
-      density: 0.6
+      density: 0.4
     - !TreeTypes$OakTree
-      density: 0.5
-    - !TreeTypes$MonopodialTree
-      density: 0.7
+      density: 0.55
     - !TreeTypes$AspenTree
       density: 0.6
     - !TreeTypes$PoplarTree
       density: 0.6
     - !TreeTypes$PineTree
       density: 0.6
+lighting:
+  sun:
+    display: true
 

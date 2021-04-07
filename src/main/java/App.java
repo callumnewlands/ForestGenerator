@@ -231,7 +231,7 @@ public class App {
 	private BufferedReader inputStream;
 
 	public App() {
-		if (parameters.input.stdin) {
+		if (parameters.input.stdin.enabled) {
 			inputStream = new BufferedReader(new InputStreamReader(System.in));
 		}
 	}
@@ -326,10 +326,8 @@ public class App {
 
 	private void initShaders() {
 		final Vector3f cameraPosition = new Vector3f(parameters.camera.startPosition);
-		// TODO param for starting direction
-		final float cameraYaw = -90.0f;
-		final float cameraPitch = 0.0f;
-		camera = new Camera(cameraPosition, cameraYaw, cameraPitch);
+		final Vector3f cameraDirection = new Vector3f(parameters.camera.startDirection);
+		camera = new Camera(cameraPosition, cameraDirection);
 
 		if (parameters.input.manual) {
 			glfwSetKeyCallback(window, (windowHandle, key, scancode, action, mods) -> {
@@ -544,15 +542,10 @@ public class App {
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		skybox = new Skybox();
-		// autumn_park_8k.hdr
-		// immenstadter_horn_8k.hdr
-		// noon_grass_8k.hdr
-		// gamrig_8k.hdr
-		// qwantani_8k.hdr
-		// TODO resolution param
-		// TODO HDR param
-		HDRTexture skyboxTexture = new HDRTexture("textures/gamrig_8k.hdr", 2048, new Vector3f(.529f, .808f, .922f), 8);
-		sunPosition = skyboxTexture.getBrightestArea();
+		HDRTexture skyboxTexture = new HDRTexture(parameters.lighting.sky.hdrFile, parameters.lighting.sky.resolution, new Vector3f(.529f, .808f, .922f), 8);
+		if (parameters.lighting.sun.autoPosition) {
+			sunPosition = skyboxTexture.getBrightestArea();
+		}
 		skybox.addTexture("skyboxTexture", skyboxTexture);
 		checkError("skybox loading");
 		System.out.println("Skybox HDR loaded");
@@ -573,10 +566,8 @@ public class App {
 	}
 
 	private void initLighting() {
-		Vector3f lightCol = new Vector3f(23.47f, 21.31f, 20.79f);
-
 		ShaderPrograms.forAll(sp -> sp.setUniform("lightPos", parameters.lighting.sun.position));
-		ShaderPrograms.forAll(sp -> sp.setUniform("lightColour", lightCol));
+		ShaderPrograms.forAll(sp -> sp.setUniform("lightColour", parameters.lighting.sun.strength));
 		ShaderPrograms.forAll(sp -> sp.setUniform("ambientStrength", parameters.lighting.ambientStrength));
 
 		lightingPassShader.setUniform("hdrEnabled", parameters.lighting.hdr.enabled);
@@ -594,6 +585,7 @@ public class App {
 		scatteringShader.setUniform("sampleDensity", parameters.lighting.volumetricScattering.sampleDensity);
 		scatteringShader.setUniform("decay", parameters.lighting.volumetricScattering.decay);
 		scatteringShader.setUniform("exposure", parameters.lighting.volumetricScattering.exposure);
+		scatteringShader.setUniform("maxBrightness", parameters.lighting.volumetricScattering.maxBrightness);
 		scatteringShader.setUniform("hdrEnabled", parameters.lighting.hdr.enabled);
 		scatteringShader.setUniform("toneExposure", parameters.lighting.hdr.exposure);
 
@@ -679,27 +671,14 @@ public class App {
 		glCullFace(GL_BACK);
 	}
 
-	// FIXME occasionally (and seemingly randomly) the program runs through 2 render cycles just outputting a black
+	// Note: Occasionally (and seemingly randomly) the program runs through 2 render cycles just outputting a black
 	//  	screen and then on the third, crashes (on glfwSwapBuffers) with the exit code -1073740791 (0xc0000409)
 	//		An event in the Windows log which seems to coincide is:
 	//			A TDR has been detected. The application must close. Error code: 7 (pid=32376 tid=29344 java.exe 64bit)
 	//			Visit http://nvidia.custhelp.com/app/answers/detail/a_id/3633 for more information.
-	//		From the NVIDIA driver and:
-	//			java.exe
-	//   		14.0.2.0
-	//   		5f0657a8
-	//   		nvoglv64.dll
-	//   		27.21.14.6172
-	//   		6035730c
-	//  		c0000409
-	//   		00000000011833e9
-	//   		7e78
-	//   		01d7175d0da63ae6
-	//   		C:\Program Files\Java\jdk-14.0.2\bin\java.exe
-	//   		C:\WINDOWS\System32\DriverStore\FileRepository\nvdmi.inf_amd64_d4f5fb7711ba6c16\nvoglv64.dll
-	//   		79151a35-b41e-4339-b932-f7f014b87aff
-	//    	From the Application
-	//
+	//		It has not happened since reducing the resolution of the shadow map (from 16k to 2k)
+	//		( and reducing the available JVM heap space from 12GB to 8GB)
+	// 		From this, and the TDR timeout, I assume it was simply a matter of overloading the GPU memory
 	private void loop() {
 		while (!glfwWindowShouldClose(window)) {
 			updateDeltaTime();
@@ -717,9 +696,6 @@ public class App {
 			ShaderPrograms.forAll(sp -> sp.setUniform("view", camera.getViewMatrix()));
 
 			ShaderPrograms.forAll(sp -> sp.setUniform("lightPos", sunPosition));
-			ShaderPrograms.forAll(sp -> sp.setUniform("lightColour", new Vector3f(parameters.lighting.sun.strength)));
-			ShaderPrograms.forAll(sp -> sp.setUniform("ambientStrength", parameters.lighting.ambientStrength));
-
 			billboardShaderProgram.setUniform("viewPos", camera.getPosition());
 			instancedLeafShaderProgram.setUniform("viewPos", camera.getPosition());
 			renderScene();
@@ -844,7 +820,7 @@ public class App {
 				pollKeys();
 				glfwPollEvents();
 			}
-			if (parameters.input.stdin) {
+			if (parameters.input.stdin.enabled) {
 				blockAndProcessInputStream();
 			}
 
@@ -891,9 +867,8 @@ public class App {
 	}
 
 	private void updateDeltaTime() {
-		if (parameters.input.stdin) {
-			final int FPS = 30;
-			deltaTime = 1f / FPS;
+		if (parameters.input.stdin.enabled) {
+			deltaTime = 1f / parameters.input.stdin.fps;
 			return;
 		}
 		// On first frame
@@ -975,8 +950,7 @@ public class App {
 	}
 
 	private void blockAndProcessInputStream() {
-		// TODO param
-		final int MOUSE_ANGLE = 20;
+		final float LOOK_OFFSET = parameters.input.stdin.lookOffset;
 		try {
 			String s = inputStream.readLine().toUpperCase();
 			for (char c : s.toCharArray()) {
@@ -987,10 +961,10 @@ public class App {
 					case 'D' -> camera.move(Camera.MovementDirection.RIGHT, (float) deltaTime);
 					case ' ' -> camera.move(Camera.MovementDirection.UP, (float) deltaTime);
 					case '-' -> camera.move(Camera.MovementDirection.DOWN, (float) deltaTime);
-					case 'I' -> camera.processMouseMovement(0, MOUSE_ANGLE);
-					case 'K' -> camera.processMouseMovement(0, -MOUSE_ANGLE);
-					case 'J' -> camera.processMouseMovement(-MOUSE_ANGLE, 0);
-					case 'L' -> camera.processMouseMovement(MOUSE_ANGLE, 0);
+					case 'I' -> camera.processMouseMovement(0, LOOK_OFFSET);
+					case 'K' -> camera.processMouseMovement(0, -LOOK_OFFSET);
+					case 'J' -> camera.processMouseMovement(-LOOK_OFFSET, 0);
+					case 'L' -> camera.processMouseMovement(LOOK_OFFSET, 0);
 					case 'X' -> exit();
 				}
 				quadtree.setSeedPoint(camera.getPosition().x, camera.getPosition().z);

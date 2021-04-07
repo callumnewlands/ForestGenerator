@@ -8,24 +8,15 @@ import static rendering.ShaderPrograms.textureShader;
 import generation.TerrainQuadtree;
 import modeldata.meshdata.Mesh;
 import org.joml.Vector2f;
+import params.ParameterLoader;
 import rendering.LevelOfDetail;
 import rendering.Textures;
 
 public class FallenLeaves extends InstancedGroundObject {
-
-	public FallenLeaves(int numberOfTypes, int numberOfInstances, Vector2f regionCentre, float regionWidth, TerrainQuadtree quadtree, boolean yRotationOnly) {
-		super(numberOfTypes, numberOfInstances, regionCentre, regionWidth, quadtree, yRotationOnly);
+	// TODO generate leaves from trees list
+	public FallenLeaves(int numberOfTypes, int numberOfInstances, Vector2f regionCentre, float regionWidth, TerrainQuadtree quadtree) {
+		super(numberOfTypes, numberOfInstances, regionCentre, regionWidth, quadtree, ParameterLoader.getParameters().sceneObjects.fallenLeaves);
 		generate();
-	}
-
-	@Override
-	float getScale() {
-		return 0.7f; // TODO generate leaves from trees list
-	}
-
-	@Override
-	float getHeightOffset() {
-		return 0;
 	}
 
 	@Override

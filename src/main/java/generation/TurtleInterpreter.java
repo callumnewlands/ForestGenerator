@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Random;
 import java.util.Stack;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -24,6 +25,7 @@ import org.joml.Quaternionf;
 import org.joml.Vector2f;
 import org.joml.Vector3f;
 import org.joml.Vector4f;
+import params.ParameterLoader;
 import utils.MathsUtils;
 import utils.MeshUtils;
 import utils.VectorUtils;
@@ -151,6 +153,13 @@ public class TurtleInterpreter {
 			leafTurtle.position = model.transformPosition(leafTurtle.position);
 			centre = model.transformPosition(centre);
 
+			// Move along by offset
+			Random r = ParameterLoader.getParameters().random.generator;
+			float offsetStep = r.nextFloat() * step - step / 2;
+			model = (new Matrix4f()).translation(VectorUtils.multiply(offsetStep, stemAxis));
+			leafTurtle.position = model.transformPosition(leafTurtle.position);
+			centre = model.transformPosition(centre);
+
 			//  Move out by radius
 			float currentRadius = MathsUtils.lerp(leafTurtle.prevRadius, leafTurtle.radius, (float) (i + 1) / (numLeaves + 1));
 			model = (new Matrix4f()).translation(VectorUtils.multiply(currentRadius, leafTurtle.up));
@@ -163,12 +172,32 @@ public class TurtleInterpreter {
 			leafTurtle.heading = model.transformDirection(leafTurtle.heading).normalize();
 			leafTurtle.position = model.transformPosition(leafTurtle.position);
 
+			// Rotate by offset
+			float offsetAngle = r.nextFloat() * radialAngle - radialAngle / 2;
+			rotation = new Quaternionf(new AxisAngle4f(offsetAngle, stemAxis));
+			model = (new Matrix4f()).identity().rotateAround(rotation, centre.x, centre.y, centre.z);
+			leafTurtle.up = model.transformDirection(leafTurtle.up).normalize();
+			leafTurtle.heading = model.transformDirection(leafTurtle.heading).normalize();
+			leafTurtle.position = model.transformPosition(leafTurtle.position);
+
 			// Inject leaf model
 			injectedModels.add(new ModelReference(index, leafTurtle));
+
+			// Rotate back by offset
+			rotation = new Quaternionf(new AxisAngle4f(-offsetAngle, stemAxis));
+			model = (new Matrix4f()).identity().rotateAround(rotation, centre.x, centre.y, centre.z);
+			leafTurtle.up = model.transformDirection(leafTurtle.up).normalize();
+			leafTurtle.heading = model.transformDirection(leafTurtle.heading).normalize();
+			leafTurtle.position = model.transformPosition(leafTurtle.position);
 
 			//  Move back in by radius
 			model = (new Matrix4f()).translation(VectorUtils.multiply(-currentRadius, leafTurtle.up));
 			leafTurtle.position = model.transformPosition(leafTurtle.position);
+
+			// Move back by offset
+			model = (new Matrix4f()).translation(VectorUtils.multiply(-offsetStep, stemAxis));
+			leafTurtle.position = model.transformPosition(leafTurtle.position);
+			centre = model.transformPosition(centre);
 		}
 		moveForwards(distance);
 	}

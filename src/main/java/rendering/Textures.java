@@ -68,6 +68,7 @@ public final class Textures {
 			)
 			.collect(Collectors.toList());
 
+	// TODO non-hdr skybox?
 	//	public static CubemapTexture skybox = new CubemapTexture(
 //			List.of("right.jpg",
 //					"left.jpg",
@@ -110,7 +111,6 @@ public final class Textures {
 
 	}
 
-	// TODO null textures
 	// TODO check if file already loaded?
 	public static class TreeTextures {
 		public Texture2D bark;

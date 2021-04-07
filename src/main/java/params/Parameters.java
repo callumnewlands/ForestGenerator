@@ -36,7 +36,15 @@ public class Parameters {
 	@Setter
 	public static class Input {
 		public boolean manual = true;
-		public boolean stdin = false;
+		public StdIn stdin = new StdIn();
+
+		@NoArgsConstructor
+		@Setter
+		public static class StdIn {
+			public boolean enabled = false;
+			public float lookOffset = 20f;
+			public int fps = 30;
+		}
 	}
 
 	@NoArgsConstructor
@@ -63,6 +71,8 @@ public class Parameters {
 	public static class Camera {
 		@JsonDeserialize(using = ParameterLoader.Vec3Deserializer.class)
 		public Vector3f startPosition = new Vector3f(0, 3.3f, 0);
+		@JsonDeserialize(using = ParameterLoader.Vec3Deserializer.class)
+		public Vector3f startDirection = new Vector3f(0, 0, 1);
 		public boolean verticalMovement = true;
 	}
 
@@ -103,6 +113,7 @@ public class Parameters {
 	public static class Terrain {
 		public float width = 100f;
 		public float verticalScale = 3.0f;
+		public int textureScale = 2;
 		public Noise noise = new Noise();
 		public float vertexDensity = 0.7f;
 		public Texture texture = new Texture("/textures/floor2.png");
@@ -123,7 +134,7 @@ public class Parameters {
 	public static class Quadtree {
 		public int levels = 2;
 		public float thresholdCoefficient = 1.7f;
-		public boolean frustumCulling = true;
+		public boolean frustumCulling = false;
 	}
 
 	@NoArgsConstructor
@@ -146,23 +157,33 @@ public class Parameters {
 				new CrossedBillboard(new Texture("/textures/fern1_rotated.png"), 1.2f, 1.2f, 0.2f),
 				new CrossedBillboard(new Texture("/textures/fern2_rotated.png"), 1.2f, 1.2f, 0.2f)
 		);
-		public SceneObject fallenLeaves = new SceneObject();
+		public SceneObject fallenLeaves = new SceneObject(1f, 0.75f, 1.25f, 0.7f, 0.0f, 0.1f);
 
 		@NoArgsConstructor
+		@AllArgsConstructor
 		@Setter
 		public static class SceneObject {
 			public float density = 1.0f;
+			public float minScaleFactor = 0.75f;
+			public float maxScaleFactor = 1.25f;
+			public float scale = 1.0f;
+			public float yOffset = 0.0f;
+			public float pitchVariability = 0.1f;
 		}
 
-		@NoArgsConstructor
 		@Setter
 		public static class Twigs extends SceneObject {
 			public int typesPerQuad = 2; // TODO change to instance fraction
 			public int numSides = 5;
 			public Texture texture = new Texture("/textures/Bark_Pine_baseColor.jpg", "/textures/Bark_Pine_normal.jpg");
+
+			public Twigs() {
+				super();
+				this.yOffset = 0.1f;
+				this.scale = 0.05f;
+			}
 		}
 
-		@NoArgsConstructor
 		@AllArgsConstructor
 		@Setter
 		public static class CrossedBillboard extends SceneObject {
@@ -170,24 +191,37 @@ public class Parameters {
 			public float xScale = 1.0f;
 			public float yScale = 1.0f;
 
+			public CrossedBillboard() {
+				super();
+				this.scale = 0.7f;
+			}
+
 			public CrossedBillboard(Texture texture, float xScale, float yScale, float density) {
 				this(texture, xScale, yScale);
 				this.density = density;
+				this.scale = 0.7f;
 			}
 		}
 
-		@NoArgsConstructor
 		@AllArgsConstructor
 		@Setter
 		public static class ExternalModel extends SceneObject {
 			public String modelPath = "/models/Rock1/Rock1.obj";
 			public String texturesDir = "/models/Rock1";
-			public Texture overwriteTexture = null; // TODO when null textures handles
-			public float scale = 1.0f;
+			public Texture overwriteTexture = null; // TODO implement this
+
+			public ExternalModel() {
+				super();
+				this.yOffset = -0.1f;
+			}
+
+			public ExternalModel(String modelPath, String texturesDir, Texture overwriteTexture, float scale) {
+				this(modelPath, texturesDir, overwriteTexture);
+				this.scale = scale;
+				this.yOffset = -0.1f;
+			}
 		}
 
-
-		@NoArgsConstructor
 		@Setter
 		public static class Tree extends SceneObject {
 			public String name = "Tree";
@@ -200,12 +234,18 @@ public class Parameters {
 			public ColourFilter leafColourFilter = null;
 			public float instanceFraction = 0.2f;
 			public int numSides = 5;
-			public float scale = 1.0f;
 			public float leafXScale = 1.0f;
 			public float leafYScale = 1.0f;
 			public int minIterations = 7;
 			public int maxIterations = 9;
 			public boolean widenBase = true;
+
+			public Tree() {
+				super();
+				this.pitchVariability = 0;
+				this.minScaleFactor = 0.9f;
+				this.maxScaleFactor = 1.1f;
+			}
 		}
 
 		@NoArgsConstructor
@@ -227,8 +267,9 @@ public class Parameters {
 	@NoArgsConstructor
 	@Setter
 	public static class Lighting {
-		public float ambientStrength = 0.2f;
+		public float ambientStrength = 0.3f;
 		public Sun sun = new Sun();
+		public Sky sky = new Sky();
 		public SSAO ssao = new SSAO();
 		public HDR hdr = new HDR();
 		public GammaCorrection gammaCorrection = new GammaCorrection();
@@ -240,11 +281,20 @@ public class Parameters {
 		@Setter
 		public static class Sun {
 			public boolean display = false;
+			public boolean autoPosition = true;
 			public int numSides = 10;
-			public float strength = 1f;
+			@JsonDeserialize(using = ParameterLoader.Vec3Deserializer.class)
+			public Vector3f strength = new Vector3f(5.2f, 4.7f, 4.6f);
 			public float scale = 20f;
 			@JsonDeserialize(using = ParameterLoader.Vec3Deserializer.class)
 			public Vector3f position = new Vector3f(50.0f, 200.0f, -50.0f);
+		}
+
+		@NoArgsConstructor
+		@Setter
+		public static class Sky {
+			public String hdrFile = "textures/gamrig_8k.hdr";
+			public int resolution = 2048;
 		}
 
 		@NoArgsConstructor
@@ -278,6 +328,7 @@ public class Parameters {
 			public float sampleDensity = 0.5f;
 			public float decay = 0.99f;
 			public float exposure = 0.0015f;
+			public float maxBrightness = 100f;
 		}
 
 		@NoArgsConstructor

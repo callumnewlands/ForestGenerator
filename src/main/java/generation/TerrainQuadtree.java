@@ -47,8 +47,7 @@ public class TerrainQuadtree {
 		this.texture = texture;
 		this.numberOfTilesAcross = (int) (Math.pow(2, maxDepth));
 		this.numberOfMaxDepthTiles = (int) Math.pow(2, 2 * maxDepth);
-		// TODO param
-		int textureScale = 2;
+		int textureScale = parameters.terrain.textureScale;
 		this.textureWidth = width / (numberOfTilesAcross * (float) (Math.pow(2, textureScale)));
 		this.quad = new Quad(centre, width, 0, texture);
 		this.quad.updateChildren();
@@ -217,24 +216,24 @@ public class TerrainQuadtree {
 				for (int i = 0; i < numTreeTypes; i++) {
 					int typesPerQuad = (int) (1 / parameters.sceneObjects.trees.get(i).instanceFraction);
 					int numInstances = (int) (GROUND_WIDTH * GROUND_WIDTH * DEFAULT_TREE_DENSITY * parameters.sceneObjects.trees.get(i).density / numTreeTypes);
-					trees.add(new Trees(typesPerQuad, getNumber(numInstances), centre, width, TerrainQuadtree.this, true, i));
+					trees.add(new Trees(typesPerQuad, getNumber(numInstances), centre, width, TerrainQuadtree.this, i));
 				}
 
-				leaves = new FallenLeaves(1, getNumber(NUM_OF_INSTANCED_LEAVES), centre, width, TerrainQuadtree.this, false);
-				twigs = new Twigs(parameters.sceneObjects.twigs.typesPerQuad, getNumber(NUM_OF_INSTANCED_TWIGS), centre, width, TerrainQuadtree.this, false);
+				leaves = new FallenLeaves(1, getNumber(NUM_OF_INSTANCED_LEAVES), centre, width, TerrainQuadtree.this);
+				twigs = new Twigs(parameters.sceneObjects.twigs.typesPerQuad, getNumber(NUM_OF_INSTANCED_TWIGS), centre, width, TerrainQuadtree.this);
 
 				externalModels = new ArrayList<>();
 				int numExternalModels = parameters.sceneObjects.externalModels.size();
 				for (int i = 0; i < numExternalModels; i++) {
 					int numInstances = (int) (GROUND_WIDTH * GROUND_WIDTH * DEFAULT_ROCK_DENSITY * parameters.sceneObjects.externalModels.get(i).density / numExternalModels);
-					externalModels.add(new ExternalModels(1, getNumber(numInstances), centre, width, TerrainQuadtree.this, false, i));
+					externalModels.add(new ExternalModels(1, getNumber(numInstances), centre, width, TerrainQuadtree.this, i));
 				}
 
 				billboards = new ArrayList<>();
 				int numBillboardTypes = parameters.sceneObjects.crossedBillboards.size();
 				for (int i = 0; i < numBillboardTypes; i++) {
 					int numInstances = (int) (GROUND_WIDTH * GROUND_WIDTH * DEFAULT_GRASS_DENSITY * parameters.sceneObjects.crossedBillboards.get(i).density / numBillboardTypes);
-					billboards.add(new CrossedBillboard(1, getNumber(numInstances), centre, width, TerrainQuadtree.this, false, i));
+					billboards.add(new CrossedBillboard(1, getNumber(numInstances), centre, width, TerrainQuadtree.this, i));
 				}
 			}
 

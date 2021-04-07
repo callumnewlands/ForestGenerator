@@ -27,22 +27,10 @@ public class CrossedBillboard extends InstancedGroundObject {
 	@Getter
 	private final int index;
 
-	public CrossedBillboard(int numberOfTypes, int numberOfInstances, Vector2f regionCentre, float regionWidth, TerrainQuadtree quadtree, boolean yRotationOnly, int index) {
-		super(numberOfTypes, numberOfInstances, regionCentre, regionWidth, quadtree, yRotationOnly);
+	public CrossedBillboard(int numberOfTypes, int numberOfInstances, Vector2f regionCentre, float regionWidth, TerrainQuadtree quadtree, int index) {
+		super(numberOfTypes, numberOfInstances, regionCentre, regionWidth, quadtree, ParameterLoader.getParameters().sceneObjects.crossedBillboards.get(index));
 		this.index = index;
 		generate();
-	}
-
-	@Override
-	float getScale() {
-		return 0.7f;
-	}
-
-	@Override
-	float getHeightOffset() {
-		Random r = ParameterLoader.getParameters().random.generator;
-		return 0.0f;
-//		return -r.nextFloat() * 0.6f - 0.3f;
 	}
 
 	private Matrix4f getRandomRotation(float yAngle) {

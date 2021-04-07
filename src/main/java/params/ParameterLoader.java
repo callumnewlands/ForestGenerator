@@ -28,6 +28,7 @@ public final class ParameterLoader {
 		);
 		parameters = mapper.readValue(new File(filePath), Parameters.class);
 		setRandomGenerator();
+		System.out.println("Parameters Loaded");
 		return parameters;
 	}
 
@@ -40,11 +41,15 @@ public final class ParameterLoader {
 	}
 
 	private static void setRandomGenerator() {
+		long seed;
 		if (parameters.random.seed == -1) {
-			parameters.random.setGenerator(new Random());
+			Random r = new Random();
+			seed = r.nextLong();
 		} else {
-			parameters.random.setGenerator(new Random(parameters.random.seed));
+			seed = parameters.random.seed;
 		}
+		parameters.random.setGenerator(new Random(seed));
+		System.out.println("Random seed: " + seed);
 	}
 
 	static class Vec3Deserializer extends JsonDeserializer<Vector3f> {

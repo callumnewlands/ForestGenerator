@@ -14,6 +14,7 @@ import org.joml.Matrix4f;
 import org.joml.Vector2f;
 import org.joml.Vector3f;
 import params.ParameterLoader;
+import params.Parameters;
 import rendering.LevelOfDetail;
 
 public abstract class InstancedGroundObject {
@@ -24,16 +25,16 @@ public abstract class InstancedGroundObject {
 	private final Vector2f regionCentre;
 	private final float regionWidth;
 	private final TerrainQuadtree quadtree;
-	private final boolean yRotationOnly;
+	private final Parameters.SceneObjects.SceneObject params;
 	private boolean generated = false;
 
-	public InstancedGroundObject(int numberOfTypes, int numberOfInstances, Vector2f regionCentre, float regionWidth, TerrainQuadtree quadtree, boolean yRotationOnly) {
+	public InstancedGroundObject(int numberOfTypes, int numberOfInstances, Vector2f regionCentre, float regionWidth, TerrainQuadtree quadtree, Parameters.SceneObjects.SceneObject params) {
 		this.numberOfTypes = numberOfTypes;
 		this.numberOfInstances = numberOfInstances;
 		this.regionCentre = regionCentre;
 		this.regionWidth = regionWidth;
 		this.quadtree = quadtree;
-		this.yRotationOnly = yRotationOnly;
+		this.params = params;
 	}
 
 	public void generate() {
@@ -62,15 +63,17 @@ public abstract class InstancedGroundObject {
 				float z = (r.nextFloat() - 0.5f) * regionWidth + regionCentre.y;
 				Matrix4f model = new Matrix4f()
 						.identity()
-						.translate(x, quadtree.getHeight(x, z) + getHeightOffset(), z);
-				if (!yRotationOnly) {
+						.translate(x, quadtree.getHeight(x, z) + params.yOffset, z);
+				if (params.pitchVariability > 0) {
 					model = model.rotate(
-							r.nextFloat() * (float) Math.PI / 10,  // TODO param for x-z angle range
+							r.nextFloat() * (float) Math.PI * params.pitchVariability,
 							new Vector3f(r.nextFloat(), 0, r.nextFloat()).normalize()
 					);
 				}
 				return model.rotate(r.nextFloat() * (float) Math.PI * 2, new Vector3f(0, 1, 0))
-						.scale(getScale() * (r.nextFloat() + 0.5f)); // TODO param for scale range
+						.scale(params.scale * (
+								r.nextFloat() * (params.maxScaleFactor - params.minScaleFactor) + params.minScaleFactor)
+						);
 			});
 			models.add(lodModel);
 		}
@@ -85,10 +88,6 @@ public abstract class InstancedGroundObject {
 		}
 		return (int) val;
 	}
-
-	abstract float getScale(); // TODO param
-
-	abstract float getHeightOffset(); // TODO param
 
 	abstract Map<LevelOfDetail, List<Mesh>> getMeshes();
 

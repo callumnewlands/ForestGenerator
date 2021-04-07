@@ -8,7 +8,7 @@ output:
     height: 780
 
 terrain:
-  width: 50.0
+  width: 100.0
 quadtree:
   levels: 1
 sceneObjects:
