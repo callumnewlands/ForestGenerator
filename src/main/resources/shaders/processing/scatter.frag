@@ -13,8 +13,6 @@ uniform int numSamples;
 uniform float sampleDensity;// sample density
 uniform float decay;// light fall-off
 uniform float exposure;// light ray intensity
-uniform bool hdrEnabled;
-uniform float toneExposure;
 uniform float maxBrightness;
 
 out vec3 fragColor;
@@ -43,18 +41,4 @@ void main()
         illuminationDecay *= decay;
     }
     fragColor = colour * exposure;
-
-    if (hdrEnabled) {
-        //        // Reinhard tone mapping
-        //        fragColor = fragColor / (fragColor + vec3(1.0));
-        //        //Exposure tone mapping
-        //        fragColor = vec3(1.0) - exp(-fragColor * toneExposure);
-        //        // Reinhard-Jodie tone mapping
-        //        float luminance = dot(fragColor, vec3(0.2126f, 0.7152f, 0.0722f));
-        //        vec3 tv = fragColor / (1.0f + fragColor);
-        //        fragColor = mix(fragColor / (1.0f + luminance), tv, tv);
-        // Extended Reinhard tone mapping
-        float luminance = dot(fragColor, vec3(0.2126f, 0.7152f, 0.0722f));
-        fragColor = fragColor / (vec3(1.0f) + luminance);
-    }
 }

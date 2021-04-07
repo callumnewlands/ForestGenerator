@@ -706,7 +706,7 @@ lighting:
   hdr:
     enabled: true
     # The exposure value to use in the tone mapping algorithm (larger = more light)
-    exposure: 0.9
+    exposure: 0.6
   gammaCorrection:
     enabled: true
     # The gamma value to use for gamma correction

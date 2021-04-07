@@ -93,7 +93,7 @@ void main() {
     vec4 lightSpacePos = lightVP * vec4(worldPos, 1.0);
     float shadow = shadowsEnabled ? shadowCalculation(lightSpacePos, norm, lightDir) : 0;
 
-    vec3 hdrColor;
+    vec3 screenColour;
     if (length(occ) < 0.0001) {
         vec3 ambient;
         if (aoEnabled) {
@@ -102,30 +102,31 @@ void main() {
             ambient = ambientStrength * diffuse;
         }
         float diffFactor = max(dot(norm, lightDir), 0.0f);
-        hdrColor =  ambient +
+        vec3 hdrColor =  ambient +
         (1.0 - shadow) * diffFactor * lightColour * diffuse +
         transl * pixelTranslFactor * translucencyFactor +
         scattering;
         // TODO specular
+
+        // TODO which tone mapping algoritm? Also why is the sun AOE too large in gamrig.hdr?
+        screenColour = hdrColor;
+        if (hdrEnabled) {
+            //        // Reinhard tone mapping
+            //        screenColour = hdrColor / (hdrColor + vec3(1.0));
+            //Exposure tone mapping
+            screenColour = vec3(1.0) - exp(-hdrColor * toneExposure);
+            //        // Reinhard-Jodie tone mapping
+            //        float luminance = dot(hdrColor, vec3(0.2126f, 0.7152f, 0.0722f));
+            //        vec3 tv = hdrColor / (1.0f + hdrColor);
+            //        screenColour = mix(hdrColor / (1.0f + luminance), tv, tv);
+            // Extended Reinhard tone mapping
+            //        float luminance = dot(hdrColor, vec3(0.2126f, 0.7152f, 0.0722f));
+            //        screenColour = hdrColor / (vec3(1.0f) + luminance);
+        }
     } else {
-        hdrColor = diffuse;
+        screenColour = diffuse;
     }
 
-    // TODO which tone mapping algoritm? Also why is the sun AOE too large in gamrig.hdr?
-    vec3 screenColour = hdrColor;
-    if (hdrEnabled) {
-        //        // Reinhard tone mapping
-        //        screenColour = hdrColor / (hdrColor + vec3(1.0));
-        //        //Exposure tone mapping
-        //        screenColour = vec3(1.0) - exp(-hdrColor * toneExposure);
-        //        // Reinhard-Jodie tone mapping
-        //        float luminance = dot(hdrColor, vec3(0.2126f, 0.7152f, 0.0722f));
-        //        vec3 tv = hdrColor / (1.0f + hdrColor);
-        //        screenColour = mix(hdrColor / (1.0f + luminance), tv, tv);
-        // Extended Reinhard tone mapping
-        float luminance = dot(hdrColor, vec3(0.2126f, 0.7152f, 0.0722f));
-        screenColour = hdrColor / (vec3(1.0f) + luminance);
-    }
 
     // gamma correction
     vec3 gammaCorrected = gammaEnabled ? pow(screenColour, vec3(1.0 / gamma)) : screenColour;

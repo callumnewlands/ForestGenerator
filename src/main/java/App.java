@@ -586,8 +586,6 @@ public class App {
 		scatteringShader.setUniform("decay", parameters.lighting.volumetricScattering.decay);
 		scatteringShader.setUniform("exposure", parameters.lighting.volumetricScattering.exposure);
 		scatteringShader.setUniform("maxBrightness", parameters.lighting.volumetricScattering.maxBrightness);
-		scatteringShader.setUniform("hdrEnabled", parameters.lighting.hdr.enabled);
-		scatteringShader.setUniform("toneExposure", parameters.lighting.hdr.exposure);
 
 		if (parameters.lighting.ssao.enabled) {
 			ssaoKernel = new ArrayList<>();

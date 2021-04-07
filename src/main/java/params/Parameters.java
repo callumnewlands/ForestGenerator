@@ -335,7 +335,7 @@ public class Parameters {
 		@Setter
 		public static class HDR {
 			public boolean enabled = true;
-			public float exposure = 0.9f;
+			public float exposure = 0.6f;
 		}
 
 		@NoArgsConstructor

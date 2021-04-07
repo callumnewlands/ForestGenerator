@@ -6,7 +6,6 @@ output:
     fullscreen: false
     width: 1400
     height: 780
-#  frameImages: true
 
 terrain:
   width: 50.0
@@ -24,7 +23,4 @@ sceneObjects:
       density: 0.6
     - !TreeTypes$PineTree
       density: 0.6
-lighting:
-  sun:
-    display: true
 

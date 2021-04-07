@@ -5,7 +5,7 @@ output:
     fullscreen: false
     width: 1400
     height: 780
-#  frameImages: true
+
 terrain:
   width: 10.0
 quadtree:
@@ -13,7 +13,10 @@ quadtree:
   frustumCulling: false
 sceneObjects:
   trees:
-#    - !TreeTypes$PineTree
+    # To change tree type swap which line is uncommented
+    #    - !TreeTypes$PineTree
+    #    - !TreeTypes$AspenTree
+    #    - !TreeTypes$PoplarTree
     #    - !TreeTypes$MonopodialTree
     #    - !TreeTypes$BranchingTree
     - !TreeTypes$OakTree
