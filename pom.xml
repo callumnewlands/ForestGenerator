@@ -84,7 +84,7 @@
                             <goal>single</goal>
                         </goals>
                         <configuration>
-                            <finalName>${artifactId}-${version}-${osName}</finalName>
+                            <finalName>${project.artifactId}-${project.version}-${osName}</finalName>
                             <archive>
                                 <manifest>
                                     <mainClass>App</mainClass>

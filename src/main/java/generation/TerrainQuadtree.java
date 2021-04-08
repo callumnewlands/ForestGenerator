@@ -106,7 +106,7 @@ public class TerrainQuadtree {
 			if (!parameters.quadtree.frustumCulling) {
 				return false;
 			}
-			return !MVP.testSphere(centre.x, 0, centre.y, width);
+			return !(MVP.testSphere(centre.x, 0, centre.y, width * 2) || MVP.testSphere(centre.x, width * 2, centre.y, width * 2));
 		}
 
 		private void generateChildren() {
@@ -143,12 +143,9 @@ public class TerrainQuadtree {
 
 		protected List<Quad> getVisibleQuads(Matrix4f MVP) {
 			// Stop recursion to children if distance from camera > thresholdCoefficient * width
-			if (Math.abs(centre.x - seedPoint.x) > parameters.quadtree.thresholdCoefficient * width ||
+			if (Math.abs(centre.x - seedPoint.x) > parameters.quadtree.thresholdCoefficient * width &&
 					Math.abs(centre.y - seedPoint.y) > parameters.quadtree.thresholdCoefficient * width) {
-				if (isOutsideView(MVP)) {
-					return List.of();
-				}
-				return List.of(this);
+				return isOutsideView(MVP) ? List.of() : List.of(this);
 			}
 			return children.stream().flatMap(q -> q.getVisibleQuads(MVP).stream()).collect(Collectors.toList());
 		}
@@ -167,7 +164,7 @@ public class TerrainQuadtree {
 			}
 
 			LevelOfDetail levelOfDetail;
-			if (maxDepth == 0 || maxDepth == 1 || depth > (maxDepth + 1) / 2) {
+			if (depth >= (maxDepth - 1)) {
 				levelOfDetail = LevelOfDetail.HIGH;
 			} else {
 				levelOfDetail = LevelOfDetail.LOW;

@@ -264,12 +264,14 @@ public class App {
 	}
 
 	private void init() {
+		System.out.println("Initialising GLFW");
 		GLFWErrorCallback.createPrint(System.err).set();
 		if (!glfwInit()) {
 			throw new IllegalStateException("Unable to initialize GLFW");
 		}
 
 		window = initWindow();
+		System.out.println("Window initialised, creating OpenGL Capabilities");
 		GL.createCapabilities();
 		System.out.println("Running OpenGL " + glGetString(GL_VERSION));
 
@@ -299,7 +301,11 @@ public class App {
 	}
 
 	private long initWindow() {
+		System.out.println("Initialising window");
 		glfwDefaultWindowHints();
+//		if (!parameters.output.window.visible) {
+//			glfwWindowHint(GLFW_CONTEXT_CREATION_API, GLFW_OSMESA_CONTEXT_API);
+//		}
 		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, MAJOR_VERSION);
 		glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, MINOR_VERSION);
 		glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
@@ -308,6 +314,7 @@ public class App {
 		glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
 		glfwWindowHint(GLFW_SAMPLES, 4);
 
+		System.out.println("Getting video mode");
 		GLFWVidMode videoMode = glfwGetVideoMode(glfwGetPrimaryMonitor());
 		if (videoMode == null) {
 			throw new RuntimeException("Failed to get primary monitor");
@@ -397,7 +404,7 @@ public class App {
 
 		final float perspectiveAngle = (float) Math.toRadians(45.0f);
 		final float nearPlane = 0.1f;
-		final float farPlane = 300.0f;
+		final float farPlane = 300.0f; // TODO param (check for usages of 300)
 		projection = new Matrix4f()
 				.perspective(perspectiveAngle, (float) windowWidth / windowHeight, nearPlane, farPlane);
 		ShaderPrograms.forAll(sp -> sp.setUniform("projection", projection));

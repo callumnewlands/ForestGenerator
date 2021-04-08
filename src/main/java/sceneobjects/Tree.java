@@ -95,12 +95,16 @@ public class Tree {
 		TurtleInterpreter turtleInterpreter = new TurtleInterpreter(numEdges);
 		turtleInterpreter.setSubModels(List.of(MeshUtils.transform(leaf,
 				new Matrix4f().scale(params.leafYScale / params.scale, 1, params.leafXScale / params.scale))));
+		TurtleInterpreter lowLODInterpreter = new TurtleInterpreter(2); //  TODO param
+		lowLODInterpreter.setSubModels(List.of(MeshUtils.transform(leaf,
+				new Matrix4f().scale(params.leafYScale / params.scale, 1, params.leafXScale / params.scale))));
 		Random r = ParameterLoader.getParameters().random.generator;
 		int minI = params.minIterations;
 		int maxI = params.maxIterations;
 		List<Module> instructions;
 		if (params instanceof TreeTypes.BranchingTree) {
 			turtleInterpreter.setIgnored(List.of('A'));
+			lowLODInterpreter.setIgnored(List.of('A'));
 			instructions = branchingTreeSystem()
 					.performDerivations(r.nextInt(maxI - minI) + minI)
 					.stream()
@@ -108,12 +112,14 @@ public class Tree {
 					.collect(Collectors.toList());
 		} else if (params instanceof TreeTypes.MonopodialTree) {
 			turtleInterpreter.setIgnored(List.of('A', 'B'));
+			lowLODInterpreter.setIgnored(List.of('A', 'B'));
 			instructions = monopodialTreeSystem()
 					.performDerivations(r.nextInt(maxI - minI) + minI);
 		} else {
 			throw new NotImplementedException();
 		}
 		turtleInterpreter.interpretInstructions(instructions);
+		lowLODInterpreter.interpretInstructions(instructions);
 
 		Textures.TreeTextures treeTextures = Textures.treeTextures.get(index);
 		Mesh branches = turtleInterpreter.getMesh();
@@ -134,25 +140,29 @@ public class Tree {
 		canopy.setColourFilter(params.leafColourFilter);
 
 		// Uses leaf geometry to construct billboard
-		Mesh board = MeshUtils.transform(Tree.leaf, new Matrix4f()
-				.scale(1f, 10f / params.scale, 1f / params.scale)
-				.rotate((float) Math.PI / 2, out));
+//		Mesh board = MeshUtils.transform(Tree.leaf, new Matrix4f()
+//				.scale(1f, 10f / params.scale, 1f / params.scale)
+//				.rotate((float) Math.PI / 2, out));
+		Mesh board = lowLODInterpreter.getMesh();
 		board.addTexture("diffuseTexture", treeTextures.bark);
 		board.addTexture("normalTexture", treeTextures.barkNormal);
 		board.setShaderProgram(billboardShaderProgram);
 
 		Mesh LODCanopy = new Mesh(canopy);
 		LODCanopy.setShaderProgram(leafShaderProgram);
-		List<Mesh> billboard = List.of(
-				new Mesh(board),
-				MeshUtils.transform(board, new Matrix4f().rotate((float) Math.PI / 2, up)),
-				LODCanopy
-		);
+//		List<Mesh> billboard = List.of(
+//				new Mesh(board),
+//				MeshUtils.transform(board, new Matrix4f().rotate((float) Math.PI / 2, up)),
+//				LODCanopy
+//		);
 		LODCanopy.setColourFilter(params.leafColourFilter);
 
 		return Map.of(
 				LevelOfDetail.HIGH, List.of(new Mesh(branches), new Mesh(canopy)),
-				LevelOfDetail.LOW, billboard);
+				LevelOfDetail.LOW, List.of(new Mesh(board), LODCanopy));
+//		return Map.of(
+//				LevelOfDetail.HIGH, List.of(new Mesh(branches)),
+//				LevelOfDetail.LOW, List.of(new Mesh(board)));
 	}
 
 	private float getParamBetween(float min, float max) {

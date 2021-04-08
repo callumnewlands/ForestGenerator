@@ -81,7 +81,7 @@ quadtree:
   # Levels of detail (LODs) in the quad-tree
   levels: 2
   # Distance multiplier for switching (LOD) (smaller = LOD threshold is closer)
-  thresholdCoefficient: 1.7
+  thresholdCoefficient: 1.5
   # Enable view-frustum culling of geometry
   frustumCulling: true
 

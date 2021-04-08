@@ -133,8 +133,8 @@ public class Parameters {
 	@Setter
 	public static class Quadtree {
 		public int levels = 2;
-		public float thresholdCoefficient = 1.7f;
-		public boolean frustumCulling = false;
+		public float thresholdCoefficient = 1.5f;
+		public boolean frustumCulling = true;
 	}
 
 	@NoArgsConstructor
