@@ -2,6 +2,7 @@ package generation;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Random;
 import java.util.stream.Collectors;
 
@@ -26,11 +27,9 @@ public class TerrainQuadtree {
 	private static final float GROUND_WIDTH = parameters.terrain.width;
 	private static final float DEFAULT_ROCK_DENSITY = 0.02f;
 	private static final float DEFAULT_GRASS_DENSITY = 2.30f;
-	private static final float DEFAULT_TREE_DENSITY = 0.02f;
 	private static final int NUM_OF_INSTANCED_TWIGS = (int) (GROUND_WIDTH * GROUND_WIDTH * 0.04 * parameters.sceneObjects.twigs.density);
 	private static final int NUM_OF_INSTANCED_LEAVES = (int) (GROUND_WIDTH * GROUND_WIDTH * 1.30 * parameters.sceneObjects.fallenLeaves.density);
 
-	private final TreePool treePool = new TreePool();
 	private final Quad quad;
 	private final int maxDepth;
 	private final int verticesPerTile;
@@ -77,6 +76,19 @@ public class TerrainQuadtree {
 		render(MVP, false);
 	}
 
+	public void placeTree(Tree.Reference tree) {
+		Vector2f position = new Vector2f(tree.getPosition().x, tree.getPosition().z);
+		Optional<LeafQuad> containingLeaf = quad.getLeafQuads().stream()
+				.filter(q -> q.containsPoint(position))
+				.findFirst();
+		if (containingLeaf.isEmpty()) {
+			System.out.println("Attempting to place tree outside of quadtree bounds: " + tree);
+			return;
+		}
+		LeafQuad leaf = containingLeaf.get();
+		leaf.addTree(tree);
+	}
+
 	private class Quad {
 		protected final Vector2f centre;
 		protected final float width;
@@ -91,13 +103,13 @@ public class TerrainQuadtree {
 			this.texture = texture;
 		}
 
-		protected boolean containsSeedPoint() {
+		protected boolean containsPoint(Vector2f point) {
 			float minX = centre.x - width / 2;
 			float maxX = centre.x + width / 2;
 			float minY = centre.y - width / 2;
 			float maxY = centre.y + width / 2;
-			float sx = seedPoint.x;
-			float sy = seedPoint.y;
+			float sx = point.x;
+			float sy = point.y;
 
 			return sx <= maxX && sx >= minX && sy <= maxY && sy >= minY;
 		}
@@ -152,6 +164,10 @@ public class TerrainQuadtree {
 
 		protected List<LeafQuad.SceneObjects> getSceneObjects() {
 			return children.stream().flatMap(q -> q.getSceneObjects().stream()).collect(Collectors.toList());
+		}
+
+		protected List<LeafQuad> getLeafQuads() {
+			return children.stream().flatMap(q -> q.getLeafQuads().stream()).collect(Collectors.toList());
 		}
 
 		protected List<Mesh> getMeshes() {
@@ -213,6 +229,10 @@ public class TerrainQuadtree {
 			return mesh != null ? List.of(mesh) : List.of();
 		}
 
+		@Override
+		protected List<LeafQuad> getLeafQuads() {
+			return List.of(this);
+		}
 
 		private int getNumber(int total) {
 			Random r = ParameterLoader.getParameters().random.generator;
@@ -224,6 +244,10 @@ public class TerrainQuadtree {
 			return (int) val;
 		}
 
+		public void addTree(Tree.Reference tree) {
+			sceneObjects.addTree(tree);
+		}
+
 		private class SceneObjects {
 			private final List<Tree.Reference> trees;
 			private final Twigs twigs;
@@ -233,13 +257,6 @@ public class TerrainQuadtree {
 
 			public SceneObjects() {
 				trees = new ArrayList<>();
-				int numTreeTypes = parameters.sceneObjects.trees.size();
-				for (int type = 0; type < numTreeTypes; type++) {
-					int numReferences = (int) (GROUND_WIDTH * GROUND_WIDTH * DEFAULT_TREE_DENSITY * parameters.sceneObjects.trees.get(type).density / numTreeTypes);
-					for (int i = 0; i < getNumber(numReferences); i++) {
-						trees.add(treePool.getTree(type, centre, width, TerrainQuadtree.this));
-					}
-				}
 
 				leaves = new FallenLeaves(1, getNumber(NUM_OF_INSTANCED_LEAVES), centre, width, TerrainQuadtree.this);
 				twigs = new Twigs(parameters.sceneObjects.twigs.typesPerQuad, getNumber(NUM_OF_INSTANCED_TWIGS), centre, width, TerrainQuadtree.this);
@@ -261,7 +278,7 @@ public class TerrainQuadtree {
 
 			private void render(LevelOfDetail levelOfDetail, boolean renderForShadows) {
 				for (Tree.Reference tree : trees) {
-					tree.render(levelOfDetail, renderForShadows, treePool);
+					tree.render(levelOfDetail, renderForShadows);
 				}
 				twigs.render(levelOfDetail, renderForShadows);
 				for (ExternalModels model : externalModels) {
@@ -273,6 +290,9 @@ public class TerrainQuadtree {
 				leaves.render(levelOfDetail, renderForShadows);
 			}
 
+			public void addTree(Tree.Reference tree) {
+				trees.add(tree);
+			}
 		}
 	}
 }

@@ -42,7 +42,7 @@ public class Parameters {
 		@Setter
 		public static class StdIn {
 			public boolean enabled = false;
-			public float lookOffset = 20f;
+			public float lookOffset = 10f;
 			public int fps = 30;
 		}
 	}

@@ -30,7 +30,7 @@ input:
   stdin:
     enabled: false # Note: Enabling stdin will case render loop to block after each frame for input and will disable delta time
     # The amount the viewing angle changes with a look command (I, J, K, or L)
-    lookOffset: 20.0
+    lookOffset: 10.0
     # The frames per second of the resulting output (controls movement speed -> larger = slower movement speed/shorter movement)
     fps: 30
 

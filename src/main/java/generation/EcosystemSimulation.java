@@ -1,0 +1,235 @@
+package generation;
+
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Objects;
+import java.util.Random;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+import org.joml.Matrix4f;
+import org.joml.Vector2f;
+import org.joml.Vector3f;
+import params.ParameterLoader;
+import params.Parameters;
+import sceneobjects.Tree;
+import utils.VectorUtils;
+
+public class EcosystemSimulation {
+	private static final Parameters parameters = ParameterLoader.getParameters();
+	private static final float GROUND_WIDTH = parameters.terrain.width;
+	private static final float DEFAULT_TREE_DENSITY = 0.02f;
+
+	private final TerrainQuadtree quadtree;
+
+	private List<Plant> plants = new ArrayList<>();
+
+	public EcosystemSimulation(TerrainQuadtree quadtree) {
+		System.out.println("Simulating ecosystem");
+		Random r = parameters.random.generator;
+		this.quadtree = quadtree;
+		int numTypes = parameters.sceneObjects.trees.size();
+
+		int indexCount = 0;
+		List<List<Integer>> indicesByType = new ArrayList<>();
+		for (int type = 0; type < numTypes; type++) {
+			Parameters.SceneObjects.Tree params = parameters.sceneObjects.trees.get(type);
+			int numTrees = (int) (GROUND_WIDTH * GROUND_WIDTH * DEFAULT_TREE_DENSITY * params.density / numTypes);
+			indicesByType.add(IntStream.range(indexCount, indexCount + numTrees).boxed().collect(Collectors.toList()));
+			for (int i = 0; i < numTrees; i++) {
+				plants.add(new Plant(type));
+			}
+			indexCount += numTrees;
+		}
+
+		indicesByType = indicesByType.stream()
+				.map(is -> is.stream()
+						.sorted(Comparator.comparingDouble(i -> plants.get((int) i).getSize()).reversed())
+						.collect(Collectors.toList()))
+				.collect(Collectors.toList());
+
+		int numPlants = indicesByType.stream().map(List::size).reduce(Integer::sum).orElse(0);
+
+		// Sorted by size high -> low then types are interleaved
+		List<Integer> sortedIndices = new ArrayList<>();
+		while (sortedIndices.size() < numPlants) {
+			for (List<Integer> typeIIndices : indicesByType) {
+				if (typeIIndices.size() > 0) {
+					sortedIndices.add(typeIIndices.remove(0));
+				}
+			}
+		}
+
+		// Greedy approach
+		int MAX_COUNT = 5000;
+		for (Integer i : sortedIndices) {
+			Plant plant = plants.get(i);
+			int count = 0;
+			do {
+				float x = (r.nextFloat() - 0.5f) * GROUND_WIDTH;
+				float z = (r.nextFloat() - 0.5f) * GROUND_WIDTH;
+				plants.get(i).position = new Vector2f(x, z);
+				count += 1;
+			} while (collidingCanopies(i) && count < MAX_COUNT);
+			if (count == MAX_COUNT) {
+				count = 0;
+				do {
+					float x = (r.nextFloat() - 0.5f) * GROUND_WIDTH;
+					float z = (r.nextFloat() - 0.5f) * GROUND_WIDTH;
+					plants.get(i).position = new Vector2f(x, z);
+					count += 1;
+				} while (collidingTrunks(i) && count < MAX_COUNT);
+				if (count != MAX_COUNT) {
+					System.out.println("Tree " + parameters.sceneObjects.trees.get(plant.type) + " placed with intersecting canopy");
+				} else {
+					plants.set(i, null);
+					System.out.println("Unable to place tree " + parameters.sceneObjects.trees.get(plant.type) + " : Maximum number of attempts reached");
+				}
+			}
+		}
+
+		plants = plants.stream().filter(Objects::nonNull).collect(Collectors.toList());
+	}
+
+	public List<Tree.Reference> simulate(int numIterations) {
+		return plants.stream().map(Plant::toReference).collect(Collectors.toList());
+	}
+
+	/**
+	 * True if the canopy (cylinder) for plant[index] is intersecting with another canopy or trunk
+	 */
+	private boolean collidingCanopies(int index) {
+		Plant p1 = plants.get(index);
+		for (int i = 0; i < plants.size(); i++) {
+			if (i == index) {
+				continue;
+			}
+			Plant p2 = plants.get(i);
+			if (p2 == null || p2.position == null) {
+				continue;
+			}
+			// Canopies colliding
+			if (cylindersColliding(p1.position, p1.canopyCentreY, p1.getSize(), p1.canopyYRadius,
+					p2.position, p2.canopyCentreY, p2.getSize(), p2.canopyYRadius)) {
+				return true;
+			}
+			// p1 canopy and p2 trunk
+			if (circlesColliding(p1.position, p1.getSize(), p2.position, p2.trunkRadius)) {
+				return true;
+			}
+			// p1 trunk and p2 canopy
+			if (circlesColliding(p1.position, p1.trunkRadius, p2.position, p2.getSize())) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * True if the trunk (circle) for plant[index] is intersecting with another canopy or trunk
+	 */
+	private boolean collidingTrunks(int index) {
+		Plant p1 = plants.get(index);
+		for (int i = 0; i < plants.size(); i++) {
+			if (i == index) {
+				continue;
+			}
+			Plant p2 = plants.get(i);
+			if (p2 == null || p2.position == null) {
+				continue;
+			}
+			// Both trunks (with slack of 50% leaf radius)
+			if (circlesColliding(p1.position, (p1.trunkRadius + p1.getSize()) / 2,
+					p2.position, (p2.trunkRadius + p2.getSize()) / 2)) {
+				return true;
+			}
+			// p1 canopy and p2 trunk
+			if (circlesColliding(p1.position, p1.getSize(), p2.position, p2.trunkRadius)) {
+				return true;
+			}
+			// p1 trunk and p2 canopy
+			if (circlesColliding(p1.position, p1.trunkRadius, p2.position, p2.getSize())) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+
+	private boolean circlesColliding(Vector2f centre1, float radius1, Vector2f centre2, float radius2) {
+		float distanceSquared = centre1.distanceSquared(centre2);
+		float radiusSum = radius1 + radius2;
+		return (distanceSquared < (radiusSum * radiusSum));
+	}
+
+	private boolean cylindersColliding(Vector2f centre1, float centre1Y, float radius1, float height1,
+									   Vector2f centre2, float centre2Y, float radius2, float height2) {
+		float distanceSquared = centre1.distanceSquared(centre2);
+		float radiusSum = radius1 + radius2;
+		if (distanceSquared < (radiusSum * radiusSum)) {
+			float heightDist = Math.abs(centre2Y - centre1Y);
+			float ySum = height1 + height2;
+			return heightDist < ySum;
+		}
+		return false;
+	}
+
+	private class Plant {
+		private final int type;
+		private final int poolIndex;
+		private final int age;
+		private final int maxAge;
+		private final float minSize;
+		private final float maxSize;
+		private final float modelCanopyXZRadius;
+		private final float canopyXZRadius;
+		private final float canopyYRadius;
+		private final float canopyCentreY;
+		private final float trunkRadius;
+		private Vector2f position;
+
+		private Plant(int type) {
+			this.type = type;
+			Random r = parameters.random.generator;
+			TreePool treePool = TreePool.getTreePool();
+			this.poolIndex = treePool.getTreeIndex(type);
+			this.maxAge = 100; // TODO param
+			this.age = r.nextInt(maxAge);
+			Tree treeModel = treePool.getTree(type, poolIndex);
+			Parameters.SceneObjects.Tree params = parameters.sceneObjects.trees.get(type);
+			this.modelCanopyXZRadius = treeModel.getCanopyXZRadius();
+			this.canopyXZRadius = modelCanopyXZRadius * params.scale;
+			this.canopyYRadius = treeModel.getCanopyYRadius() * params.scale;
+			this.canopyCentreY = VectorUtils.multiply(params.scale, treeModel.getCanopyCentre()).y;
+			this.trunkRadius = treeModel.getTrunkRadius() * params.scale;
+			this.minSize = canopyXZRadius * params.minScaleFactor;
+			this.maxSize = canopyXZRadius * params.maxScaleFactor;
+		}
+
+		private float getSize() {
+			return (float) age / maxAge * (maxSize - minSize) + minSize;
+		}
+
+		Tree.Reference toReference() {
+			Random r = parameters.random.generator;
+			Parameters.SceneObjects.Tree params = parameters.sceneObjects.trees.get(type);
+			float x = position.x;
+			float z = position.y;
+			float y = quadtree.getHeight(x, z) + params.yOffset;
+			Matrix4f model = new Matrix4f()
+					.identity()
+					.translate(x, y, z);
+			if (params.pitchVariability > 0) {
+				model = model.rotate(
+						r.nextFloat() * (float) Math.PI * params.pitchVariability,
+						new Vector3f(r.nextFloat(), 0, r.nextFloat()).normalize()
+				);
+			}
+			model = model.rotate(r.nextFloat() * (float) Math.PI * 2, new Vector3f(0, 1, 0))
+					.scale(getSize() / modelCanopyXZRadius);
+
+			return new Tree.Reference(type, poolIndex, new Vector3f(x, y, z), model);
+		}
+	}
+
+}

@@ -173,7 +173,9 @@ import static rendering.ShaderPrograms.ssaoShader;
 import static rendering.ShaderPrograms.sunShader;
 import static utils.MathsUtils.lerp;
 
+import generation.EcosystemSimulation;
 import generation.TerrainQuadtree;
+import generation.TreePool;
 import javax.imageio.ImageIO;
 import modeldata.meshdata.HDRTexture;
 import org.joml.Matrix3f;
@@ -193,10 +195,10 @@ import rendering.Textures;
 import sceneobjects.Polygon;
 import sceneobjects.Quad;
 import sceneobjects.Skybox;
+import sceneobjects.Tree;
 import utils.VectorUtils;
 
 public class App {
-
 	private static final int MAJOR_VERSION = 4;
 	private static final int MINOR_VERSION = 3;
 	private final Parameters parameters = ParameterLoader.getParameters();
@@ -560,6 +562,9 @@ public class App {
 
 		sun = new Polygon(parameters.lighting.sun.numSides, sunShader);
 
+		// Generate tree pool before quadtree for sensible logging output order
+		TreePool.getTreePool();
+
 		int quadtreeDepth = parameters.quadtree.levels;
 		quadtree = new TerrainQuadtree(
 				new Vector2f(0, 0),
@@ -571,6 +576,11 @@ public class App {
 				Textures.ground
 		);
 		quadtree.setSeedPoint(new Vector2f(camera.getPosition().x, camera.getPosition().z));
+
+		List<Tree.Reference> trees = (new EcosystemSimulation(quadtree)).simulate(100);
+		for (Tree.Reference tree : trees) {
+			quadtree.placeTree(tree);
+		}
 	}
 
 	private void initLighting() {
@@ -956,7 +966,7 @@ public class App {
 	}
 
 	private void blockAndProcessInputStream() {
-		final float LOOK_OFFSET = parameters.input.stdin.lookOffset;
+		final float LOOK_OFFSET = parameters.input.stdin.lookOffset * 30f / parameters.input.stdin.fps;
 		try {
 			String s = inputStream.readLine().toUpperCase();
 			for (char c : s.toCharArray()) {

@@ -1,10 +1,18 @@
 random:
   seed: 12
+input:
+  manual: false
+  stdin:
+    enabled: true
+    fps: 60
 output:
   window:
+    visible: true
     fullscreen: false
-    width: 1400
-    height: 780
+    width: 1920
+    height: 1080
+  frameImages: false
+  # Video command: ffmpeg -r 30 -start_number 0 -i frame-colour-%d.jpg output.mp4
 terrain:
   width: 200.0
   vertexDensity: 0.4

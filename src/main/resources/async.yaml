@@ -2,7 +2,10 @@ random:
   seed: 12
 input:
   manual: false
-  stdin: true
+  stdin:
+    enabled: true
+    lookOffset: 10.0
+    fps: 30
 output:
   window:
     visible: false
