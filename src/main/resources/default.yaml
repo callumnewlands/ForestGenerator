@@ -274,6 +274,7 @@ sceneObjects:
         l2: 0.0    # Length of trunk sections after branches
         lr: 0.5    # Offset of side branches from centre
         lr2: 1.0   # Ratio of decrease of l2
+        dL: 1.0 # Density of leaves
         e: 0.0001     # Elasticity
       lSystemParamsUpper:
         lB: 2.0   # Base length
@@ -305,6 +306,7 @@ sceneObjects:
         l2: 0.0    # Length of trunk sections after branches
         lr: 0.5    # Offset of side branches from centre
         lr2: 1.0   # Ratio of decrease of l2
+        dL: 1.0 # Density of leaves
         e: 0.0001     # Elasticity
       # The fraction of all models of this tree which are instanced from a given generated mesh (random configuration) (Larger = more repeated instances)
       instanceFraction: 0.2
@@ -379,6 +381,7 @@ sceneObjects:
         l2: 0.0   # Length of trunk sections after branches
         lr: 0.5   # Offset of side branches from centre
         lr2: 1.0  # Ratio of decrease of l2
+        dL: 0.8 # Density of leaves
         e: 0.0    # Elasticity
       lSystemParamsUpper:
         lB: 9.0   # Base length
@@ -410,6 +413,7 @@ sceneObjects:
         l2: 0.0   # Length of trunk sections after branches
         lr: 0.5   # Offset of side branches from centre
         lr2: 1.0  # Ratio of decrease of l2
+        dL: 0.9 # Density of leaves
         e: 0.001    # Elasticity
       instanceFraction: 0.2
       scale: 1.0
@@ -474,6 +478,7 @@ sceneObjects:
         l2: 0.0   # Length of trunk sections after branches
         lr: 0.0   # Offset of side branches from centre
         lr2: 1.0   # Ratio of decrease of l2
+        dL: 0.9 # Density of leaves
         e: -0.01  # Elasticity
       lSystemParamsUpper:
         lB: 0.5   # Base length
@@ -505,6 +510,7 @@ sceneObjects:
         l2: 0.0   # Length of trunk sections after branches
         lr: 0.0   # Offset of side branches from centre
         lr2: 1.0   # Ratio of decrease of l2
+        dL: 1.1 # Density of leaves
         e: -0.01  # Elasticity
       instanceFraction: 0.2
       scale: 0.7
@@ -565,9 +571,10 @@ sceneObjects:
         l2: 0.4    # Length of trunk sections after branches
         lr: 0.5    # Offset of side branches from centre
         lr2: 0.92   # Ratio of decrease of l2
+        dL: 1.1 # Density of leaves
         e: 0.0     # Elasticity
       lSystemParamsUpper:
-        lB: 1.8   # Base length
+        lB: 2.8   # Base length
         lS: 0.8   # Side branch length
         lSm: 0.03  # Min ratio for side branch length (of ls) and width (of ws)
         wB: 0.5   # Base width
@@ -592,6 +599,7 @@ sceneObjects:
         l2: 0.6    # Length of trunk sections after branches
         lr: 0.5    # Offset of side branches from centre
         lr2: 0.98   # Ratio of decrease of l2
+        dL: 1.4 # Density of leaves
         e: 0.0     # Elasticity
       instanceFraction: 0.2
       scale: 1.9
@@ -599,7 +607,7 @@ sceneObjects:
       maxScaleFactor: 1.1
       yOffset: 0.0
       pitchVariability: 0.0
-      leafXScale: 0.03
+      leafXScale: 0.035
       leafYScale: 0.4
       barkTexture:
         diffuse: "/textures/Bark_02_2K_Base_Color.png"

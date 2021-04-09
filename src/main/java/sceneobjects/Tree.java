@@ -90,14 +90,21 @@ public class Tree {
 	}
 
 	Map<LevelOfDetail, List<Mesh>> getMeshes() {
+
+		int lowLODEdges = 2; //  TODO param
+		int lowLODLeafMerges = 1; //  TODO param
+
 		Parameters.SceneObjects.Tree params = parameters.sceneObjects.trees.get(index);
 		int numEdges = params.numSides;
 		TurtleInterpreter turtleInterpreter = new TurtleInterpreter(numEdges);
 		turtleInterpreter.setSubModels(List.of(MeshUtils.transform(leaf,
 				new Matrix4f().scale(params.leafYScale / params.scale, 1, params.leafXScale / params.scale))));
-		TurtleInterpreter lowLODInterpreter = new TurtleInterpreter(2); //  TODO param
+		TurtleInterpreter lowLODInterpreter = new TurtleInterpreter(lowLODEdges);
 		lowLODInterpreter.setSubModels(List.of(MeshUtils.transform(leaf,
-				new Matrix4f().scale(params.leafYScale / params.scale, 1, params.leafXScale / params.scale))));
+				new Matrix4f().scale(
+						params.leafYScale * (1 + 0.1f * lowLODLeafMerges) / params.scale,
+						1,
+						params.leafXScale * (2 * lowLODLeafMerges) / params.scale))));
 		Random r = ParameterLoader.getParameters().random.generator;
 		int minI = params.minIterations;
 		int maxI = params.maxIterations;
@@ -113,8 +120,7 @@ public class Tree {
 		} else if (params instanceof TreeTypes.MonopodialTree) {
 			turtleInterpreter.setIgnored(List.of('A', 'B'));
 			lowLODInterpreter.setIgnored(List.of('A', 'B'));
-			instructions = monopodialTreeSystem()
-					.performDerivations(r.nextInt(maxI - minI) + minI);
+			instructions = monopodialTreeSystem().performDerivations(r.nextInt(maxI - minI) + minI);
 		} else {
 			throw new NotImplementedException();
 		}
@@ -148,18 +154,29 @@ public class Tree {
 		board.addTexture("normalTexture", treeTextures.barkNormal);
 		board.setShaderProgram(billboardShaderProgram);
 
-		Mesh LODCanopy = new Mesh(canopy);
+		for (int i = 0; i < lowLODLeafMerges; i++) {
+			lowLODInterpreter.reduceSubModelCount();
+		}
+		Mesh LODCanopy = lowLODInterpreter.getCombinedSubModelMeshes().get(0);
+		LODCanopy.addTexture("leafFront", treeTextures.leafFront);
+		LODCanopy.addTexture("leafFrontTranslucency", treeTextures.leafFrontT);
+		LODCanopy.addTexture("leafFrontNorm", treeTextures.leafFrontNorm);
+		LODCanopy.addTexture("leafFrontHalfLife", treeTextures.leafFrontHL);
+		LODCanopy.addTexture("leafBack", treeTextures.leafBack);
+		LODCanopy.addTexture("leafBackTranslucency", treeTextures.leafBackT);
+		LODCanopy.addTexture("leafBackNorm", treeTextures.leafBackNorm);
+		LODCanopy.addTexture("leafBackHalfLife", treeTextures.leafBackHL);
 		LODCanopy.setShaderProgram(leafShaderProgram);
+		LODCanopy.setColourFilter(params.leafColourFilter);
 //		List<Mesh> billboard = List.of(
 //				new Mesh(board),
 //				MeshUtils.transform(board, new Matrix4f().rotate((float) Math.PI / 2, up)),
 //				LODCanopy
 //		);
-		LODCanopy.setColourFilter(params.leafColourFilter);
 
 		return Map.of(
 				LevelOfDetail.HIGH, List.of(new Mesh(branches), new Mesh(canopy)),
-				LevelOfDetail.LOW, List.of(new Mesh(board), LODCanopy));
+				LevelOfDetail.LOW, List.of(new Mesh(board), new Mesh(LODCanopy)));
 //		return Map.of(
 //				LevelOfDetail.HIGH, List.of(new Mesh(branches)),
 //				LevelOfDetail.LOW, List.of(new Mesh(board)));
@@ -453,14 +470,14 @@ public class Tree {
 					new ParametricExpressionModule('!', List.of("w"), vars -> List.of(wS2 * wI.apply(vars))),
 					new ParametricExpressionModule('F', List.of("l"), vars -> List.of(
 							(float) Math.sqrt(nB2 - finalI) * vars.get("l") * lS3,
-							(float) (int) ((Math.sqrt(nB2 - finalI) + 2) * 4 * vars.get("l")),
+							(float) (int) ((Math.sqrt(nB2 - finalI) + 2) * 4 * getFloatParam(params, "dL") * vars.get("l")),
 							0f,
-							(float) Math.toRadians(140), // TODO number and angles of leaves
+							(float) Math.toRadians(140),
 							(float) Math.toRadians(40))),
 					new ParametricValueModule('&', (float) Math.toRadians(aS4)),
 					new ParametricExpressionModule('F', List.of("l"), vars -> List.of(
 							(float) Math.sqrt(nB2 - finalI) * vars.get("l") * lS4,
-							(float) (int) ((Math.sqrt(nB2 - finalI) + 2) * 4 * vars.get("l")),
+							(float) (int) ((Math.sqrt(nB2 - finalI) + 2) * 4 * getFloatParam(params, "dL") * vars.get("l")),
 							0f,
 							(float) Math.toRadians(140),
 							(float) Math.toRadians(40))),
@@ -484,7 +501,7 @@ public class Tree {
 						(float) Math.toRadians(-getFloatParam(params, "aU")))),
 				new ParametricExpressionModule('F', List.of("l"), vars -> List.of(
 						vars.get("l"),
-						300 * vars.get("l"),
+						300 * getFloatParam(params, "dL") * vars.get("l"),
 						0f,
 						(float) Math.toRadians(140),
 						(float) Math.toRadians(40)))

@@ -6,12 +6,12 @@ output:
     width: 1400
     height: 780
 terrain:
-  width: 400.0
+  width: 200.0
   vertexDensity: 0.4
   textureScale: 3
 quadtree:
-  levels: 5
-  thresholdCoefficient: 1.1
+  levels: 4
+  thresholdCoefficient: 1.5
   frustumCulling: true
 sceneObjects:
   trees:

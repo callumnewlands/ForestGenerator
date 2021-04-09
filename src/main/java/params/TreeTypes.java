@@ -194,6 +194,7 @@ public class TreeTypes {
 					Map.entry("l2", 0f),    // Length of trunk sections after branches
 					Map.entry("lr", 0.5f), // Offset of side branches from centre
 					Map.entry("lr2", 1.0f), // Ratio of decrease of l2
+					Map.entry("dL", 1.0f),        //Density of leaves
 					Map.entry("e", 0.001))); // Elasticity
 			lSystemParamsUpper = new HashMap<>(lSystemParamsLower);
 			barkTexture = new Parameters.Texture(
@@ -252,6 +253,7 @@ public class TreeTypes {
 					Map.entry("l2", 0f),        // Length of trunk sections after branches
 					Map.entry("lr2", 1.0f),    // Ratio of decrease of l2
 					Map.entry("lr", 0.5f),    // Offset of side branches from centre
+					Map.entry("dL", 0.8f),        //Density of leaves
 					Map.entry("e", 0)));        // Elasticity
 			lSystemParamsUpper = new HashMap<>(Map.ofEntries(
 					Map.entry("lB", 9f),    // Base length
@@ -283,6 +285,7 @@ public class TreeTypes {
 					Map.entry("l2", 0f),        // Length of trunk sections after branches
 					Map.entry("lr2", 1.0f),    // Ratio of decrease of l2
 					Map.entry("lr", 0.5f),    // Offset of side branches from centre
+					Map.entry("dL", 0.9f),        //Density of leaves
 					Map.entry("e", 0.001)));        // Elasticity
 			leafColourFilter = new Parameters.ColourFilter(new Vector3f(1f, 0.79f, 0.1f), 0.9f, true);
 			barkTexture = new Parameters.Texture(
@@ -343,6 +346,7 @@ public class TreeTypes {
 					Map.entry("l2", 0f),        // Length of trunk sections after branches
 					Map.entry("lr2", 1.0f),    // Ratio of decrease of l2
 					Map.entry("lr", 0f),        // Offset of side branches from centre
+					Map.entry("dL", 0.9f),        //Density of leaves
 					Map.entry("e", -0.01f)));    // Elasticity
 			lSystemParamsUpper = new HashMap<>(Map.ofEntries(
 					Map.entry("lB", 0.5f),    // Base length
@@ -374,6 +378,7 @@ public class TreeTypes {
 					Map.entry("l2", 0f),        // Length of trunk sections after branches
 					Map.entry("lr2", 1.0f),    // Ratio of decrease of l2
 					Map.entry("lr", 0f),        // Offset of side branches from centre
+					Map.entry("dL", 1.1f),        //Density of leaves
 					Map.entry("e", -0.01f)));    // Elasticity
 			leafColourFilter = new Parameters.ColourFilter(new Vector3f(0.055f, 0.21f, 0.055f), 0.7f, false);
 			barkTexture = new Parameters.Texture(
@@ -428,9 +433,10 @@ public class TreeTypes {
 					Map.entry("l2", 0.4f),       // Length of trunk sections after branches
 					Map.entry("lr2", 0.92f),       // Ratio of decrease of l2
 					Map.entry("lr", 0.5f),     // Offset of side branches from centre
+					Map.entry("dL", 1.1f),        //Density of leaves
 					Map.entry("e", 0)));         // Elasticity
 			lSystemParamsUpper = new HashMap<>(Map.ofEntries(
-					Map.entry("lB", 1.8f),  // Base length
+					Map.entry("lB", 2.8f),  // Base length
 					Map.entry("lS", 0.8f),     // Side branch length
 					Map.entry("lSm", 0.03f),   // Min ratio for side branch length (of ls) and width (of ws)
 					Map.entry("wB", 0.5f),    // Base width
@@ -455,6 +461,7 @@ public class TreeTypes {
 					Map.entry("l2", 0.6f),       // Length of trunk sections after branches
 					Map.entry("lr2", 0.98f),       // Ratio of decrease of l2
 					Map.entry("lr", 0.5f),     // Offset of side branches from centre
+					Map.entry("dL", 1.3f),        //Density of leaves
 					Map.entry("e", 0)));         // Elasticity
 			barkTexture = new Parameters.Texture(
 					"/textures/Bark_Pine_baseColor.jpg",
@@ -473,7 +480,7 @@ public class TreeTypes {
 			leafColourFilter = new Parameters.ColourFilter(new Vector3f(0.1f, 0.41f, 0.1f), 0.7f, false);
 			numSides = 6;
 			scale = 1.9f;
-			leafXScale = 0.03f;
+			leafXScale = 0.035f;
 			leafYScale = 0.4f;
 			minIterations = 10;
 			maxIterations = 16;

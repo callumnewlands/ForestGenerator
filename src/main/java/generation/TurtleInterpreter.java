@@ -146,15 +146,25 @@ public class TurtleInterpreter {
 		leafTurtle.up = model.transformDirection(leafTurtle.up).normalize();
 		leafTurtle.heading = model.transformDirection(leafTurtle.heading).normalize();
 
+		Random r = ParameterLoader.getParameters().random.generator;
 
 		for (int i = 0; i < numLeaves; i++) {
+			// Pitch up by offset
+			float liftOffset = (r.nextFloat() * liftAngle - liftAngle / 2) / 5;
+			rotation = new Quaternionf(new AxisAngle4f(liftOffset, pitchAxis));
+			model = (new Matrix4f()).identity().rotateAround(rotation,
+					leafTurtle.position.x,
+					leafTurtle.position.y,
+					leafTurtle.position.z);
+			leafTurtle.up = model.transformDirection(leafTurtle.up).normalize();
+			leafTurtle.heading = model.transformDirection(leafTurtle.heading).normalize();
+
 			// Move along by step
 			model = (new Matrix4f()).translation(stepVector);
 			leafTurtle.position = model.transformPosition(leafTurtle.position);
 			centre = model.transformPosition(centre);
 
 			// Move along by offset
-			Random r = ParameterLoader.getParameters().random.generator;
 			float offsetStep = r.nextFloat() * step - step / 2;
 			model = (new Matrix4f()).translation(VectorUtils.multiply(offsetStep, stemAxis));
 			leafTurtle.position = model.transformPosition(leafTurtle.position);
@@ -198,6 +208,14 @@ public class TurtleInterpreter {
 			model = (new Matrix4f()).translation(VectorUtils.multiply(-offsetStep, stemAxis));
 			leafTurtle.position = model.transformPosition(leafTurtle.position);
 			centre = model.transformPosition(centre);
+
+			rotation = new Quaternionf(new AxisAngle4f(-liftOffset, pitchAxis));
+			model = (new Matrix4f()).identity().rotateAround(rotation,
+					leafTurtle.position.x,
+					leafTurtle.position.y,
+					leafTurtle.position.z);
+			leafTurtle.up = model.transformDirection(leafTurtle.up).normalize();
+			leafTurtle.heading = model.transformDirection(leafTurtle.heading).normalize();
 		}
 		moveForwards(distance);
 	}
@@ -489,6 +507,29 @@ public class TurtleInterpreter {
 	}
 
 	// Call after interpretInstructions
+	public void reduceSubModelCount() {
+		List<ModelReference> newRefs = new ArrayList<>();
+		for (int i = 0; i < subModels.size(); i++) {
+			int finalI = i;
+			final List<ModelReference> refs = injectedModels.stream()
+					.filter(r -> r.index == finalI)
+					.collect(Collectors.toList());
+			newRefs.addAll(IntStream.range(0, refs.size() / 2)
+					.mapToObj(j -> {
+						ModelReference ref1 = refs.get(j * 2);
+						ModelReference ref2 = refs.get(j * 2 + 1);
+						return new ModelReference(
+								VectorUtils.add(ref1.position, ref2.position).div(2),
+								VectorUtils.add(ref1.heading, ref2.heading).div(2),
+								VectorUtils.add(ref1.up, ref2.up).div(2),
+								finalI
+						);
+					}).collect(Collectors.toList()));
+		}
+		this.injectedModels = newRefs;
+	}
+
+	// Call after interpretInstructions
 	public List<Mesh> getCombinedSubModelMeshes() {
 
 		List<Mesh> meshes = new ArrayList<>();
@@ -497,7 +538,8 @@ public class TurtleInterpreter {
 			int finalI = i;
 			final Mesh model = subModels.get(finalI);
 			final List<ModelReference> refs = injectedModels.stream()
-					.filter(r -> r.index == finalI).collect(Collectors.toList());
+					.filter(r -> r.index == finalI)
+					.collect(Collectors.toList());
 			final List<Vertex> vertices = model.getVertices();
 			final int[] indices = model.getIndices();
 			int numVertices = vertices.size();
@@ -560,6 +602,7 @@ public class TurtleInterpreter {
 		}
 	}
 
+	@AllArgsConstructor
 	private static class ModelReference {
 		private final Vector3f position;
 		private final Vector3f heading;

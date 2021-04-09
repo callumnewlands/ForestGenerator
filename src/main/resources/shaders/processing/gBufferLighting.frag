@@ -28,6 +28,7 @@ uniform vec3 lightColour;
 uniform mat4 view;
 uniform mat4 projection;
 uniform mat4 lightVP;
+uniform float farPlane;
 
 out vec4 fragColour;
 
@@ -79,10 +80,10 @@ void main() {
 
     if (renderDepth) {
         float z = depth * 2.0 - 1.0;// nonlinear in [-1, 1]
-        const float far = 300;
+        float far = farPlane;
         const float near = 0.1;
         z = (2.0 * near * far) / (far + near - z * (far - near)) + 0.000001;// linear in [far, near]
-        const float max = 20;
+        const float max = 20;// TODO param
         fragColour = vec4(vec3(z / max), 1.0);
         if (invertDepth) fragColour = 1.0 - fragColour;
         return;
@@ -104,7 +105,7 @@ void main() {
         float diffFactor = max(dot(norm, lightDir), 0.0f);
         vec3 hdrColor =  ambient +
         (1.0 - shadow) * diffFactor * lightColour * diffuse +
-        transl * pixelTranslFactor * translucencyFactor +
+        transl * pixelTranslFactor * ((1 - translucencyFactor)*shadow + translucencyFactor) +
         scattering;
         // TODO specular
 

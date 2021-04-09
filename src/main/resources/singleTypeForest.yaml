@@ -10,10 +10,8 @@ output:
 terrain:
   width: 100.0
 quadtree:
-  levels: 1
+  levels:
 sceneObjects:
   trees:
-    - !TreeTypes$BranchingTree
-      density: 0.4
-    - !TreeTypes$OakTree
-      density: 0.4
+    - !TreeTypes$PineTree
+      density: 0.5
