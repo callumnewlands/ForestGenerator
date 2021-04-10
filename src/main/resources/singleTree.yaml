@@ -19,9 +19,11 @@ sceneObjects:
     #    - !TreeTypes$PoplarTree
     #    - !TreeTypes$MonopodialTree
     #    - !TreeTypes$BranchingTree
-    - !TreeTypes$OakTree
+    - !TreeTypes$MonopodialTree
       instanceFraction: 1.0
       density: 0.6
+      minIterations: 5
+      maxIterations: 6
   twigs:
     density: 0
   externalModels: [ ]

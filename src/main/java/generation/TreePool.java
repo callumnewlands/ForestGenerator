@@ -3,6 +3,8 @@ package generation;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import org.joml.Matrix4f;
 import params.ParameterLoader;
 import params.Parameters;
@@ -13,19 +15,18 @@ public class TreePool {
 	private static final Parameters parameters = ParameterLoader.getParameters();
 	private static TreePool instance;
 
-	private List<List<Tree>> trees = new ArrayList<>();
+	private List<List<Tree>> treesByType = new ArrayList<>();
+	private List<Tree.Mask> minMasks = new ArrayList<>();
+	private List<Tree.Mask> maxMasks = new ArrayList<>();
 
 	private TreePool() {
 		int numTreeTypes = parameters.sceneObjects.trees.size();
 		for (int type = 0; type < numTreeTypes; type++) {
 			Parameters.SceneObjects.Tree params = parameters.sceneObjects.trees.get(type);
-			List<Tree> modelsForType = new ArrayList<>();
-			int numModels = (int) (1 / params.instanceFraction);
-			for (int i = 0; i < numModels; i++) {
-				modelsForType.add(new Tree(type));
-			}
-			trees.add(modelsForType);
-			System.out.println(numModels + " tree model(s) generated for tree: " + params.name);
+			treesByType.add(new ArrayList<>());
+			minMasks.add((new Tree(type, params.minIterations)).getMask());
+			maxMasks.add((new Tree(type, params.maxIterations - 1)).getMask());
+
 		}
 
 	}
@@ -37,10 +38,10 @@ public class TreePool {
 		return instance;
 	}
 
-	public int getTreeIndex(int type) {
-		Random r = parameters.random.generator;
-		return r.nextInt(trees.get(type).size());
-	}
+//	public int getTreeIndex(int type) {
+//		Random r = parameters.random.generator;
+//		return r.nextInt(treesByType.get(type).size());
+//	}
 
 //	public Tree.Reference getTree(int type, Vector2f regionCentre, float regionWidth, TerrainQuadtree quadtree) {
 //		Random r = parameters.random.generator;
@@ -67,12 +68,49 @@ public class TreePool {
 //	}
 
 	public Tree getTree(int type, int index) {
-		return trees.get(type).get(index);
+		return treesByType.get(type).get(index);
+	}
+
+	public Tree.Mask getMinimumMask(int type) {
+		return minMasks.get(type);
+	}
+
+	public Tree.Mask getMaximumMask(int type) {
+		return maxMasks.get(type);
 	}
 
 	public void renderTreeWithModel(int type, int index, Matrix4f model, LevelOfDetail levelOfDetail, boolean renderForShadows) {
-		Tree tree = trees.get(type).get(index);
+		Tree tree = getTree(type, index);
 		tree.setModelMatrix(model);
 		tree.render(levelOfDetail, renderForShadows);
+	}
+
+	private List<Integer> getIndicesByTypeAndIterations(int type, int iterations) {
+		int maxI = treesByType.get(type).size();
+
+		return IntStream.range(0, maxI)
+				.filter(i -> treesByType.get(type).get(i).getNumIterations() == iterations)
+				.boxed()
+				.collect(Collectors.toList());
+	}
+
+	public int getTreeIndexWithIterations(int type, int iterations) {
+		Parameters.SceneObjects.Tree params = parameters.sceneObjects.trees.get(type);
+		List<Integer> treesOfIterationSize = getIndicesByTypeAndIterations(type, iterations);
+		if (treesOfIterationSize.size() < params.numPerIterationSize) {
+			treesByType.get(type).add(new Tree(type, iterations));
+			return treesByType.get(type).size() - 1;
+		}
+		Random r = parameters.random.generator;
+		return treesOfIterationSize.get(r.nextInt(treesOfIterationSize.size()));
+	}
+
+	public void printGenerationStatistics() {
+		int numTreeTypes = parameters.sceneObjects.trees.size();
+		for (int type = 0; type < numTreeTypes; type++) {
+			int numModels = treesByType.get(type).size();
+			String name = parameters.sceneObjects.trees.get(type).name;
+			System.out.println(numModels + " tree model(s) generated for tree: " + name);
+		}
 	}
 }

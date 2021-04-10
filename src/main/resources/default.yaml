@@ -164,7 +164,7 @@ sceneObjects:
       # Number of sides to use in the cross section of the branches
       numSides: 6
       # Minimum number of iterations of the L-system
-      minIterations: 7 # inclusive
+      minIterations: 5 # inclusive
       # Maximum number of iterations of the L-system
       maxIterations: 9 # exclusive
       # Density of models in the scene
@@ -238,7 +238,7 @@ sceneObjects:
         mixFactor: 0.4
         expMix: false
       numSides: 6
-      minIterations: 12 # inclusive
+      minIterations: 5 # inclusive
       maxIterations: 13 # exclusive
       density: 0.8
 
@@ -339,7 +339,7 @@ sceneObjects:
       # Number of sides to use in the cross section of the branches
       numSides: 6
       # Minimum number of iterations of the L-system
-      minIterations: 7 # inclusive
+      minIterations: 5 # inclusive
       # Maximum number of iterations of the L-system
       maxIterations: 9 # exclusive
       # Density of models in the scene
@@ -440,7 +440,7 @@ sceneObjects:
         mixFactor: 0.9
         expMix: true
       numSides: 6
-      minIterations: 9 # inclusive
+      minIterations: 6 # inclusive
       maxIterations: 11 # exclusive
       density: 0.7
       heightVaryingAngles: true
@@ -537,7 +537,7 @@ sceneObjects:
         mixFactor: 0.7
         expMix: false
       numSides: 6
-      minIterations: 13 # inclusive
+      minIterations: 6 # inclusive
       maxIterations: 15 # exclusive
       density: 0.7
       heightVaryingAngles: false
@@ -622,7 +622,7 @@ sceneObjects:
         backTranslucency: "/textures/Leaf3/Leaf3_back_t.tga"
         backHalfLife: "/textures/Leaf3/Leaf3_halflife_back_t.tga"
       numSides: 6
-      minIterations: 10 # inclusive
+      minIterations: 6 # inclusive
       maxIterations: 16 # exclusive
       density: 0.7
       heightVaryingAngles: true

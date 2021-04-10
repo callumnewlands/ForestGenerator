@@ -10,7 +10,7 @@ output:
 terrain:
   width: 50.0
 quadtree:
-  levels: 5sss #3
+  levels: 3
 sceneObjects:
   trees:
     - !TreeTypes$BranchingTree
@@ -23,4 +23,9 @@ sceneObjects:
       density: 0.6
     - !TreeTypes$PineTree
       density: 0.6
-
+  twigs:
+    density: 0
+  externalModels: [ ]
+  crossedBillboards: [ ]
+  fallenLeaves:
+    density: 0

@@ -129,7 +129,7 @@ public class TerrainQuadtree {
 			float w4 = width / 4;
 			float w2 = width / 2;
 
-			if (depth == maxDepth - 1) {
+			if (maxDepth == 0 || depth == maxDepth - 1) {
 				children.add(new LeafQuad(new Vector2f(cx - w4, cy - w4), w2, depth + 1, texture));
 				children.add(new LeafQuad(new Vector2f(cx - w4, cy + w4), w2, depth + 1, texture));
 				children.add(new LeafQuad(new Vector2f(cx + w4, cy - w4), w2, depth + 1, texture));

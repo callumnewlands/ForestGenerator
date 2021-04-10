@@ -13,7 +13,6 @@ import org.joml.Vector3f;
 import params.ParameterLoader;
 import params.Parameters;
 import sceneobjects.Tree;
-import utils.VectorUtils;
 
 public class EcosystemSimulation {
 	private static final Parameters parameters = ParameterLoader.getParameters();
@@ -44,7 +43,7 @@ public class EcosystemSimulation {
 
 		indicesByType = indicesByType.stream()
 				.map(is -> is.stream()
-						.sorted(Comparator.comparingDouble(i -> plants.get((int) i).getSize()).reversed())
+						.sorted(Comparator.comparingDouble(i -> plants.get((int) i).getCanopyXZRadius()).reversed())
 						.collect(Collectors.toList()))
 				.collect(Collectors.toList());
 
@@ -79,9 +78,10 @@ public class EcosystemSimulation {
 					plants.get(i).position = new Vector2f(x, z);
 					count += 1;
 				} while (collidingTrunks(i) && count < MAX_COUNT);
-				if (count != MAX_COUNT) {
-					System.out.println("Tree " + parameters.sceneObjects.trees.get(plant.type) + " placed with intersecting canopy");
-				} else {
+//				if (count != MAX_COUNT) {
+//					System.out.println("Tree " + parameters.sceneObjects.trees.get(plant.type) + " placed with intersecting canopy");
+//				}
+				if (count == MAX_COUNT) {
 					plants.set(i, null);
 					System.out.println("Unable to place tree " + parameters.sceneObjects.trees.get(plant.type) + " : Maximum number of attempts reached");
 				}
@@ -92,7 +92,10 @@ public class EcosystemSimulation {
 	}
 
 	public List<Tree.Reference> simulate(int numIterations) {
-		return plants.stream().map(Plant::toReference).collect(Collectors.toList());
+		System.out.println("Generating tree models");
+		List<Tree.Reference> trees = plants.stream().map(Plant::toReference).collect(Collectors.toList());
+		TreePool.getTreePool().printGenerationStatistics();
+		return trees;
 	}
 
 	/**
@@ -109,16 +112,16 @@ public class EcosystemSimulation {
 				continue;
 			}
 			// Canopies colliding
-			if (cylindersColliding(p1.position, p1.canopyCentreY, p1.getSize(), p1.canopyYRadius,
-					p2.position, p2.canopyCentreY, p2.getSize(), p2.canopyYRadius)) {
+			if (cylindersColliding(p1.position, p1.getCanopyCentreY(), p1.getCanopyXZRadius(), p1.getCanopyYRadius(),
+					p2.position, p2.getCanopyCentreY(), p2.getCanopyXZRadius(), p2.getCanopyYRadius())) {
 				return true;
 			}
 			// p1 canopy and p2 trunk
-			if (circlesColliding(p1.position, p1.getSize(), p2.position, p2.trunkRadius)) {
+			if (circlesColliding(p1.position, p1.getCanopyXZRadius(), p2.position, p2.getTrunkRadius())) {
 				return true;
 			}
 			// p1 trunk and p2 canopy
-			if (circlesColliding(p1.position, p1.trunkRadius, p2.position, p2.getSize())) {
+			if (circlesColliding(p1.position, p1.getTrunkRadius(), p2.position, p2.getCanopyXZRadius())) {
 				return true;
 			}
 		}
@@ -139,16 +142,16 @@ public class EcosystemSimulation {
 				continue;
 			}
 			// Both trunks (with slack of 50% leaf radius)
-			if (circlesColliding(p1.position, (p1.trunkRadius + p1.getSize()) / 2,
-					p2.position, (p2.trunkRadius + p2.getSize()) / 2)) {
+			if (circlesColliding(p1.position, (p1.getTrunkRadius() + p1.getCanopyXZRadius()) / 2,
+					p2.position, (p2.getTrunkRadius() + p2.getCanopyXZRadius()) / 2)) {
 				return true;
 			}
 			// p1 canopy and p2 trunk
-			if (circlesColliding(p1.position, p1.getSize(), p2.position, p2.trunkRadius)) {
+			if (circlesColliding(p1.position, p1.getCanopyXZRadius(), p2.position, p2.getTrunkRadius())) {
 				return true;
 			}
 			// p1 trunk and p2 canopy
-			if (circlesColliding(p1.position, p1.trunkRadius, p2.position, p2.getSize())) {
+			if (circlesColliding(p1.position, p1.getTrunkRadius(), p2.position, p2.getCanopyXZRadius())) {
 				return true;
 			}
 		}
@@ -176,39 +179,50 @@ public class EcosystemSimulation {
 
 	private class Plant {
 		private final int type;
-		private final int poolIndex;
 		private final int age;
 		private final int maxAge;
-		private final float minSize;
-		private final float maxSize;
-		private final float modelCanopyXZRadius;
-		private final float canopyXZRadius;
-		private final float canopyYRadius;
-		private final float canopyCentreY;
-		private final float trunkRadius;
+		private final Tree.Mask minMask;
+		private final Tree.Mask maxMask;
 		private Vector2f position;
+		private final float modelScale;
 
 		private Plant(int type) {
 			this.type = type;
-			Random r = parameters.random.generator;
-			TreePool treePool = TreePool.getTreePool();
-			this.poolIndex = treePool.getTreeIndex(type);
 			this.maxAge = 100; // TODO param
+			Random r = parameters.random.generator;
 			this.age = r.nextInt(maxAge);
-			Tree treeModel = treePool.getTree(type, poolIndex);
+
+			TreePool treePool = TreePool.getTreePool();
+			this.minMask = treePool.getMinimumMask(type);
+			this.maxMask = treePool.getMaximumMask(type);
 			Parameters.SceneObjects.Tree params = parameters.sceneObjects.trees.get(type);
-			this.modelCanopyXZRadius = treeModel.getCanopyXZRadius();
-			this.canopyXZRadius = modelCanopyXZRadius * params.scale;
-			this.canopyYRadius = treeModel.getCanopyYRadius() * params.scale;
-			this.canopyCentreY = VectorUtils.multiply(params.scale, treeModel.getCanopyCentre()).y;
-			this.trunkRadius = treeModel.getTrunkRadius() * params.scale;
-			this.minSize = canopyXZRadius * params.minScaleFactor;
-			this.maxSize = canopyXZRadius * params.maxScaleFactor;
+			this.modelScale = params.scale;
 		}
 
-		private float getSize() {
-			return (float) age / maxAge * (maxSize - minSize) + minSize;
+		private float getCanopyXZRadius() {
+			return ((float) age / maxAge *
+					(maxMask.getCanopyXZRadius() - minMask.getCanopyXZRadius()) + minMask.getCanopyXZRadius()) *
+					modelScale;
 		}
+
+		private float getCanopyYRadius() {
+			return ((float) age / maxAge *
+					(maxMask.getCanopyYRadius() - minMask.getCanopyYRadius()) + minMask.getCanopyYRadius()) *
+					modelScale;
+		}
+
+		private float getCanopyCentreY() {
+			return ((float) age / maxAge *
+					(maxMask.getCanopyCentre().y - minMask.getCanopyCentre().y) + minMask.getCanopyCentre().y) *
+					modelScale;
+		}
+
+		private float getTrunkRadius() {
+			return ((float) age / maxAge *
+					(maxMask.getTrunkRadius() - minMask.getTrunkRadius()) + minMask.getTrunkRadius()) *
+					modelScale;
+		}
+
 
 		Tree.Reference toReference() {
 			Random r = parameters.random.generator;
@@ -225,8 +239,19 @@ public class EcosystemSimulation {
 						new Vector3f(r.nextFloat(), 0, r.nextFloat()).normalize()
 				);
 			}
+
+			int maxI = params.maxIterations;
+			int minI = params.minIterations;
+			int iterationStep = (int) ((float) age / maxAge * ((maxI + 1) - minI));
+			int iterations = iterationStep + minI;
+			float scaleFactor = ((float) age / maxAge * ((maxI + 1) - minI) - iterationStep) *
+					(params.maxScaleFactor - params.minScaleFactor) + params.minScaleFactor;
+
 			model = model.rotate(r.nextFloat() * (float) Math.PI * 2, new Vector3f(0, 1, 0))
-					.scale(getSize() / modelCanopyXZRadius);
+					.scale(scaleFactor * modelScale);
+
+			TreePool treePool = TreePool.getTreePool();
+			int poolIndex = treePool.getTreeIndexWithIterations(type, iterations);
 
 			return new Tree.Reference(type, poolIndex, new Vector3f(x, y, z), model);
 		}

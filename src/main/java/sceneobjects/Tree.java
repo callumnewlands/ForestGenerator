@@ -3,6 +3,7 @@ package sceneobjects;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Random;
 import java.util.stream.Collectors;
 
@@ -58,16 +59,30 @@ public class Tree {
 	private final int typeIndex;
 	private LODModel model;
 	@Getter
-	private float canopyXZRadius = 0;
+	private Mask mask = new Mask();
 	@Getter
-	private float canopyYRadius = 0;
-	@Getter
-	private float trunkRadius = 0;
-	@Getter
-	private Vector3f canopyCentre;
+	private final int numIterations;
 
 	public Tree(int typeIndex) {
+		this(typeIndex, Optional.empty());
+	}
+
+	public Tree(int typeIndex, int numIterations) {
+		this(typeIndex, Optional.of(numIterations));
+	}
+
+	private Tree(int typeIndex, Optional<Integer> numIterations) {
 		this.typeIndex = typeIndex;
+		if (numIterations.isEmpty()) {
+			Parameters.SceneObjects.Tree params = parameters.sceneObjects.trees.get(typeIndex);
+			Random r = ParameterLoader.getParameters().random.generator;
+			int minI = params.minIterations;
+			int maxI = params.maxIterations;
+			this.numIterations = r.nextInt(maxI - minI) + minI;
+		} else {
+			this.numIterations = numIterations.get();
+		}
+
 		Map<LevelOfDetail, List<Mesh>> lodMeshes = getMeshes();
 
 		LODModelBuilder modelBuilder = new LODModelBuilder();
@@ -103,15 +118,12 @@ public class Tree {
 						params.leafYScale * (1 + 0.1f * lowLODLeafMerges) / params.scale,
 						1,
 						params.leafXScale * (2 * lowLODLeafMerges) / params.scale))));
-		Random r = ParameterLoader.getParameters().random.generator;
-		int minI = params.minIterations;
-		int maxI = params.maxIterations;
 		List<Module> instructions;
 		if (params instanceof TreeTypes.BranchingTree) {
 			turtleInterpreter.setIgnored(List.of('A'));
 			lowLODInterpreter.setIgnored(List.of('A'));
 			instructions = TreeLSystems.branching(typeIndex)
-					.performDerivations(r.nextInt(maxI - minI) + minI)
+					.performDerivations(numIterations)
 					.stream()
 					.map(m -> m.getName() == 'A' ? new ParametricValueModule('~', 0f) : m)
 					.collect(Collectors.toList());
@@ -119,7 +131,7 @@ public class Tree {
 			turtleInterpreter.setIgnored(List.of('A', 'B'));
 			lowLODInterpreter.setIgnored(List.of('A', 'B'));
 			instructions = TreeLSystems.monopodial(typeIndex)
-					.performDerivations(r.nextInt(maxI - minI) + minI);
+					.performDerivations(numIterations);
 		} else {
 			throw new NotImplementedException();
 		}
@@ -131,8 +143,6 @@ public class Tree {
 		branches.addTexture("diffuseTexture", treeTextures.bark);
 		branches.addTexture("normalTexture", treeTextures.barkNormal);
 		branches.setShaderProgram(textureShader);
-
-		findMaxRadii(branches);
 
 		Mesh canopy = turtleInterpreter.getCombinedSubModelMeshes().get(0);
 		canopy.addTexture("leafFront", treeTextures.leafFront);
@@ -146,7 +156,7 @@ public class Tree {
 		canopy.setShaderProgram(leafShaderProgram);
 		canopy.setColourFilter(params.leafColourFilter);
 
-		findCanopyMask(canopy);
+		findCanopyMask(branches, canopy);
 
 		// Uses leaf geometry to construct billboard
 //		Mesh board = MeshUtils.transform(Tree.leaf, new Matrix4f()
@@ -191,30 +201,31 @@ public class Tree {
 		for (int i = 0; i < 4 * params.numSides; i++) {
 			Vector3f position = positions.get(i);
 			float len = (new Vector2f(position.x, position.z)).length();
-			if (len > trunkRadius) {
-				trunkRadius = len;
+			if (len > mask.trunkRadius) {
+				mask.trunkRadius = len;
 			}
 		}
 		for (Vector3f position : positions) {
 			float len = (new Vector2f(position.x, position.z)).length();
-			if (len > canopyXZRadius) {
-				canopyXZRadius = len;
+			if (len > mask.canopyXZRadius) {
+				mask.canopyXZRadius = len;
 			}
 		}
 	}
 
-	private void findCanopyMask(Mesh canopy) {
+	private void findCanopyMask(Mesh branches, Mesh canopy) {
+		findMaxRadii(branches);
 		List<Vertex> vertices = canopy.getVertices();
 		List<Vector3f> positions = vertices.stream().map(Vertex::getPosition).collect(Collectors.toList());
-		canopyCentre = positions.stream()
+		mask.canopyCentre = positions.stream()
 				.reduce(VectorUtils::add)
 				.map(p -> p.div(vertices.size()))
 				.orElse(new Vector3f());
 		Vector3f topPoint = positions.stream().max(Comparator.comparingDouble(p -> p.y)).orElse(new Vector3f());
 		Vector3f bottomPoint = positions.stream().min(Comparator.comparingDouble(p -> p.y)).orElse(new Vector3f());
 		float canopyHeight = Math.abs(topPoint.y - bottomPoint.y);
-		canopyYRadius = canopyHeight / 2;
-		canopyCentre.y = (topPoint.y + bottomPoint.y) / 2;
+		mask.canopyYRadius = canopyHeight / 2;
+		mask.canopyCentre.y = (topPoint.y + bottomPoint.y) / 2;
 	}
 
 	@Getter
@@ -231,5 +242,14 @@ public class Tree {
 			treePool.renderTreeWithModel(typeIndex, treePoolIndex, model, levelOfDetail, renderForShadows);
 		}
 
+	}
+
+	@Getter
+	@Setter
+	public static class Mask {
+		private float canopyXZRadius = 0;
+		private float canopyYRadius = 0;
+		private float trunkRadius = 0;
+		private Vector3f canopyCentre;
 	}
 }
