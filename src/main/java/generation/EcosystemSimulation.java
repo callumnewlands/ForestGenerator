@@ -114,16 +114,28 @@ public class EcosystemSimulation {
 			}
 			calculateCoveredArea();
 			removeColliding();
-			// TODO work out why the large trees disappear
 			// preventing deaths seems to prevent holes in the distribution from large plants dying
 //			plants = plants.stream().filter(p -> !p.isOld()).collect(Collectors.toList());
 			plants.forEach(Plant::grow);
+			if (i % 25 == 0) {
+				printAreas();
+			}
 		}
 
 		System.out.println("Generating tree models");
 		List<Tree.Reference> trees = plants.stream().map(Plant::toReference).collect(Collectors.toList());
 		TreePool.getTreePool().printGenerationStatistics();
 		return trees;
+	}
+
+	private void printAreas() {
+		StringBuilder stringBuilder = new StringBuilder();
+		float totalArea = coveredAreaByType.stream().reduce(Float::sum).orElse(0f);
+		for (int type = 0; type < coveredAreaByType.size(); type++) {
+			Parameters.SceneObjects.Tree params = parameters.sceneObjects.trees.get(type);
+			stringBuilder.append(params.name).append(": ").append(coveredAreaByType.get(type) / totalArea).append(", ");
+		}
+		System.out.println(stringBuilder.toString());
 	}
 
 	private void removeColliding() {
@@ -336,11 +348,23 @@ public class EcosystemSimulation {
 		}
 
 		float getViability() {
-			float threshold = 0.8f;
+			float threshold = 0.7f;
 			float x = Math.min((float) age / maxAge, 1);
-			float plantViability = x < threshold ? x / threshold : (1 - x) / (1 - threshold);
+			float plantViability = x < threshold
+					? x / threshold
+					: (1 - x) / (1 - threshold);
 			float totalSum = coveredAreaByType.stream().reduce(Float::sum).orElse(0f);
-			return (1 - coveredAreaByType.get(type) / totalSum) * plantViability;
+			float speciesWeightedViability = (1 - coveredAreaByType.get(type) / totalSum) * plantViability;
+			float avgRadius = (float) plants.stream().mapToDouble(Plant::getCanopyXZRadius).average().orElse(0);
+			float maxRadius = (float) plants.stream().mapToDouble(Plant::getCanopyXZRadius).max().orElse(0);
+			float minRadius = (float) plants.stream().mapToDouble(Plant::getCanopyXZRadius).min().orElse(0);
+			float scaledAvgRadius = (avgRadius - minRadius) / (maxRadius - minRadius);
+			float scaledRadius = (this.getCanopyXZRadius() - minRadius) / (maxRadius - minRadius);
+			float p = 0.3f;
+			float radiusViability = scaledRadius < scaledAvgRadius
+					? (-p) / scaledAvgRadius * scaledRadius + p
+					: (scaledRadius - scaledAvgRadius) / (1 - scaledAvgRadius);
+			return (radiusViability + speciesWeightedViability * 3) / 4;
 		}
 
 		float getCoveredArea() {

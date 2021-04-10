@@ -238,7 +238,7 @@ sceneObjects:
         mixFactor: 0.4
         expMix: false
       numSides: 6
-      minIterations: 6 # inclusive
+      minIterations: 8 # inclusive
       maxIterations: 13 # exclusive
       density: 0.8
 

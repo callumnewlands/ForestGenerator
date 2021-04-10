@@ -149,7 +149,7 @@ public class TreeTypes {
 			scale = 0.01f;
 			leafXScale = 0.4f;
 			leafYScale = 0.4f;
-			minIterations = 6;
+			minIterations = 8;
 			maxIterations = 13;
 			density = 0.8f;
 		}
