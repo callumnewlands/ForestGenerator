@@ -5,6 +5,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Random;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import org.joml.Matrix4f;
@@ -185,6 +186,8 @@ public class EcosystemSimulation {
 		private final Tree.Mask maxMask;
 		private Vector2f position;
 		private final float modelScale;
+		private final float minScaleFactor;
+		private final float maxScaleFactor;
 
 		private Plant(int type) {
 			this.type = type;
@@ -197,30 +200,30 @@ public class EcosystemSimulation {
 			this.maxMask = treePool.getMaximumMask(type);
 			Parameters.SceneObjects.Tree params = parameters.sceneObjects.trees.get(type);
 			this.modelScale = params.scale;
+			this.minScaleFactor = params.minScaleFactor;
+			this.maxScaleFactor = params.maxScaleFactor;
+		}
+
+		private float getCurrentFromMinMax(Function<Tree.Mask, Float> property) {
+			float min = property.apply(minMask) * minScaleFactor;
+			float max = property.apply(maxMask) * maxScaleFactor;
+			return ((float) age / maxAge * (max - min) + min) * modelScale;
 		}
 
 		private float getCanopyXZRadius() {
-			return ((float) age / maxAge *
-					(maxMask.getCanopyXZRadius() - minMask.getCanopyXZRadius()) + minMask.getCanopyXZRadius()) *
-					modelScale;
+			return getCurrentFromMinMax(Tree.Mask::getCanopyXZRadius);
 		}
 
 		private float getCanopyYRadius() {
-			return ((float) age / maxAge *
-					(maxMask.getCanopyYRadius() - minMask.getCanopyYRadius()) + minMask.getCanopyYRadius()) *
-					modelScale;
+			return getCurrentFromMinMax(Tree.Mask::getCanopyYRadius);
 		}
 
 		private float getCanopyCentreY() {
-			return ((float) age / maxAge *
-					(maxMask.getCanopyCentre().y - minMask.getCanopyCentre().y) + minMask.getCanopyCentre().y) *
-					modelScale;
+			return getCurrentFromMinMax(m -> m.getCanopyCentre().y);
 		}
 
 		private float getTrunkRadius() {
-			return ((float) age / maxAge *
-					(maxMask.getTrunkRadius() - minMask.getTrunkRadius()) + minMask.getTrunkRadius()) *
-					modelScale;
+			return getCurrentFromMinMax(Tree.Mask::getTrunkRadius);
 		}
 
 
@@ -244,8 +247,10 @@ public class EcosystemSimulation {
 			int minI = params.minIterations;
 			int iterationStep = (int) ((float) age / maxAge * ((maxI + 1) - minI));
 			int iterations = iterationStep + minI;
-			float scaleFactor = ((float) age / maxAge * ((maxI + 1) - minI) - iterationStep) *
-					(params.maxScaleFactor - params.minScaleFactor) + params.minScaleFactor;
+			float scaleFactor = ((float) age / maxAge *
+					((maxI + 1) - minI) - iterationStep) *
+					(maxScaleFactor - minScaleFactor)
+					+ minScaleFactor;
 
 			model = model.rotate(r.nextFloat() * (float) Math.PI * 2, new Vector3f(0, 1, 0))
 					.scale(scaleFactor * modelScale);
