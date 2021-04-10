@@ -72,7 +72,7 @@ public class TreeTypes {
 			scale = 0.01f;
 			leafXScale = 0.7f;
 			leafYScale = 0.7f;
-			minIterations = 7;
+			minIterations = 5;
 			maxIterations = 9;
 			density = 0.8f;
 
@@ -149,7 +149,7 @@ public class TreeTypes {
 			scale = 0.01f;
 			leafXScale = 0.4f;
 			leafYScale = 0.4f;
-			minIterations = 12;
+			minIterations = 6;
 			maxIterations = 13;
 			density = 0.8f;
 		}
@@ -214,7 +214,7 @@ public class TreeTypes {
 			scale = 0.75f;
 			leafXScale = 0.17f;
 			leafYScale = 0.17f;
-			minIterations = 7;
+			minIterations = 5;
 			maxIterations = 9;
 			density = 0.7f;
 		}
@@ -306,7 +306,7 @@ public class TreeTypes {
 			scale = 1f;
 			leafXScale = 0.28f;
 			leafYScale = 0.28f;
-			minIterations = 9;
+			minIterations = 6;
 			maxIterations = 11;
 			density = 0.7f;
 		}
@@ -398,8 +398,8 @@ public class TreeTypes {
 			scale = 0.7f;
 			leafXScale = 0.15f;
 			leafYScale = 0.15f;
-			minIterations = 13;
-			maxIterations = 15;
+			minIterations = 6;
+			maxIterations = 18;
 			heightVaryingAngles = false;
 		}
 	}
@@ -482,7 +482,7 @@ public class TreeTypes {
 			scale = 1.9f;
 			leafXScale = 0.035f;
 			leafYScale = 0.4f;
-			minIterations = 10;
+			minIterations = 6;
 			maxIterations = 16;
 			density = 0.7f;
 			heightVaryingAngles = true;

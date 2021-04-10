@@ -15,9 +15,9 @@ public class TreePool {
 	private static final Parameters parameters = ParameterLoader.getParameters();
 	private static TreePool instance;
 
-	private List<List<Tree>> treesByType = new ArrayList<>();
-	private List<Tree.Mask> minMasks = new ArrayList<>();
-	private List<Tree.Mask> maxMasks = new ArrayList<>();
+	private final List<List<Tree>> treesByType = new ArrayList<>();
+	private final List<Tree.Mask> minMasks = new ArrayList<>();
+	private final List<Tree.Mask> maxMasks = new ArrayList<>();
 
 	private TreePool() {
 		int numTreeTypes = parameters.sceneObjects.trees.size();
@@ -26,9 +26,7 @@ public class TreePool {
 			treesByType.add(new ArrayList<>());
 			minMasks.add((new Tree(type, params.minIterations)).getMask());
 			maxMasks.add((new Tree(type, params.maxIterations - 1)).getMask());
-
 		}
-
 	}
 
 	public static TreePool getTreePool() {

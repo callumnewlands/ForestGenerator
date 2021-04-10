@@ -149,7 +149,7 @@ public class TerrainQuadtree {
 			}
 			if (depth == maxDepth - 1) {
 				nodeCount += 1;
-				System.out.printf("%.2f%% generated %n", nodeCount / Math.pow(4, depth) * 100);
+				System.out.printf("Terrain and ground cover: %.2f%% generated %n", nodeCount / Math.pow(4, depth) * 100);
 			}
 		}
 

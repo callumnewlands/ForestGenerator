@@ -243,7 +243,7 @@ public class Parameters {
 			public Tree() {
 				super();
 				this.pitchVariability = 0;
-				this.minScaleFactor = 0.9f;
+				this.minScaleFactor = 0.7f;
 				this.maxScaleFactor = 1.1f;
 			}
 		}

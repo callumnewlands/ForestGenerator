@@ -577,7 +577,7 @@ public class App {
 		);
 		quadtree.setSeedPoint(new Vector2f(camera.getPosition().x, camera.getPosition().z));
 
-		List<Tree.Reference> trees = (new EcosystemSimulation(quadtree)).simulate(100);
+		List<Tree.Reference> trees = (new EcosystemSimulation(quadtree)).simulate(444);
 		for (Tree.Reference tree : trees) {
 			quadtree.placeTree(tree);
 		}
