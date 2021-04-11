@@ -562,8 +562,6 @@ public class App {
 
 		sun = new Polygon(parameters.lighting.sun.numSides, sunShader);
 
-		// Generate tree pool before quadtree for sensible logging output order
-		TreePool.getTreePool();
 
 		int quadtreeDepth = parameters.quadtree.levels;
 		quadtree = new TerrainQuadtree(
@@ -577,7 +575,8 @@ public class App {
 		);
 		quadtree.setSeedPoint(new Vector2f(camera.getPosition().x, camera.getPosition().z));
 
-		List<Tree.Reference> trees = (new EcosystemSimulation(quadtree)).simulate(444);
+		TreePool.getTreePool();
+		List<Tree.Reference> trees = (new EcosystemSimulation(quadtree)).simulate(444); // TODO param
 		for (Tree.Reference tree : trees) {
 			quadtree.placeTree(tree);
 		}

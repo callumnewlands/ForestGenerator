@@ -20,6 +20,7 @@ public class TreePool {
 	private final List<Tree.Mask> maxMasks = new ArrayList<>();
 
 	private TreePool() {
+		System.out.println("Calculating tree masks");
 		int numTreeTypes = parameters.sceneObjects.trees.size();
 		for (int type = 0; type < numTreeTypes; type++) {
 			Parameters.SceneObjects.Tree params = parameters.sceneObjects.trees.get(type);

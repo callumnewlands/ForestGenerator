@@ -14,4 +14,4 @@ quadtree:
 sceneObjects:
   trees:
     - !TreeTypes$PineTree
-      density: 0.5
+      density: 1.0

@@ -129,11 +129,14 @@ public class EcosystemSimulation {
 	}
 
 	private void printAreas() {
-		StringBuilder stringBuilder = new StringBuilder();
+		StringBuilder stringBuilder = new StringBuilder("Areas: ");
 		float totalArea = coveredAreaByType.stream().reduce(Float::sum).orElse(0f);
 		for (int type = 0; type < coveredAreaByType.size(); type++) {
 			Parameters.SceneObjects.Tree params = parameters.sceneObjects.trees.get(type);
-			stringBuilder.append(params.name).append(": ").append(coveredAreaByType.get(type) / totalArea).append(", ");
+			stringBuilder.append(params.name)
+					.append(": ")
+					.append(String.format("%.4f", coveredAreaByType.get(type) / totalArea))
+					.append(", ");
 		}
 		System.out.println(stringBuilder.toString());
 	}
@@ -151,7 +154,8 @@ public class EcosystemSimulation {
 					int i2 = pair.getSecond();
 					Plant p1 = plants.get(i1);
 					Plant p2 = plants.get(i2);
-					return collidingTrunks(p1, p2) || collidingCanopies(p1, p2);
+					// Only removes those where a canopy is intersecting with a trunk (not just 2 canopies)
+					return collidingTrunks(p1, p2);
 				})
 				.collect(Collectors.toList());
 
@@ -164,25 +168,7 @@ public class EcosystemSimulation {
 			Plant p2 = plants.get(pair.getSecond());
 			float viability1 = p1.getViability();
 			float viability2 = p2.getViability();
-			if (!collidingTrunks(p1, p2)) {
-				float removalProb;
-				float distance = p1.position.distance(p2.position);
-				float canopyOverlap = p1.getCanopyXZRadius() + p2.getCanopyXZRadius() - distance;
-				if (viability1 > viability2) {
-					removalProb = canopyOverlap / p2.getCanopyXZRadius();
-					if (r.nextFloat() < removalProb) {
-						removed.add(pair.getSecond());
-					}
-				} else {
-					removalProb = canopyOverlap / p1.getCanopyXZRadius();
-					if (r.nextFloat() < removalProb) {
-						removed.add(pair.getFirst());
-					}
-				}
-
-			} else {
-				removed.add(viability1 > viability2 ? pair.getSecond() : pair.getFirst());
-			}
+			removed.add(viability1 > viability2 ? pair.getSecond() : pair.getFirst());
 		}
 		removed = removed.stream().sorted((i1, i2) -> Integer.compare(i2, i1)).collect(Collectors.toList());
 		for (Integer index : removed) {
@@ -344,11 +330,11 @@ public class EcosystemSimulation {
 		}
 
 		private float getSeedRadius() {
-			return getCanopyXZRadius() * 3;
+			return getCanopyXZRadius() * 3; // TODO param
 		}
 
 		float getViability() {
-			float threshold = 0.7f;
+			float threshold = 0.7f; // TODO param
 			float x = Math.min((float) age / maxAge, 1);
 			float plantViability = x < threshold
 					? x / threshold
@@ -360,11 +346,11 @@ public class EcosystemSimulation {
 			float minRadius = (float) plants.stream().mapToDouble(Plant::getCanopyXZRadius).min().orElse(0);
 			float scaledAvgRadius = (avgRadius - minRadius) / (maxRadius - minRadius);
 			float scaledRadius = (this.getCanopyXZRadius() - minRadius) / (maxRadius - minRadius);
-			float p = 0.3f;
+			float p = 0.3f; // TODO param
 			float radiusViability = scaledRadius < scaledAvgRadius
 					? (-p) / scaledAvgRadius * scaledRadius + p
 					: (scaledRadius - scaledAvgRadius) / (1 - scaledAvgRadius);
-			return (radiusViability + speciesWeightedViability * 3) / 4;
+			return (radiusViability + speciesWeightedViability * 7) / 8; // TODO param
 		}
 
 		float getCoveredArea() {
