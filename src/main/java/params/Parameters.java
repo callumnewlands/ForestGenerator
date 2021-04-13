@@ -153,9 +153,9 @@ public class Parameters {
 				new ExternalModel("/models/Rock1/Rock1.obj", "/models/Rock1", null, 0.3f)
 		);
 		public List<CrossedBillboard> crossedBillboards = List.of(
-				new CrossedBillboard(new Texture("/textures/grass2.png"), 1.0f, 0.35f, 20.0f),
-				new CrossedBillboard(new Texture("/textures/fern1_rotated.png"), 1.2f, 1.2f, 0.2f),
-				new CrossedBillboard(new Texture("/textures/fern2_rotated.png"), 1.2f, 1.2f, 0.2f)
+				new CrossedBillboard(new Texture("/textures/grass2.png"), 4, 1.0f, 0.35f, 20.0f),
+				new CrossedBillboard(new Texture("/textures/fern1_rotated.png"), 4, 1.2f, 1.2f, 0.2f),
+				new CrossedBillboard(new Texture("/textures/fern2_rotated.png"), 4, 1.2f, 1.2f, 0.2f)
 		);
 		public SceneObject fallenLeaves = new SceneObject(1f, 0.75f, 1.25f, 0.7f, 0.0f, 0.1f);
 
@@ -188,6 +188,7 @@ public class Parameters {
 		@Setter
 		public static class CrossedBillboard extends SceneObject {
 			public Texture texture = new Texture("/textures/grass.png");
+			public int numBoards = 4;
 			public float xScale = 1.0f;
 			public float yScale = 1.0f;
 
@@ -196,8 +197,8 @@ public class Parameters {
 				this.scale = 0.7f;
 			}
 
-			public CrossedBillboard(Texture texture, float xScale, float yScale, float density) {
-				this(texture, xScale, yScale);
+			public CrossedBillboard(Texture texture, int numBoards, float xScale, float yScale, float density) {
+				this(texture, numBoards, xScale, yScale);
 				this.density = density;
 				this.scale = 0.7f;
 			}

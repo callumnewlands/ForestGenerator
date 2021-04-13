@@ -52,17 +52,13 @@ public class Twigs extends InstancedGroundObject {
 	private LSystem twigSystem() {
 		float r1 = 0.9f;
 		float r2 = 0.6f;
-		float a0 = (float) Math.PI / 8;
-		float a2 = (float) Math.PI / 8;
-		float d = 2.3998277f;
+		float a0 = 22.5f;
+		float d = 137.5f;
 		float wr = 0.707f;
 
 		CharModule D = new CharModule('$');
 		Module AOut = new ParametricExpressionModule('A', List.of("l", "w"), vars -> List.of(vars.get("l") * r1, vars.get("w") * wr));
-		Module B1Out = new ParametricExpressionModule('B', List.of("l", "w"), vars -> List.of(vars.get("l") * r1, vars.get("w") * wr));
-		Module B2Out = new ParametricExpressionModule('B', List.of("l", "w"), vars -> List.of(vars.get("l") * r2, vars.get("w") * wr));
-		Module C1Out = new ParametricExpressionModule('C', List.of("l", "w"), vars -> List.of(vars.get("l") * r1, vars.get("w") * wr));
-		Module C2Out = new ParametricExpressionModule('C', List.of("l", "w"), vars -> List.of(vars.get("l") * r2, vars.get("w") * wr));
+		Module BOut = new ParametricExpressionModule('B', List.of("l", "w"), vars -> List.of(vars.get("l") * r2, vars.get("w") * wr));
 		Module ExOut = new ParametricExpressionModule('!', List.of("l", "w"), vars -> List.of(vars.get("w")));
 		Module FOut = new ParametricExpressionModule('F', List.of("l", "w"), vars -> List.of(vars.get("l")));
 
@@ -79,10 +75,10 @@ public class Twigs extends InstancedGroundObject {
 										ExOut,
 										FOut,
 										LB,
-										new ParametricValueModule('&', a0),
-										B2Out,
+										new ParametricValueModule('&', (float) Math.toRadians(a0)),
+										BOut,
 										RB,
-										new ParametricValueModule('/', d),
+										new ParametricValueModule('/', (float) Math.toRadians(d)),
 										AOut
 								)).withProbability(0.4f).build(),
 						new ProductionBuilder(
@@ -98,7 +94,7 @@ public class Twigs extends InstancedGroundObject {
 										ExOut,
 										FOut,
 										LB,
-										new ParametricValueModule('+', -a2),
+										new ParametricValueModule('+', -(float) Math.toRadians(a0)),
 										D,
 										AOut,
 										RB
@@ -108,13 +104,7 @@ public class Twigs extends InstancedGroundObject {
 								List.of(
 										ExOut,
 										FOut
-								)).withProbability(0.3f).build(),
-						new ProductionBuilder(
-								List.of(new ParametricParameterModule('B', List.of("l", "w"))),
-								List.of(
-										ExOut,
-										FOut
-								)).withProbability(0.4f).build()
+								)).withProbability(0.7f).build()
 				));
 	}
 

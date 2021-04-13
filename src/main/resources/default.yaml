@@ -65,7 +65,7 @@ terrain:
   noise:
     xScale: 1.0
     yScale: 1.0
-    # The number of octaves of perlin noise (detail) to use (higher = more detail)
+    # The number of octaves of simplex noise (detail) to use (higher = more detail)
     octaves: 8
     # The amplitude multiplier for successive octaves (smaller = smoother terrain)
     persistence: 0.5
@@ -92,6 +92,7 @@ sceneObjects:
     - !TreeTypes$BranchingTree # Base class for Oak
       name: tree 1
       lSystemParamsLower:
+        a0: 15.0 # Angle away after branching for first branch
         a1: 15.0 # Angle away after branching
         a2: -15.0 # Angle around vertical axis between splittings
         l1: 45.0 # Length of branches
@@ -105,10 +106,11 @@ sceneObjects:
         nT: 7  # Number of steps in taper
         tP: 6.0 # Falloff power for taper
         tF: 0.5 # Taper widest width as a factor of wB
-        lr: 1.0 # Ratio of increase of branch length (from ends to trunk)
-        vr: 1.8 # Ratio of increase of branch width (from ends to trunk)
+        rl: 1.0 # Ratio of increase of branch length (from ends to trunk)
+        rw: 1.8 # Ratio of increase of branch width (from ends to trunk)
         e: 0.050  # Elasticity
       lSystemParamsUpper:
+        a0: 30.0 # Angle away after branching for first branch
         a1: 30.0 # Angle away after branching
         a2: 15.0 # Angle around vertical axis between splittings
         l1: 55.0 # Length of branches
@@ -122,8 +124,8 @@ sceneObjects:
         nT: 7  # Number of steps in taper
         tP: 7.0 # Falloff power for taper
         tF: 0.7 # Taper widest width as a factor of wB
-        lr: 1.3 # Ratio of increase of branch length (from ends to trunk)
-        vr: 1.82 # Ratio of increase of branch width (from ends to trunk)
+        rl: 1.3 # Ratio of increase of branch length (from ends to trunk)
+        rw: 1.82 # Ratio of increase of branch width (from ends to trunk)
         e: 0.057  # Elasticity
       # Angles and probabilities for branchings to occur, (number of angles + 1) = number of branches to split into
       branchings:
@@ -173,6 +175,7 @@ sceneObjects:
     - !TreeTypes$OakTree
       name: Oak
       lSystemParamsLower:
+        a0: 0.0 # Angle away after branching for first branch
         a1: 5.0 # Angle away after branching
         a2: 25.0 # Angle around vertical axis between splittings
         l1: 30.0 # Length of branches
@@ -186,10 +189,11 @@ sceneObjects:
         nT: 6  # Number of steps in taper
         tP: 6.0 # Falloff power for taper
         tF: 0.6 # Taper widest width as a factor of wB
-        lr: 1.0 # Ratio of increase of branch length (from ends to trunk)
-        vr: 1.4 # Ratio of increase of branch width (from ends to trunk)
+        rl: 1.0 # Ratio of increase of branch length (from ends to trunk)
+        rw: 1.4 # Ratio of increase of branch width (from ends to trunk)
         e: 0.005  # Elasticity
       lSystemParamsUpper:
+        a0: 0.0 # Angle away after branching for first branch
         a1: 35.0 # Angle away after branching
         a2: 35.0 # Angle around vertical axis between splittings
         l1: 30.0 # Length of branches
@@ -203,8 +207,8 @@ sceneObjects:
         nT: 6  # Number of steps in taper
         tP: 7.0 # Falloff power for taper
         tF: 0.75 # Taper widest width as a factor of wB
-        lr: 1.1 # Ratio of increase of branch length (from ends to trunk)
-        vr: 1.42 # Ratio of increase of branch width (from ends to trunk)
+        rl: 1.1 # Ratio of increase of branch length (from ends to trunk)
+        rw: 1.42 # Ratio of increase of branch width (from ends to trunk)
         e: 0.005  # Elasticity
       branchings:
         - minAngles: [ ]
@@ -665,6 +669,8 @@ sceneObjects:
     - texture:
         diffuse: "/textures/grass2.png"
         normal: null
+      # the number of intersecting boards to generate
+      numBoards: 4
       # width scalar of each board
       xScale: 1.0
       # height scalar of each board
@@ -679,6 +685,7 @@ sceneObjects:
     - texture:
         diffuse: "/textures/fern1_rotated.png"
         normal: null
+      numBoards: 4
       xScale: 1.2
       yScale: 1.2
       # overall scalar for the model
@@ -691,6 +698,7 @@ sceneObjects:
     - texture:
         diffuse: "/textures/fern2_rotated.png"
         normal: null
+      numBoards: 4
       xScale: 1.2
       yScale: 1.2
       # overall scalar for the model

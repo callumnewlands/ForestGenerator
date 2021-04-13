@@ -100,7 +100,7 @@ public final class TreeLSystems {
 		for (TreeTypes.BranchingTree.Branching entry : branchings) {
 			List<Module> startModules = new ArrayList<>(List.of(
 					new ParametricExpressionModule('!', List.of(), vars -> List.of(
-							getFloatParam(params, "vr"))),
+							getFloatParam(params, "rw"))),
 					new ParametricExpressionModule('/', List.of(), vars -> List.of(
 							(float) Math.toRadians(getFloatParam(params, "a2")))),
 					new ParametricExpressionModule('F', List.of(), vars -> List.of(
@@ -109,7 +109,7 @@ public final class TreeLSystems {
 
 			List<Module> startModulesSide = List.of(
 					new ParametricExpressionModule('!', List.of(),
-							vars -> List.of(getFloatParam(params, "vr"))),
+							vars -> List.of(getFloatParam(params, "rw"))),
 					new ParametricExpressionModule('/', List.of(), vars -> List.of(
 							(float) Math.toRadians(getFloatParam(params, "a2")))),
 					new ParametricExpressionModule('F', List.of(), vars -> List.of(
@@ -126,7 +126,7 @@ public final class TreeLSystems {
 			List<Module> midModules = List.of(
 					LB,
 					new ParametricExpressionModule('&', List.of(), vars -> List.of(
-							(float) Math.toRadians(getFloatParam(params, "a1")))),
+							(float) Math.toRadians(getFloatParam(params, "a0")))),
 					new ParametricExpressionModule('F', List.of(), vars -> List.of(
 							getFloatParam(params, "l1"))),
 					A,
@@ -134,7 +134,7 @@ public final class TreeLSystems {
 
 			List<Module> branchingModules = new ArrayList<>();
 			if (entry.minAngles.size() != entry.maxAngles.size()) {
-				throw new RuntimeException("Unmatched minimum and maximum branching angles in: " + entry.minAngles + " and " + entry.maxAngles);
+				throw new RuntimeException("Unmatched number of minimum and maximum branching angles in: " + entry.minAngles + " and " + entry.maxAngles);
 			}
 			for (int i = 0; i < entry.minAngles.size(); i++) {
 				int finalI = i;
@@ -172,12 +172,12 @@ public final class TreeLSystems {
 
 		ParametricParameterModule FIn = new ParametricParameterModule('F', List.of("l"));
 		Module FOut = new ParametricExpressionModule('F', List.of("l"), vars -> List.of(
-				vars.get("l") * getFloatParam(params, "lr")));
+				vars.get("l") * getFloatParam(params, "rl")));
 		productions.add(new ProductionBuilder(List.of(FIn), List.of(FOut)).build());
 
 		ParametricParameterModule ExIn = new ParametricParameterModule('!', List.of("w"));
 		Module ExOut = new ParametricExpressionModule('!', List.of("w"), vars -> List.of(
-				vars.get("w") * getFloatParam(params, "vr")));
+				vars.get("w") * getFloatParam(params, "rw")));
 		productions.add(new ProductionBuilder(List.of(ExIn), List.of(ExOut)).build());
 
 		return new LSystem(

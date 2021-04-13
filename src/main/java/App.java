@@ -406,7 +406,7 @@ public class App {
 
 		final float perspectiveAngle = (float) Math.toRadians(45.0f);
 		final float nearPlane = 0.1f;
-		final float farPlane = 250.0f; // TODO param (check for usages of 300)
+		final float farPlane = 250.0f; // TODO param
 		lightingPassShader.setUniform("farPlane", farPlane);
 		projection = new Matrix4f()
 				.perspective(perspectiveAngle, (float) windowWidth / windowHeight, nearPlane, farPlane);

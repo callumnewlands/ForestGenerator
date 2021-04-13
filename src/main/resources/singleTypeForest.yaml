@@ -13,5 +13,7 @@ quadtree:
   levels:
 sceneObjects:
   trees:
-    - !TreeTypes$PineTree
+    - !TreeTypes$AspenTree
       density: 1.0
+      minIterations: 4
+      maxIterations: 11

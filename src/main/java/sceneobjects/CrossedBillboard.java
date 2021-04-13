@@ -49,10 +49,9 @@ public class CrossedBillboard extends InstancedGroundObject {
 				.scale(params.yScale, 1, params.xScale));
 		board.addTexture("diffuseTexture", Textures.billboardTextures.get(index));
 		board.setShaderProgram(billboardShaderProgram);
-		final int numOfBoards = 4;
 		return Map.of(
-				LevelOfDetail.HIGH, IntStream.range(0, numOfBoards)
-						.mapToObj(i -> MeshUtils.transform(board, getRandomRotation((float) (i * Math.PI / numOfBoards))))
+				LevelOfDetail.HIGH, IntStream.range(0, params.numBoards)
+						.mapToObj(i -> MeshUtils.transform(board, getRandomRotation((float) (i * Math.PI / params.numBoards))))
 						.collect(Collectors.toList()),
 				LevelOfDetail.LOW, List.of(
 						new Mesh(board),

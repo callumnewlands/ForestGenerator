@@ -20,6 +20,7 @@ public class TreeTypes {
 		public BranchingTree() {
 			super();
 			lSystemParamsLower = new HashMap<>(Map.ofEntries(
+					Map.entry("a0", 15f),        // Angle away after branching for first branch
 					Map.entry("a1", 15f),        // Angle away after branching
 					Map.entry("a2", -15f),    // Angle around vertical axis between splittings
 					Map.entry("l1", 45f),        // Length of branches
@@ -33,10 +34,11 @@ public class TreeTypes {
 					Map.entry("nT", 7), // Number of steps in taper
 					Map.entry("tP", 6.0f), // Falloff power for taper
 					Map.entry("tF", 0.5f), // Taper widest width as a factor of wB
-					Map.entry("lr", 1f),        // Ratio of increase of branch length (from ends to trunk)
-					Map.entry("vr", 1.8f),    // Ratio of increase of branch width (from ends to trunk)
+					Map.entry("rl", 1f),        // Ratio of increase of branch length (from ends to trunk)
+					Map.entry("rw", 1.8f),    // Ratio of increase of branch width (from ends to trunk)
 					Map.entry("e", 0.050f)));    // Elasticity
 			lSystemParamsUpper = new HashMap<>(Map.ofEntries(
+					Map.entry("a0", 30f),        // Angle away after branching for first branch
 					Map.entry("a1", 30f),        // Angle away after branching
 					Map.entry("a2", 15f),        // Angle around vertical axis between splittings
 					Map.entry("l1", 55f),        // Length of branches
@@ -50,8 +52,8 @@ public class TreeTypes {
 					Map.entry("nT", 7), // Number of steps in taper
 					Map.entry("tP", 7.0f), // Falloff power for taper
 					Map.entry("tF", 0.7f), // Taper widest width as a factor of wB
-					Map.entry("lr", 1.3f),    // Ratio of increase of branch length (from ends to trunk)
-					Map.entry("vr", 1.82f),    // Ratio of increase of branch width (from ends to trunk)
+					Map.entry("rl", 1.3f),    // Ratio of increase of branch length (from ends to trunk)
+					Map.entry("rw", 1.82f),    // Ratio of increase of branch width (from ends to trunk)
 					Map.entry("e", 0.057f)));    // Elasticity
 
 			barkTexture = new Parameters.Texture(
@@ -93,6 +95,7 @@ public class TreeTypes {
 		public OakTree() {
 			super();
 			lSystemParamsLower = new HashMap<>(Map.ofEntries(
+					Map.entry("a0", 0f),        // Angle away after branching for first branch
 					Map.entry("a1", 5f),        // Angle away after branching
 					Map.entry("a2", 25f),    // Angle around vertical axis between splittings
 					Map.entry("l1", 30f),        // Length of branches
@@ -106,10 +109,11 @@ public class TreeTypes {
 					Map.entry("nT", 6), // Number of steps in taper
 					Map.entry("tP", 6.0f), // Falloff power for taper
 					Map.entry("tF", 0.6f), // Taper widest width as a factor of wB
-					Map.entry("lr", 1f),        // Ratio of increase of branch length (from ends to trunk)
-					Map.entry("vr", 1.4f),    // Ratio of increase of branch width (from ends to trunk)
+					Map.entry("rl", 1f),        // Ratio of increase of branch length (from ends to trunk)
+					Map.entry("rw", 1.4f),    // Ratio of increase of branch width (from ends to trunk)
 					Map.entry("e", 0.005f)));    // Elasticity
 			lSystemParamsUpper = new HashMap<>(Map.ofEntries(
+					Map.entry("a0", 0f),        // Angle away after branching for first branch
 					Map.entry("a1", 35f),        // Angle away after branching
 					Map.entry("a2", 35f),    // Angle around vertical axis between splittings
 					Map.entry("l1", 30f),        // Length of branches
@@ -123,8 +127,8 @@ public class TreeTypes {
 					Map.entry("nT", 6), // Number of steps in taper
 					Map.entry("tP", 7.0f), // Falloff power for taper
 					Map.entry("tF", 0.75f), // Taper widest width as a factor of wB
-					Map.entry("lr", 1.1f),        // Ratio of increase of branch length (from ends to trunk)
-					Map.entry("vr", 1.42f),    // Ratio of increase of branch width (from ends to trunk)
+					Map.entry("rl", 1.1f),        // Ratio of increase of branch length (from ends to trunk)
+					Map.entry("rw", 1.42f),    // Ratio of increase of branch width (from ends to trunk)
 					Map.entry("e", 0.005f)));    // Elasticity
 			branchings = List.of(
 					new Branching(List.of(), List.of(), 0.5f),
