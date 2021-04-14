@@ -20,6 +20,7 @@ public class Parameters {
 	public Output output = new Output();
 	public Camera camera = new Camera();
 	public Terrain terrain = new Terrain();
+	public EcosystemSimulation ecosystemSimulation = new EcosystemSimulation();
 	public Quadtree quadtree = new Quadtree();
 	public SceneObjects sceneObjects = new SceneObjects();
 	public Lighting lighting = new Lighting();
@@ -127,6 +128,16 @@ public class Parameters {
 			public float persistence = 0.5f;
 			public float lacunarity = 2.0f;
 		}
+	}
+
+	@NoArgsConstructor
+	@Setter
+	public static class EcosystemSimulation {
+		public int numIterations = 400;
+		public int yearLength = 10;
+		public float ageThreshold = 0.7f;
+		public float radiusWeight = 0.25f;
+		public float smallRadiusViability = 0.25f;
 	}
 
 	@NoArgsConstructor
@@ -240,6 +251,8 @@ public class Parameters {
 			public int minIterations = 7;
 			public int maxIterations = 9;
 			public boolean widenBase = true;
+			public int maxAge = 100;
+			public float seedRadiusMultiplier = 3.0f;
 
 			public Tree() {
 				super();

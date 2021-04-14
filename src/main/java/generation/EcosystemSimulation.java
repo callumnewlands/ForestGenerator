@@ -103,7 +103,7 @@ public class EcosystemSimulation {
 
 	public List<Tree.Reference> simulate(int numIterations) {
 
-		int stepsPerYear = 10;
+		int stepsPerYear = parameters.ecosystemSimulation.yearLength;
 		for (int i = 0; i < numIterations; i++) {
 			if (i % stepsPerYear == 0) {
 				List<Plant> newSeeds = new ArrayList<>();
@@ -117,7 +117,7 @@ public class EcosystemSimulation {
 			// preventing deaths seems to prevent holes in the distribution from large plants dying
 //			plants = plants.stream().filter(p -> !p.isOld()).collect(Collectors.toList());
 			plants.forEach(Plant::grow);
-			if (i % 25 == 0) {
+			if (i % stepsPerYear == 0) {
 				printAreas();
 			}
 		}
@@ -212,15 +212,16 @@ public class EcosystemSimulation {
 		// Canopies colliding
 		if (cylindersColliding(p1.position, p1.getCanopyCentreY(), p1.getCanopyXZRadius(), p1.getCanopyYRadius(),
 				p2.position, p2.getCanopyCentreY(), p2.getCanopyXZRadius(), p2.getCanopyYRadius())) {
-//		if (circlesColliding(p1.position, p1.getCanopyXZRadius(), p2.position, p2.getCanopyXZRadius())) {
 			return true;
 		}
 		// p1 canopy and p2 trunk
-		if (circlesColliding(p1.position, p1.getCanopyXZRadius(), p2.position, p2.getTrunkRadius())) {
+		if (cylindersColliding(p1.position, p1.getCanopyCentreY(), p1.getCanopyXZRadius(), p1.getCanopyYRadius(),
+				p2.position, p2.getTrunkCentreY(), p2.getTrunkRadius(), p2.getTrunkCentreY())) {
 			return true;
 		}
 		// p1 trunk and p2 canopy
-		return circlesColliding(p1.position, p1.getTrunkRadius(), p2.position, p2.getCanopyXZRadius());
+		return cylindersColliding(p1.position, p1.getTrunkCentreY(), p1.getTrunkRadius(), p1.getTrunkCentreY(),
+				p2.position, p2.getCanopyCentreY(), p2.getCanopyXZRadius(), p2.getCanopyYRadius());
 	}
 
 	/**
@@ -253,11 +254,13 @@ public class EcosystemSimulation {
 			return true;
 		}
 		// p1 canopy and p2 trunk
-		if (circlesColliding(p1.position, p1.getCanopyXZRadius(), p2.position, p2.getTrunkRadius())) {
+		if (cylindersColliding(p1.position, p1.getCanopyCentreY(), p1.getCanopyXZRadius(), p1.getCanopyYRadius(),
+				p2.position, p2.getTrunkCentreY(), p2.getTrunkRadius(), p2.getTrunkCentreY())) {
 			return true;
 		}
 		// p1 trunk and p2 canopy
-		return circlesColliding(p1.position, p1.getTrunkRadius(), p2.position, p2.getCanopyXZRadius());
+		return cylindersColliding(p1.position, p1.getTrunkCentreY(), p1.getTrunkRadius(), p1.getTrunkCentreY(),
+				p2.position, p2.getCanopyCentreY(), p2.getCanopyXZRadius(), p2.getCanopyYRadius());
 	}
 
 	private boolean circlesColliding(Vector2f centre1, float radius1, Vector2f centre2, float radius2) {
@@ -279,20 +282,16 @@ public class EcosystemSimulation {
 	}
 
 	private class Plant {
-		private static final int maxAge = 100; // TODO param
+		private final int maxAge;
 		private final int type;
 		private final Tree.Mask minMask;
 		private final Tree.Mask maxMask;
 		private final float modelScale;
 		private final float minScaleFactor;
 		private final float maxScaleFactor;
-		private final Parameters.SceneObjects.Tree params;
+		private final Parameters.SceneObjects.Tree treeParams;
 		private Vector2f position;
 		private int age;
-
-		Plant(int type) {
-			this(type, parameters.random.generator.nextInt(maxAge));
-		}
 
 		Plant(int type, int age) {
 			this.type = type;
@@ -301,10 +300,11 @@ public class EcosystemSimulation {
 			TreePool treePool = TreePool.getTreePool();
 			this.minMask = treePool.getMinimumMask(type);
 			this.maxMask = treePool.getMaximumMask(type);
-			this.params = parameters.sceneObjects.trees.get(type);
-			this.modelScale = params.scale;
-			this.minScaleFactor = params.minScaleFactor;
-			this.maxScaleFactor = params.maxScaleFactor;
+			this.treeParams = parameters.sceneObjects.trees.get(type);
+			this.maxAge = treeParams.maxAge;
+			this.modelScale = treeParams.scale;
+			this.minScaleFactor = treeParams.minScaleFactor;
+			this.maxScaleFactor = treeParams.maxScaleFactor;
 		}
 
 		private float getCurrentFromMinMax(Function<Tree.Mask, Float> property) {
@@ -329,12 +329,16 @@ public class EcosystemSimulation {
 			return getCurrentFromMinMax(Tree.Mask::getTrunkRadius);
 		}
 
+		public float getTrunkCentreY() {
+			return (getCanopyCentreY() + getCanopyYRadius()) / 2;
+		}
+
 		private float getSeedRadius() {
-			return getCanopyXZRadius() * 3; // TODO param
+			return getCanopyXZRadius() * treeParams.seedRadiusMultiplier;
 		}
 
 		float getViability() {
-			float threshold = 0.7f; // TODO param
+			float threshold = parameters.ecosystemSimulation.ageThreshold;
 			float x = Math.min((float) age / maxAge, 1);
 			float plantViability = x < threshold
 					? x / threshold
@@ -346,11 +350,12 @@ public class EcosystemSimulation {
 			float minRadius = (float) plants.stream().mapToDouble(Plant::getCanopyXZRadius).min().orElse(0);
 			float scaledAvgRadius = (avgRadius - minRadius) / (maxRadius - minRadius);
 			float scaledRadius = (this.getCanopyXZRadius() - minRadius) / (maxRadius - minRadius);
-			float p = 0.3f; // TODO param
+			float p = parameters.ecosystemSimulation.smallRadiusViability;
 			float radiusViability = scaledRadius < scaledAvgRadius
 					? (-p) / scaledAvgRadius * scaledRadius + p
 					: (scaledRadius - scaledAvgRadius) / (1 - scaledAvgRadius);
-			return (radiusViability + speciesWeightedViability * 7) / 8; // TODO param
+			float rW = parameters.ecosystemSimulation.radiusWeight;
+			return radiusViability * rW + speciesWeightedViability * (1 - rW);
 		}
 
 		float getCoveredArea() {
@@ -362,19 +367,19 @@ public class EcosystemSimulation {
 			Random r = parameters.random.generator;
 			float x = position.x;
 			float z = position.y;
-			float y = quadtree.getHeight(x, z) + params.yOffset;
+			float y = quadtree.getHeight(x, z) + treeParams.yOffset;
 			Matrix4f model = new Matrix4f()
 					.identity()
 					.translate(x, y, z);
-			if (params.pitchVariability > 0) {
+			if (treeParams.pitchVariability > 0) {
 				model = model.rotate(
-						r.nextFloat() * (float) Math.PI * params.pitchVariability,
+						r.nextFloat() * (float) Math.PI * treeParams.pitchVariability,
 						new Vector3f(r.nextFloat(), 0, r.nextFloat()).normalize()
 				);
 			}
 
-			int maxI = params.maxIterations;
-			int minI = params.minIterations;
+			int maxI = treeParams.maxIterations;
+			int minI = treeParams.minIterations;
 			int iterationStep = (int) (Math.min((float) age / maxAge, 1) * ((maxI + 1) - minI));
 			int iterations = iterationStep + minI;
 			float scaleFactor = (Math.min((float) age / maxAge, 1) *
@@ -395,7 +400,7 @@ public class EcosystemSimulation {
 			this.age += 1;
 		}
 
-		public boolean isOld() {
+		public boolean isDead() {
 			return age >= maxAge;
 		}
 
@@ -404,7 +409,7 @@ public class EcosystemSimulation {
 			float trunkRadius2 = getTrunkRadius() * 2;
 			float seedRadius = getSeedRadius();
 			float seedArea = (float) (Math.PI * seedRadius * seedRadius - Math.PI * trunkRadius2 * trunkRadius2);
-			int numSeeds = (int) (seedArea * DEFAULT_TREE_DENSITY * params.density);
+			int numSeeds = (int) (seedArea * DEFAULT_TREE_DENSITY * treeParams.density);
 			List<Plant> seeds = new ArrayList<>();
 			for (int i = 0; i < numSeeds; i++) {
 				Plant seed = new Plant(type, 0);
