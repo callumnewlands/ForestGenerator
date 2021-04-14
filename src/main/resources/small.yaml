@@ -1,5 +1,5 @@
 random:
-  seed: 3284905977974826976 #12
+  seed: -1 #12
 
 input:
   manual: true

@@ -136,7 +136,7 @@ public class Parameters {
 		public int numIterations = 400;
 		public int yearLength = 10;
 		public float ageThreshold = 0.7f;
-		public float radiusWeight = 0.25f;
+		public float radiusWeight = 0.3f;
 		public float smallRadiusViability = 0.25f;
 	}
 
