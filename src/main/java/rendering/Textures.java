@@ -57,6 +57,17 @@ public final class Textures {
 					GL_REPEAT)
 			: null;
 
+	public static Texture twigBarkGlossiness = parameters.sceneObjects.twigs.texture.glossiness != null
+			?
+			new Texture2D(
+					parameters.sceneObjects.twigs.texture.glossiness,
+					new Vector3f(0),
+					17,
+					GL_RGBA,
+					GL_REPEAT)
+			: null;
+
+
 	public static List<Texture> billboardTextures = parameters.sceneObjects.crossedBillboards
 			.stream()
 			.map(params -> new Texture2D(
@@ -115,6 +126,7 @@ public final class Textures {
 	public static class TreeTextures {
 		public Texture2D bark;
 		public Texture2D barkNormal;
+		public Texture2D barkGlossiness;
 		public Texture2D leafFront;
 		public Texture2D leafFrontT;
 		public Texture2D leafBack;
@@ -139,6 +151,16 @@ public final class Textures {
 							4,
 							GL_RGBA,
 							GL_REPEAT)
+					: null;
+			barkGlossiness = barkPaths.glossiness != null
+					?
+					new Texture2D(
+							barkPaths.glossiness,
+							new Vector3f(0),
+							17,
+							GL_RGBA,
+							GL_REPEAT
+					)
 					: null;
 			leafFront = new Texture2D(
 					leafPaths.frontAlbedo,

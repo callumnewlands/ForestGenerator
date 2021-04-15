@@ -15,6 +15,8 @@
 #               name: tree 2
 #           ...
 
+# TODO specular maps and ecosystem params
+
 # relative path to the directory containing texture and model resources
 resourcesRoot: ./resources/
 

@@ -11,8 +11,10 @@ layout (location = 3) out vec3 gOcclusion;
 layout (location = 4) out vec4 gTranslucency;
 
 uniform bool hasNormalMap;
+uniform bool hasSpecularMap;
 uniform sampler2D diffuseTexture;
 uniform sampler2D normalTexture;
+uniform sampler2D specularTexture;
 
 void main() {
 
@@ -32,7 +34,7 @@ void main() {
     gPosition = worldPos;
     gNormal = norm;
     gAlbedoSpec.rgb = vertexCol.rgb;
-    gAlbedoSpec.a = 0;
+    gAlbedoSpec.a = hasSpecularMap ? texture(specularTexture, textureCoord).r : 0;
     gOcclusion = vec3(0);
     gTranslucency = vec4(0);
 }

@@ -1,5 +1,5 @@
 random:
-  seed: -1 #12
+  seed: 9017602583077050593 #12
 
 input:
   manual: true
@@ -13,9 +13,9 @@ output:
     height: 780
   frameImages: false
 
-camera:
-  startPosition: [ 0, 100, 0 ]
-  startDirection: [ 0, -1, 0 ]
+#camera:
+#  startPosition: [ 0, 100, 0 ]
+#  startDirection: [ 0, -1, 0 ]
 
 terrain:
   width: 75.0

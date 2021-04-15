@@ -24,6 +24,7 @@ uniform float translucencyFactor;
 uniform float toneExposure;
 uniform float ambientStrength;
 uniform vec3 lightPos;
+uniform vec3 viewPos;
 uniform vec3 lightColour;
 uniform mat4 view;
 uniform mat4 projection;
@@ -72,7 +73,7 @@ void main() {
     vec3 diffuse = texture(gAlbedoSpec, textureCoord).rgb;
     vec3 transl = texture(gTranslucency, textureCoord).rgb;
     float pixelTranslFactor = translucencyEnabled ? texture(gTranslucency, textureCoord).a : 0.0f;
-    float specular = texture(gAlbedoSpec, textureCoord).a;
+    float spec = texture(gAlbedoSpec, textureCoord).a;
     float ambientOcclusion = texture(ssao, textureCoord).r;
     vec3 occ = texture(occlusion, textureCoord).rgb;
     vec3 scattering = texture(scatter, textureCoord).rgb;
@@ -91,6 +92,8 @@ void main() {
 
     vec3 norm = normalize(normal);
     vec3 lightDir = normalize(lightPos - worldPos);
+    vec3 viewDir = normalize(viewPos - worldPos);
+    vec3 halfwayDir = normalize(lightDir + viewDir);
     vec4 lightSpacePos = lightVP * vec4(worldPos, 1.0);
     float shadow = shadowsEnabled ? shadowCalculation(lightSpacePos, norm, lightDir) : 0;
 
@@ -102,10 +105,14 @@ void main() {
         } else {
             ambient = ambientStrength * diffuse;
         }
+
         float diffFactor = max(dot(norm, lightDir), 0.0f);
+        float specFactor = pow(max(dot(norm, halfwayDir), 0.0), 16);// TODO uniform 16
+
         vec3 hdrColor =  ambient +
         (1.0 - shadow) * diffFactor * lightColour * diffuse +
         transl * pixelTranslFactor * ((1 - translucencyFactor)*shadow + translucencyFactor) +
+        (1.0 - shadow) * specFactor * lightColour * spec +
         scattering;
         // TODO specular
 

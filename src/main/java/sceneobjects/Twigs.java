@@ -44,6 +44,7 @@ public class Twigs extends InstancedGroundObject {
 		Mesh twig = MeshUtils.transform(twigTurtleInterpreter.getMesh(), new Matrix4f().rotate((float) Math.PI / 2, new Vector3f(1, 0, 0)));
 		twig.addTexture("diffuseTexture", Textures.twigBark);
 		twig.addTexture("normalTexture", Textures.twigBarkNormal);
+		twig.addTexture("specularTexture", Textures.twigBarkGlossiness);
 		twig.setShaderProgram(textureShader);
 		return Map.of(LevelOfDetail.HIGH, List.of(twig));
 	}

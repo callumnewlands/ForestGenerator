@@ -142,6 +142,7 @@ public class Tree {
 		Mesh branches = turtleInterpreter.getMesh();
 		branches.addTexture("diffuseTexture", treeTextures.bark);
 		branches.addTexture("normalTexture", treeTextures.barkNormal);
+		branches.addTexture("specularTexture", treeTextures.barkGlossiness);
 		branches.setShaderProgram(textureShader);
 
 		Mesh canopy = turtleInterpreter.getCombinedSubModelMeshes().get(0);
@@ -165,6 +166,7 @@ public class Tree {
 		Mesh board = lowLODInterpreter.getMesh();
 		board.addTexture("diffuseTexture", treeTextures.bark);
 		board.addTexture("normalTexture", treeTextures.barkNormal);
+		branches.addTexture("specularTexture", treeTextures.barkGlossiness);
 		board.setShaderProgram(billboardShaderProgram);
 
 		for (int i = 0; i < lowLODLeafMerges; i++) {

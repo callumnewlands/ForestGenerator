@@ -77,11 +77,13 @@ public class Parameters {
 		public boolean verticalMovement = true;
 	}
 
+	@AllArgsConstructor
 	@NoArgsConstructor
 	@Setter
 	public static class Texture {
 		public String diffuse;
 		public String normal = null;
+		public String glossiness = null;
 
 		public Texture(String diffuse, String normal) {
 			this.diffuse = diffuse;
@@ -137,7 +139,7 @@ public class Parameters {
 		public int yearLength = 10;
 		public float ageThreshold = 0.7f;
 		public float radiusWeight = 0.3f;
-		public float smallRadiusViability = 0.25f;
+		public float smallRadiusViability = 0.2f;
 	}
 
 	@NoArgsConstructor
@@ -186,7 +188,11 @@ public class Parameters {
 		public static class Twigs extends SceneObject {
 			public int typesPerQuad = 2; // TODO change to instance fraction
 			public int numSides = 5;
-			public Texture texture = new Texture("/textures/Bark_Pine_baseColor.jpg", "/textures/Bark_Pine_normal.jpg");
+			public Texture texture = new Texture(
+					"/textures/Bark_Pine_baseColor.jpg",
+					"/textures/Bark_Pine_normal.jpg",
+					"/textures/Bark_Pine_glossiness.jpg"
+			);
 
 			public Twigs() {
 				super();
@@ -241,7 +247,8 @@ public class Parameters {
 			public Map<String, Number> lSystemParamsUpper;
 			public Texture barkTexture = new Texture(
 					"/textures/Bark_Pine_baseColor.jpg",
-					"/textures/Bark_Pine_normal.jpg");
+					"/textures/Bark_Pine_normal.jpg",
+					"/textures/Bark_Pine_glossiness.jpg");
 			public LeafTextures leafTextures = new LeafTextures();
 			public ColourFilter leafColourFilter = null;
 			public float numPerIterationSize = 3;
@@ -281,7 +288,7 @@ public class Parameters {
 	@NoArgsConstructor
 	@Setter
 	public static class Lighting {
-		public float ambientStrength = 0.3f;
+		public float ambientStrength = 0.4f;
 		public Sun sun = new Sun();
 		public Sky sky = new Sky();
 		public SSAO ssao = new SSAO();

@@ -1,0 +1,41 @@
+random:
+  seed: -1 #12
+
+input:
+  manual: true
+  stdin:
+    enabled: false
+
+output:
+  window:
+    fullscreen: false
+    width: 1400
+    height: 780
+  frameImages: false
+
+#camera:
+#  startPosition: [ 0, 100, 0 ]
+#  startDirection: [ 0, -1, 0 ]
+
+terrain:
+  width: 75.0
+quadtree:
+  levels: 3
+sceneObjects:
+  trees:
+    - !TreeTypes$BranchingTree
+      density: 0.16
+    - !TreeTypes$OakTree
+      density: 0.2
+    - !TreeTypes$AspenTree
+      density: 0.16
+    - !TreeTypes$PoplarTree
+      density: 0.22
+    - !TreeTypes$PineTree
+      density: 0.18
+#  twigs:
+#    density: 0
+#  externalModels: [ ]
+#  crossedBillboards: [ ]
+#  fallenLeaves:
+#    density: 0

@@ -136,7 +136,8 @@ public class TreeTypes {
 			);
 			barkTexture = new Parameters.Texture(
 					"/textures/Oak_Bark_4k_Albedo.png",
-					"/textures/Oak_Bark_4k_Normal.png");
+					"/textures/Oak_Bark_4k_Normal.png",
+					"/textures/Oak_Bark_4k_Glossiness.png");
 			leafTextures = new Parameters.SceneObjects.LeafTextures(
 					"/textures/Leaf5/LeafSet016_2K_Color_Cropped.png",
 					"/textures/Leaf5/LeafSet016_2K_Normal_Cropped.png",
@@ -203,7 +204,8 @@ public class TreeTypes {
 			lSystemParamsUpper = new HashMap<>(lSystemParamsLower);
 			barkTexture = new Parameters.Texture(
 					"/textures/Bark_02_2K_Base_Color.png",
-					"/textures/Bark_02_2K_Normal.png");
+					"/textures/Bark_02_2K_Normal.png",
+					"/textures/Bark_02_2K_Glossiness.png");
 			leafTextures = new Parameters.SceneObjects.LeafTextures(
 					"/textures/Leaf3/Leaf3_front.tga",
 					"/textures/Leaf3/Leaf3_normals_front.tga",
@@ -294,7 +296,8 @@ public class TreeTypes {
 			leafColourFilter = new Parameters.ColourFilter(new Vector3f(1f, 0.79f, 0.1f), 0.9f, true);
 			barkTexture = new Parameters.Texture(
 					"/textures/Aspen_bark_001_COLOR.jpg",
-					"/textures/Aspen_bark_001_NORM.jpg");
+					"/textures/Aspen_bark_001_NORM.jpg",
+					"/textures/Aspen_bark_001_SPEC.jpg");
 			leafTextures = new Parameters.SceneObjects.LeafTextures(
 					"/textures/Leaf4/Autumn_leaf_08_1K_front_Base_Color.png",
 					"/textures/Leaf4/Autumn_leaf_08_1K_front_Normal.png",
@@ -387,7 +390,8 @@ public class TreeTypes {
 			leafColourFilter = new Parameters.ColourFilter(new Vector3f(0.055f, 0.21f, 0.055f), 0.7f, false);
 			barkTexture = new Parameters.Texture(
 					"/textures/Bark_06_BaseColor.jpg",
-					"/textures/Bark_06_Normal.jpg");
+					"/textures/Bark_06_Normal.jpg",
+					"/textures/Bark_06_Glossiness.jpg");
 			leafTextures = new Parameters.SceneObjects.LeafTextures(
 					"/textures/Leaf2/Leaf2_front.tga",
 					"/textures/Leaf2/Leaf2_normals_front.tga",
@@ -469,7 +473,8 @@ public class TreeTypes {
 					Map.entry("e", 0)));         // Elasticity
 			barkTexture = new Parameters.Texture(
 					"/textures/Bark_Pine_baseColor.jpg",
-					"/textures/Bark_Pine_normal.jpg");
+					"/textures/Bark_Pine_normal.jpg",
+					"/textures/Bark_Pine_glossiness.jpg");
 			leafTextures = new Parameters.SceneObjects.LeafTextures(
 					"/textures/Leaf3/Leaf3_front.tga",
 					"/textures/Leaf3/Leaf3_normals_front.tga",

@@ -122,7 +122,7 @@ public class EcosystemSimulation {
 			}
 		}
 
-		System.out.println("Generating tree models");
+		System.out.println("Generating tree models for " + plants.size() + " plants");
 		List<Tree.Reference> trees = plants.stream().map(Plant::toReference).collect(Collectors.toList());
 		TreePool.getTreePool().printGenerationStatistics();
 		return trees;
