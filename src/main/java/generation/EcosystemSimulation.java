@@ -106,7 +106,7 @@ public class EcosystemSimulation {
 
 		int stepsPerYear = parameters.ecosystemSimulation.yearLength;
 		for (int i = 0; i < numIterations; i++) {
-			if (i % stepsPerYear == 0) {
+			if (i % stepsPerYear == 0 && i > 0) {
 				List<Plant> newSeeds = new ArrayList<>();
 				for (Plant plant : plants) {
 					newSeeds.addAll(plant.seed());

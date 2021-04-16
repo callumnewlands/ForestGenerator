@@ -11,6 +11,7 @@ uniform vec3 lightColour;
 
 void main() {
     fragColour = vec4(lightColour, 1.0f);
+//    gAlbedoSpec.rgb = vec3(1, 0, 0);
     gAlbedoSpec.rgb = lightColour;
     gAlbedoSpec.a = 1.0f;
     gOcclusion = lightColour;

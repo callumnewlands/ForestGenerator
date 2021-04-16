@@ -59,6 +59,7 @@ void main() {
     vec3 norm;
     vec4 vertexCol;
     vec4 translColour;
+    float spec;
     if (dot(normalDir, viewDir) > 0) {
         // Viewing front of leaf
         if (hasNormalMap) {
@@ -71,6 +72,7 @@ void main() {
         mapHalflife = hasHalfLifeBasisMap ? texture(leafFrontHalfLife, textureCoord).rgb : vec3(0.5);
         translColour = hasTranslucencyMap ? texture(leafFrontTranslucency, textureCoord) : vertexCol;
         translColour = colourise(translColour);
+        spec = 0.04;
     } else {
         // Viewing back of leaf
         if (hasNormalMap) {
@@ -79,12 +81,13 @@ void main() {
         } else {
             norm = normalize(normal);
         }
-        // Invert normal so it is coming
+        // Invert normal
         norm = -norm;
         vertexCol = colourise(texture(leafBack, textureCoord));
         mapHalflife = hasHalfLifeBasisMap ? texture(leafBackHalfLife, textureCoord).rgb : vec3(0.5);
         translColour = hasTranslucencyMap ? texture(leafBackTranslucency, textureCoord) : vertexCol;
         translColour = colourise(translColour);
+        spec = 0;
     }
 
     if (vertexCol.a < 0.01) {
@@ -100,10 +103,15 @@ void main() {
     dot(lightDir_TS, vec3(-SQRT6, SQRT2, -SQRT3)) * mapHalflife.y +
     dot(lightDir_TS, vec3(SQRT23, 0, -SQRT3)) * mapHalflife.z;
 
+    if (dot(normalDir, viewDir) <= 0) {
+        // TODO check this
+        diffTransl = -diffTransl;
+    }
+
     gPosition = worldPos;
     gNormal = norm;
     gAlbedoSpec.rgb = vertexCol.rgb;
-    gAlbedoSpec.a = 0.04;// TODO specular for leaves
+    gAlbedoSpec.a = spec;
     gOcclusion = 0;
     gTranslucency.rgb = translColour.rgb;
     gTranslucency.a = max(0.0f, diffTransl);

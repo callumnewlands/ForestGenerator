@@ -29,6 +29,7 @@ public class Mesh {
 	private Matrix4f model = new Matrix4f().identity();
 	private Parameters.ColourFilter colourFilter;
 	private boolean isInstanced;
+	private boolean isLeaf;
 	@Accessors(fluent = true)
 	private boolean hasNormalMap;
 	@Accessors(fluent = true)
@@ -40,7 +41,7 @@ public class Mesh {
 	private ShaderProgram shaderProgram;
 
 	public Mesh(List<Vertex> vertices, int[] indices, List<VertexAttribute> vertexAttributes) {
-		this(vertices, indices, vertexAttributes, false, false, false, false, false);
+		this(vertices, indices, vertexAttributes, false, false, false, false, false, false);
 	}
 
 	public Mesh(List<Vertex> vertices,
@@ -50,7 +51,8 @@ public class Mesh {
 				boolean hasNormalMap,
 				boolean hasTranslucencyMap,
 				boolean hasSpecularMap,
-				boolean hasHalfLifeBasisMap) {
+				boolean hasHalfLifeBasisMap,
+				boolean isLeaf) {
 		this.vertices = vertices;
 		this.indices = indices;
 		this.vertexAttributes = vertexAttributes;
@@ -59,6 +61,7 @@ public class Mesh {
 		this.hasTranslucencyMap = hasTranslucencyMap;
 		this.hasSpecularMap = hasSpecularMap;
 		this.hasHalfLifeBasisMap = hasHalfLifeBasisMap;
+		this.isLeaf = isLeaf;
 		this.colourFilter = null;
 		this.vertexArray = createVAO();
 	}
@@ -87,6 +90,7 @@ public class Mesh {
 		this.hasTranslucencyMap = mesh.hasTranslucencyMap;
 		this.hasSpecularMap = mesh.hasSpecularMap;
 		this.hasHalfLifeBasisMap = mesh.hasHalfLifeBasisMap;
+		this.isLeaf = mesh.isLeaf;
 		this.vertexArray = createVAO();
 		this.colourFilter = mesh.colourFilter != null ? new Parameters.ColourFilter(mesh.colourFilter) : null;
 	}
@@ -143,6 +147,7 @@ public class Mesh {
 		shaderProgram.setUniform("isInstanced", isInstanced);
 		shaderProgram.setUniform("hasNormalMap", hasNormalMap);
 		shaderProgram.setUniform("hasTranslucencyMap", hasTranslucencyMap);
+		shaderProgram.setUniform("hasHalfLifeBasisMap", hasHalfLifeBasisMap);
 		shaderProgram.setUniform("hasSpecularMap", hasSpecularMap);
 		for (Map.Entry<String, Texture> texture : textures.entrySet()) {
 			if (texture.getKey().equals("diffuseTexture")) {
@@ -175,6 +180,7 @@ public class Mesh {
 		if (renderForShadows) {
 			prevShader = this.shaderProgram;
 			this.shaderProgram = shadowsShader;
+			shadowsShader.setUniform("isLeaf", isLeaf);
 		}
 		bindForRender();
 		draw();
@@ -193,6 +199,7 @@ public class Mesh {
 		if (renderForShadows) {
 			prevShader = this.shaderProgram;
 			this.shaderProgram = shadowsShader;
+			shadowsShader.setUniform("isLeaf", isLeaf);
 		}
 		bindForRender();
 		draw(numberOfInstances);

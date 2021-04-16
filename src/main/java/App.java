@@ -657,7 +657,7 @@ public class App {
 
 		float farPlane = furthestDistance + 10;
 		float nearPlane = Math.max(closestDistance - 10, 0.1f);
-		float halfMapWidth = parameters.terrain.width * (float) Math.sqrt(2) / 2;
+		float halfMapWidth = Math.max(parameters.terrain.width * (float) Math.sqrt(2) / 2, 25);
 		Matrix4f lightProjection = new Matrix4f().ortho(-halfMapWidth, halfMapWidth, -halfMapWidth, halfMapWidth, nearPlane, farPlane);
 		Matrix4f lightView = new Matrix4f().lookAt(
 				sunPosition,

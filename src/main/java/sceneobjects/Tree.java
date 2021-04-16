@@ -156,6 +156,7 @@ public class Tree {
 		canopy.addTexture("leafBackHalfLife", treeTextures.leafBackHL);
 		canopy.setShaderProgram(leafShaderProgram);
 		canopy.setColourFilter(params.leafColourFilter);
+		canopy.setLeaf(true);
 
 		findCanopyMask(branches, canopy);
 
@@ -183,6 +184,7 @@ public class Tree {
 		LODCanopy.addTexture("leafBackHalfLife", treeTextures.leafBackHL);
 		LODCanopy.setShaderProgram(leafShaderProgram);
 		LODCanopy.setColourFilter(params.leafColourFilter);
+		LODCanopy.setLeaf(true);
 //		List<Mesh> billboard = List.of(
 //				new Mesh(board),
 //				MeshUtils.transform(board, new Matrix4f().rotate((float) Math.PI / 2, up)),

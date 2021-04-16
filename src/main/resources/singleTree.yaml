@@ -18,10 +18,10 @@ sceneObjects:
     #    - !TreeTypes$AspenTree
     #    - !TreeTypes$PoplarTree
     #    - !TreeTypes$MonopodialTree
-    #    - !TreeTypes$BranchingTree
-    - !TreeTypes$OakTree
+    - !TreeTypes$BranchingTree
+      #    - !TreeTypes$OakTree
       #    - !TreeTypes$AspenTree
-      density: 1.0
+      density: 0.8
       numPerIterationSize: 1
   twigs:
     density: 0
@@ -29,10 +29,17 @@ sceneObjects:
   crossedBillboards: [ ]
   fallenLeaves:
     density: 0
+ecosystemSimulation:
+  numIterations:
+    100
+  yearLength:
+    1000
 lighting:
-  volumetricScattering:
-    enabled: false
-  shadows:
-    enabled: false
+  #  volumetricScattering:
+  #    enabled: false
+  #  shadows:
+  #    enabled: false
   sun:
-    display: true
+    display: false
+  sky:
+    hdrFile: "textures/qwantani_8k.hdr"

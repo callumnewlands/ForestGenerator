@@ -24,23 +24,23 @@ quadtree:
 sceneObjects:
   trees:
     - !TreeTypes$BranchingTree
-      density: 0.08
+      density: 0.06
     - !TreeTypes$OakTree
       density: 0.1
     - !TreeTypes$AspenTree
-      density: 0.08
+      density: 0.1
     - !TreeTypes$PoplarTree
-      density: 0.11
+      density: 0.2
     - !TreeTypes$PineTree
-      density: 0.09
+      density: 0.1
 #  twigs:
 #    density: 0
 #  externalModels: [ ]
 #  crossedBillboards: [ ]
 #  fallenLeaves:
 #    density: 0
-ecosystemSimulation:
-  numIterations: 444
 lighting:
   sky:
     hdrFile: "textures/qwantani_8k.hdr"
+  sun:
+    strength: [ 4.6, 4.1, 4.0 ]
