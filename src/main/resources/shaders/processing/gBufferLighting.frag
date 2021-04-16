@@ -33,34 +33,26 @@ uniform float farPlane;
 
 out vec4 fragColour;
 
-// from learnopengl.com: https://learnopengl.com/Advanced-Lighting/Shadows/Shadow-Mapping
-float shadowCalculation(vec4 fragPosLightSpace, vec3 normal, vec3 lightDir) {
-    // perform perspective divide
-    vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
-    // transform to [0,1] range
-    projCoords = projCoords * 0.5 + 0.5;
-    // get closest depth value from light's perspective (using [0,1] range fragPosLight as coords)
-    float closestDepth = texture(shadowMap, projCoords.xy).r;
-    // get depth of current fragment from light's perspective
-    float currentDepth = projCoords.z;
-    // check whether current frag pos is in shadow
+float shadowCalculation(vec4 lightSpacePos, vec3 normal, vec3 lightDir) {
+
+    // Position of fragment in the light's screen space
+    vec3 lightScreenSpacePos = lightSpacePos.xyz / lightSpacePos.w  * 0.5 + 0.5;// Light clip-space to screen space range [0,1]
+    float lightDistance = lightScreenSpacePos.z;
 
     float bias = max(0.05 * (1.0 - dot(normal, lightDir)), 0.005);
 
-    // PCF
+    // Average the 3x3 kernel around the position
     float shadow = 0.0;
     vec2 texelSize = 1.0 / textureSize(shadowMap, 0);
-    for (int x = -1; x <= 1; ++x)
-    {
-        for (int y = -1; y <= 1; ++y)
-        {
-            float pcfDepth = texture(shadowMap, projCoords.xy + vec2(x, y) * texelSize).r;
-            shadow += currentDepth - bias > pcfDepth  ? 1.0 : 0.0;
+    for (int x = -1; x <= 1; ++x) {
+        for (int y = -1; y <= 1; ++y) {
+            float mapDistance = texture(shadowMap, lightScreenSpacePos.xy + vec2(x, y) * texelSize).r;
+            shadow += lightDistance - bias > mapDistance  ? 1.0 : 0.0;
         }
     }
     shadow /= 9.0;
 
-    if (projCoords.z > 1.0) {
+    if (lightDistance > 1.0) {
         shadow = 0.0;// Default to unshadowed if past far plane of view frustum
     }
     return shadow;
@@ -71,7 +63,7 @@ void main() {
     vec3 worldPos = texture(gPosition, textureCoord).rgb;
     vec3 normal = texture(gNormal, textureCoord).rgb;
     vec3 diffuse = texture(gAlbedoSpec, textureCoord).rgb;
-    vec3 transl = texture(gTranslucency, textureCoord).rgb;
+    vec3 translColour = texture(gTranslucency, textureCoord).rgb;
     float pixelTranslFactor = translucencyEnabled ? texture(gTranslucency, textureCoord).a : 0.0f;
     float spec = texture(gAlbedoSpec, textureCoord).a;
     float ambientOcclusion = texture(ssao, textureCoord).r;
@@ -111,10 +103,10 @@ void main() {
 
         vec3 hdrColor =  ambient +
         (1.0 - shadow) * diffFactor * lightColour * diffuse +
-        transl * pixelTranslFactor * ((1 - translucencyFactor)*shadow + translucencyFactor) +
+        translucencyFactor * translColour * pixelTranslFactor * lightColour +
+        //                        transl * pixelTranslFactor * ((1 - translucencyFactor)*shadow + translucencyFactor)  +
         (1.0 - shadow) * specFactor * lightColour * spec +
         scattering;
-        // TODO specular
 
         // TODO which tone mapping algoritm? Also why is the sun AOE too large in gamrig.hdr?
         screenColour = hdrColor;

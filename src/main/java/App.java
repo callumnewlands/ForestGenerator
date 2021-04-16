@@ -576,7 +576,7 @@ public class App {
 		quadtree.setSeedPoint(new Vector2f(camera.getPosition().x, camera.getPosition().z));
 
 		TreePool.getTreePool();
-		List<Tree.Reference> trees = (new EcosystemSimulation(quadtree)).simulate(444); // TODO param
+		List<Tree.Reference> trees = (new EcosystemSimulation(quadtree)).simulate(parameters.ecosystemSimulation.numIterations);
 		for (Tree.Reference tree : trees) {
 			quadtree.placeTree(tree);
 		}
@@ -712,6 +712,7 @@ public class App {
 
 			ShaderPrograms.forAll(sp -> sp.setUniform("lightPos", sunPosition));
 			billboardShaderProgram.setUniform("viewPos", camera.getPosition());
+			lightingPassShader.setUniform("viewPos", camera.getPosition());
 			leafShaderProgram.setUniform("viewPos", camera.getPosition());
 			renderScene();
 			glBindFramebuffer(GL_FRAMEBUFFER, 0);

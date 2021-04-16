@@ -138,7 +138,7 @@ public class Parameters {
 		public int numIterations = 400;
 		public int yearLength = 10;
 		public float ageThreshold = 0.7f;
-		public float radiusWeight = 0.3f;
+		public float radiusWeight = 0.66f;
 		public float smallRadiusViability = 0.2f;
 	}
 
@@ -331,7 +331,7 @@ public class Parameters {
 		@Setter
 		public static class Translucency {
 			public boolean enabled = true;
-			public float factor = 0.5f;
+			public float factor = 0.1f;
 		}
 
 		@NoArgsConstructor

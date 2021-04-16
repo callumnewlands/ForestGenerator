@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Random;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import org.apache.commons.math3.util.Pair;
@@ -115,7 +116,7 @@ public class EcosystemSimulation {
 			calculateCoveredArea();
 			removeColliding();
 			// preventing deaths seems to prevent holes in the distribution from large plants dying
-//			plants = plants.stream().filter(p -> !p.isOld()).collect(Collectors.toList());
+			plants = plants.stream().filter(Predicate.not(Plant::isDead)).collect(Collectors.toList());
 			plants.forEach(Plant::grow);
 			if (i % stepsPerYear == 0) {
 				printAreas();
