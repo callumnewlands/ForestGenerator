@@ -767,8 +767,8 @@ lighting:
     enabled: true
     # Number of samples along each light ray (larger = higher resolution)
     numSamples: 100
-    # Density of samples along each light ray (smaller = samples taken from a smaller area = shorter, brighter rays)
-    sampleDensity: 0.5
+    # Density of samples along each light ray (higher = samples taken from a smaller area = shorter, brighter rays)
+    sampleDensity: 1.3
     # Impact decay of each sample (lower = greater fall-off)
     decay: 0.99 # range [0.0, 1.0)
     # Scalar for brightness of each ray (higher = brighter)

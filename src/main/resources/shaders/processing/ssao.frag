@@ -18,7 +18,8 @@ out float fragColor;
 
 void main()
 {
-    // TODO switch into storing view-space coords to avoid this expensive maths
+    // Ideally this shader would operate on view-space coordinates to avoid this expensive inverse
+    //      or at the least, the inverse should be calculated on the CPU as a uniform
     mat3 viewNormMat = transpose(inverse(mat3(view)));
 
     vec3 fragPos = vec3(view * vec4(texture(gPosition, textureCoord).xyz, 1.0f));// to view-space
@@ -42,7 +43,7 @@ void main()
 
         float sampleDepth = vec3(view * vec4(texture(gPosition, offset.xy).xyz, 1.0f)).z;// to view-space
 
-        float rangeCheck = smoothstep(0.0, 1.0, radius / (abs(fragPos.z - sampleDepth)) + 0.0000001);
+        float rangeCheck = smoothstep(0.0, 1.0, radius / (abs(fragPos.z - sampleDepth) + 0.0000001));
         occlusion += ((sampleDepth >= samplePos.z + bias) ? 1.0 : 0.0) * rangeCheck;
     }
     occlusion = 1.0 - (occlusion / kernelSize);

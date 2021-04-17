@@ -76,8 +76,8 @@ void main() {
         float far = farPlane;
         const float near = 0.1;
         z = (2.0 * near * far) / (far + near - z * (far - near)) + 0.000001;// linear in [far, near]
-        const float max = 20;// TODO param
-        fragColour = vec4(vec3(z / max), 1.0);
+        const float maxDepth = 20;// TODO param
+        fragColour = vec4(vec3(min(z / maxDepth, 1)), 1.0);
         if (invertDepth) fragColour = 1.0 - fragColour;
         return;
     }

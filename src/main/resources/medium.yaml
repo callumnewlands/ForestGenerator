@@ -48,3 +48,6 @@ sceneObjects:
   externalModels: [ ]
   fallenLeaves:
     density: 0
+lighting:
+  sky:
+    hdrFile: "textures/noon_grass_8k.hdr"

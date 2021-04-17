@@ -16,15 +16,20 @@ quadtree:
 sceneObjects:
   trees:
     - !TreeTypes$BranchingTree
-      density: 0.4
+      density: 0.65
+      numPerIterationSize: 1
     - !TreeTypes$OakTree
-      density: 0.45
+      density: 0.75
+      numPerIterationSize: 1
     - !TreeTypes$AspenTree
-      density: 0.5
+      density: 0.60
+      numPerIterationSize: 1
     - !TreeTypes$PoplarTree
-      density: 0.5
+      density: 0.4
+      numPerIterationSize: 1
     - !TreeTypes$PineTree
-      density: 0.5
+      density: 0.3
+      numPerIterationSize: 1
   twigs:
     density: 0
   externalModels: [ ]

@@ -22,8 +22,7 @@ void main()
     vec4 lightPosTransformed = (projection * view * vec4(lightPos, 1.0f));
     vec2 lightPosScreen = (lightPosTransformed.xy / lightPosTransformed.w) * 0.5 + 0.5;;
     // vector between samples in direction of light
-    vec2 sampleDelta = textureCoord - lightPosScreen;
-    sampleDelta *= (1.0f / numSamples) * sampleDensity;
+    vec2 sampleDelta = (textureCoord - lightPosScreen) / (numSamples * sampleDensity);
     vec3 originalColour = texture(occlusion, textureCoord).rgb;
     vec3 colour = originalColour;
     float illuminationDecay = 1.0f;

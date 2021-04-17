@@ -28,13 +28,14 @@ public final class ParameterLoader {
 		);
 		parameters = mapper.readValue(new File(filePath), Parameters.class);
 		setRandomGenerator();
-		System.out.println("Parameters Loaded");
+		System.out.println("Parameters loaded from file: " + filePath);
 		return parameters;
 	}
 
 	public static Parameters getParameters() {
 		if (parameters == null) {
 			parameters = new Parameters();
+			System.out.println("Default parameters used");
 			setRandomGenerator();
 		}
 		return parameters;

@@ -186,7 +186,7 @@ public class Parameters {
 
 		@Setter
 		public static class Twigs extends SceneObject {
-			public int typesPerQuad = 2; // TODO change to instance fraction
+			public int typesPerQuad = 2;
 			public int numSides = 5;
 			public Texture texture = new Texture(
 					"/textures/Bark_Pine_baseColor.jpg",
@@ -346,7 +346,7 @@ public class Parameters {
 		public static class VolumetricScattering {
 			public boolean enabled = true;
 			public int numSamples = 100;
-			public float sampleDensity = 0.5f;
+			public float sampleDensity = 1.3f;
 			public float decay = 0.99f;
 			public float exposure = 0.0015f;
 			public float maxBrightness = 100f;

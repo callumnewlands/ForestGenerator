@@ -13,9 +13,9 @@ output:
     height: 780
   frameImages: false
 
-#camera:
-#  startPosition: [ 0, 100, 0 ]
-#  startDirection: [ 0, -1, 0 ]
+camera:
+  startPosition: [ 0, 100, 0 ]
+  startDirection: [ 0, -1, 0 ]
 
 terrain:
   width: 75.0
