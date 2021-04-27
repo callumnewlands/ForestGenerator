@@ -118,6 +118,7 @@ public class TurtleInterpreter {
 	}
 
 	private void moveForwardsWithLeaves(float distance, int numLeaves, int index, float radialAngle, float liftAngle) {
+
 		liftAngle = -liftAngle;
 		if (liftAngle > Math.PI) {
 			liftAngle = -(float) (2 * Math.PI - liftAngle);
@@ -447,7 +448,7 @@ public class TurtleInterpreter {
 
 					int bottomRight = face.get(0);
 
-					// TODO some way of mapping the texture across n (or 1/nth of) segments not stretching/squashing it to fit one?
+					// Ideally there should be some way of mapping the texture across n (or 1/nth of) segments not stretching/squashing it to fit one?
 
 					final float texXScale = 2;
 					final float texYScale = 2;

@@ -1,25 +1,47 @@
 random:
-  seed: 12
+  seed: 1
 output:
   window:
     fullscreen: false
-    width: 1400
-    height: 780
+    width: 800
+    height: 600
 terrain:
   width: 100.0
+  vertexDensity: 0.4
 quadtree:
-  levels: 2
+  levels: 3
+  thresholdCoefficient: 0.0
+
+camera:
+  startPosition: [ -2.193E+1,  3.778E+0 , 3.853E+1 ]
+  startDirection: [ 1.201E-1 , 1.571E-2, -9.926E-1 ]
+
 sceneObjects:
-  display: true
   trees:
     - !TreeTypes$BranchingTree
-      density: 0.6
-      numSides: 4
+      density: 0.5
+      numSides: 3
+      numPerIterationSize: 1
+    - !TreeTypes$OakTree
+      density: 0.5
+      numSides: 3
+      numPerIterationSize: 1
+    - !TreeTypes$AspenTree
+      density: 0.5
+      numSides: 3
+      numPerIterationSize: 1
+    - !TreeTypes$PoplarTree
+      density: 0.5
+      numSides: 3
+      numPerIterationSize: 1
+    - !TreeTypes$PineTree
+      density: 0.5
+      numSides: 3
+      numPerIterationSize: 1
   twigs:
-    typesPerQuad: 1
-    numSides: 4
+    density: 0.0
 lighting:
-  ambientStrength: 0.2
+  ambientStrength: 0.3
   ssao:
     enabled: false
   translucency:
@@ -28,3 +50,5 @@ lighting:
     enabled: false
   volumetricScattering:
     enabled: false
+  sun:
+    strength: [ 3.8, 3.3, 3.2 ]

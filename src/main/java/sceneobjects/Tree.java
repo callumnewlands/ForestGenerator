@@ -104,10 +104,10 @@ public class Tree {
 
 	Map<LevelOfDetail, List<Mesh>> getMeshes() {
 
-		int lowLODEdges = 2; //  TODO param
-		int lowLODLeafMerges = 1; //  TODO param
-
 		Parameters.SceneObjects.Tree params = parameters.sceneObjects.trees.get(typeIndex);
+		int lowLODEdges = params.lowLODEdges;
+		int lowLODLeafMerges = params.lowLODLeafMerges;
+
 		int numEdges = params.numSides;
 		TurtleInterpreter turtleInterpreter = new TurtleInterpreter(numEdges);
 		turtleInterpreter.setSubModels(List.of(MeshUtils.transform(leaf,

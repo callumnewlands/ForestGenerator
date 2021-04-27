@@ -49,7 +49,6 @@ public class Twigs extends InstancedGroundObject {
 		return Map.of(LevelOfDetail.HIGH, List.of(twig));
 	}
 
-	// TODO params for this
 	private LSystem twigSystem() {
 		float r1 = 0.9f;
 		float r2 = 0.6f;

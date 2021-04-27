@@ -6,12 +6,15 @@ input:
     enabled: true
     lookOffset: 10.0
     fps: 30
+
 output:
   window:
     visible: false
-  frameImages: true
+  frameImages:
+    enabled: true
   colour: true
   depth: true
+
 terrain:
   width: 100.0
 quadtree:

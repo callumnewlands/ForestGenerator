@@ -6,24 +6,21 @@ input:
     enabled: false
     fps: 60
 
-camera:
-  startPosition: [ 0, 230, 0 ]
-  startDirection: [ 0, -1, 0 ]
-
 output:
   window:
     visible: true
     fullscreen: false
     width: 1920
     height: 1080
-  frameImages: false
-  # Video command: ffmpeg -r 30 -start_number 0 -i frame-colour-%d.jpg output.mp4
+  frameImages:
+    enabled: false
+
 terrain:
   width: 200.0
   vertexDensity: 0.4
   textureScale: 3
 quadtree:
-  levels: 4
+  levels: 5
   thresholdCoefficient: 1.5
   frustumCulling: true
 sceneObjects:

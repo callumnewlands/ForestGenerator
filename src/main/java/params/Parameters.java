@@ -51,19 +51,29 @@ public class Parameters {
 	@NoArgsConstructor
 	@Setter
 	public static class Output {
-		public boolean frameImages = false;
+		public FrameImages frameImages = new FrameImages();
 		public Window window = new Window();
 		public boolean colour = true;
 		public boolean depth = false;
 		public boolean invertDepth = true;
+		public float renderDistance = 300.0f;
+		public float maxDepthOutput = 20.0f;
 
 		@NoArgsConstructor
 		@Setter
 		public static class Window {
 			public boolean visible = true;
-			public boolean fullscreen = true;
+			public boolean fullscreen = false;
 			public int width = 800;
 			public int height = 600;
+		}
+
+		@NoArgsConstructor
+		@Setter
+		public static class FrameImages {
+			public boolean enabled = false;
+			public String fileExtension = "jpg";
+			public String filePrefix = "";
 		}
 	}
 
@@ -136,16 +146,17 @@ public class Parameters {
 	@Setter
 	public static class EcosystemSimulation {
 		public int numIterations = 400;
-		public int yearLength = 10;
+		public int yearLength = 20;
 		public float ageThreshold = 0.7f;
-		public float radiusWeight = 0.66f;
-		public float smallRadiusViability = 0.2f;
+		public float radiusWeight = 0.3f;
+		public float smallRadiusViability = 0.4f;
+		public float averageRadiusViability = 0.4f;
 	}
 
 	@NoArgsConstructor
 	@Setter
 	public static class Quadtree {
-		public int levels = 2;
+		public int levels = 3;
 		public float thresholdCoefficient = 1.5f;
 		public boolean frustumCulling = true;
 	}
@@ -163,7 +174,7 @@ public class Parameters {
 		);
 		public Twigs twigs = new Twigs();
 		public List<ExternalModel> externalModels = List.of(
-				new ExternalModel("/models/Rock1/Rock1.obj", "/models/Rock1", null, 0.3f)
+				new ExternalModel("/models/Rock1/Rock1.obj", "/models/Rock1", 0.3f)
 		);
 		public List<CrossedBillboard> crossedBillboards = List.of(
 				new CrossedBillboard(new Texture("/textures/grass2.png"), 4, 1.0f, 0.35f, 20.0f),
@@ -204,7 +215,7 @@ public class Parameters {
 		@AllArgsConstructor
 		@Setter
 		public static class CrossedBillboard extends SceneObject {
-			public Texture texture = new Texture("/textures/grass.png");
+			public Texture texture = new Texture("/textures/grass2.png");
 			public int numBoards = 4;
 			public float xScale = 1.0f;
 			public float yScale = 1.0f;
@@ -226,15 +237,14 @@ public class Parameters {
 		public static class ExternalModel extends SceneObject {
 			public String modelPath = "/models/Rock1/Rock1.obj";
 			public String texturesDir = "/models/Rock1";
-			public Texture overwriteTexture = null; // TODO implement this
 
 			public ExternalModel() {
 				super();
 				this.yOffset = -0.1f;
 			}
 
-			public ExternalModel(String modelPath, String texturesDir, Texture overwriteTexture, float scale) {
-				this(modelPath, texturesDir, overwriteTexture);
+			public ExternalModel(String modelPath, String texturesDir, float scale) {
+				this(modelPath, texturesDir);
 				this.scale = scale;
 				this.yOffset = -0.1f;
 			}
@@ -258,14 +268,17 @@ public class Parameters {
 			public int minIterations = 7;
 			public int maxIterations = 9;
 			public boolean widenBase = true;
-			public int maxAge = 100;
-			public float seedRadiusMultiplier = 3.0f;
+			public int maxAge = 200;
+			public float seedRadiusMultiplier = 2.0f;
+			public int lowLODEdges = 2;
+			public int lowLODLeafMerges = 1;
 
 			public Tree() {
 				super();
 				this.pitchVariability = 0;
 				this.minScaleFactor = 0.7f;
 				this.maxScaleFactor = 1.1f;
+				this.density = 0.5f;
 			}
 		}
 
@@ -289,6 +302,7 @@ public class Parameters {
 	@Setter
 	public static class Lighting {
 		public float ambientStrength = 0.4f;
+		public int specularPower = 16;
 		public Sun sun = new Sun();
 		public Sky sky = new Sky();
 		public SSAO ssao = new SSAO();
@@ -305,7 +319,7 @@ public class Parameters {
 			public boolean autoPosition = true;
 			public int numSides = 10;
 			@JsonDeserialize(using = ParameterLoader.Vec3Deserializer.class)
-			public Vector3f strength = new Vector3f(5.2f, 4.7f, 4.6f);
+			public Vector3f strength = new Vector3f(3.8f, 3.3f, 3.2f);
 			public float scale = 20f;
 			@JsonDeserialize(using = ParameterLoader.Vec3Deserializer.class)
 			public Vector3f position = new Vector3f(50.0f, 200.0f, -50.0f);
@@ -339,6 +353,7 @@ public class Parameters {
 		public static class Shadows {
 			public boolean enabled = true;
 			public int resolution = 4096;
+			public float bias = 0.005f;
 		}
 
 		@NoArgsConstructor

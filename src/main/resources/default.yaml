@@ -15,8 +15,6 @@
 #               name: tree 2
 #           ...
 
-# TODO specular maps and ecosystem params
-
 # relative path to the directory containing texture and model resources
 resourcesRoot: ./resources/
 
@@ -39,17 +37,24 @@ input:
 output:
   window:
     visible: true
-    fullscreen: true
+    fullscreen: false
     width: 800
     height: 600
   # Output the frames of the application to the /frames directory
-  frameImages: false
+  frameImages:
+    enabled: false
+    fileExtension: jpg
+    filePrefix: ""
   # Output a colour image
   colour: true
   # Output a depth image
   depth: false # If outputting to window the depth output will be displayed instead of colour if this is true, if rendering to images, both can be output
   # Invert the depth colours (default: near = black, far = white)
   invertDepth: true
+  # Distance to the far plane of the scene
+  renderDistance: 300.0
+  # Maximum depth for depth output
+  maxDepthOutput: 20.0
 
 camera:
   startPosition: [ 0.0, 3.3, 0.0 ]
@@ -78,10 +83,25 @@ terrain:
   texture:
     diffuse: "/textures/floor2.png/"
     normal: null
+    glossiness: null
+
+ecosystemSimulation:
+  # Number of iterations to run for
+  numIterations: 400
+  # Number of iterations per year
+  yearLength: 20
+  # Age of highest viability (range [0,1])
+  ageThreshold: 0.7
+  # Weighting for radius viability
+  radiusWeight: 0.3
+  # Viability for minimum radius plants
+  smallRadiusViability: 0.4
+  # Viability for average radius plants
+  averageRadiusViability: 0.4
 
 quadtree:
   # Levels of detail (LODs) in the quad-tree
-  levels: 2
+  levels: 3
   # Distance multiplier for switching (LOD) (smaller = LOD threshold is closer)
   thresholdCoefficient: 1.5
   # Enable view-frustum culling of geometry
@@ -137,8 +157,8 @@ sceneObjects:
         - minAngles: [ 60.0, 120.0 ]
           maxAngles: [ 110.0, 150.0 ]
           prob: 0.7
-      # The fraction of all models of this tree which are instanced from a given generated mesh (random configuration) (Larger = more repeated usages)
-      instanceFraction: 0.2
+      # The (maximum) number of models to generate for each iteration count (age) of tree needed in the scene
+      numPerIterationSize: 3
       # Size scalar for the models
       scale: 0.01
       # minimum factor of s for each instance's scale
@@ -155,6 +175,7 @@ sceneObjects:
       barkTexture:
         diffuse: "/textures/Bark_02_2K_Base_Color.png"
         normal: "/textures/Bark_02_2K_Normal.png"
+        glossiness: null
       leafTextures:
         frontAlbedo: "/textures/Leaf1/Leaf1_front.tga"
         frontNormal: "/textures/Leaf1/Leaf1_normals_front.tga"
@@ -172,13 +193,24 @@ sceneObjects:
       # Maximum number of iterations of the L-system
       maxIterations: 9 # exclusive
       # Density of models in the scene
-      density: 0.8
+      density: 0.5
+      # Number of edges to use in the cross section of the low LOD representation
+      lowLODEdges: 2
+      # Number of times to merge successive pairs of leaves for the low LOD representation
+      lowLODLeafMerges: 1
+      # Whether to widen the base of the tree
+      widenBase: true
+      # Max age for the tree in the ecosystem simulation
+      maxAge: 200
+      # Radius multiplier around the trunk when distributing seeds in the ecosystem simulation
+      seedRadiusMultiplier: 2.0
+
 
     - !TreeTypes$OakTree
       name: Oak
       lSystemParamsLower:
         a0: 0.0 # Angle away after branching for first branch
-        a1: 5.0 # Angle away after branching
+        a1: 10.0 # Angle away after branching
         a2: 25.0 # Angle around vertical axis between splittings
         l1: 30.0 # Length of branches
         pS: 0.48 # Probability of side branch
@@ -193,9 +225,9 @@ sceneObjects:
         tF: 0.6 # Taper widest width as a factor of wB
         rl: 1.0 # Ratio of increase of branch length (from ends to trunk)
         rw: 1.4 # Ratio of increase of branch width (from ends to trunk)
-        e: 0.005  # Elasticity
+        e: 0.01  # Elasticity
       lSystemParamsUpper:
-        a0: 0.0 # Angle away after branching for first branch
+        a0: 10.0 # Angle away after branching for first branch
         a1: 35.0 # Angle away after branching
         a2: 35.0 # Angle around vertical axis between splittings
         l1: 30.0 # Length of branches
@@ -211,7 +243,7 @@ sceneObjects:
         tF: 0.75 # Taper widest width as a factor of wB
         rl: 1.1 # Ratio of increase of branch length (from ends to trunk)
         rw: 1.42 # Ratio of increase of branch width (from ends to trunk)
-        e: 0.005  # Elasticity
+        e: 0.01  # Elasticity
       branchings:
         - minAngles: [ ]
           maxAngles: [ ]
@@ -219,8 +251,8 @@ sceneObjects:
         - minAngles: [ 120.0 ]
           maxAngles: [ 240.0 ]
           prob: 0.5
-      instanceFraction: 0.2
-      scale: 0.01
+      numPerIterationSize: 3
+      scale: 0.015
       minScaleFactor: 0.7
       maxScaleFactor: 1.1
       yOffset: 0.0
@@ -230,6 +262,7 @@ sceneObjects:
       barkTexture:
         diffuse: "/textures/Oak_Bark_4k_Albedo.png"
         normal: "/textures/Oak_Bark_4k_Normal.png"
+        glossiness: "/textures/Oak_Bark_4k_Glossiness.png"
       leafTextures:
         frontAlbedo: "/textures/Leaf5/LeafSet016_2K_Color_Cropped.png"
         frontNormal: "/textures/Leaf5/LeafSet016_2K_Normal_Cropped.png"
@@ -246,7 +279,12 @@ sceneObjects:
       numSides: 6
       minIterations: 8 # inclusive
       maxIterations: 13 # exclusive
-      density: 0.8
+      density: 0.5
+      lowLODEdges: 2
+      lowLODLeafMerges: 1
+      widenBase: true
+      maxAge: 200
+      seedRadiusMultiplier: 2.0
 
     - !TreeTypes$MonopodialTree # Base class for Aspen, Poplar and Pine
       name: Monopodial Tree
@@ -314,8 +352,8 @@ sceneObjects:
         lr2: 1.0   # Ratio of decrease of l2
         dL: 1.0 # Density of leaves
         e: 0.0001     # Elasticity
-      # The fraction of all models of this tree which are instanced from a given generated mesh (random configuration) (Larger = more repeated instances)
-      instanceFraction: 0.2
+      # The (maximum) number of models to generate for each iteration count (age) of tree needed in the scene
+      numPerIterationSize: 3
       # Size scalar for the models
       scale: 0.75
       # minimum factor of s for each instance's scale
@@ -332,6 +370,7 @@ sceneObjects:
       barkTexture:
         diffuse: "/textures/Bark_02_2K_Base_Color.png"
         normal: "/textures/Bark_02_2K_Normal.png"
+        glossiness: null
       leafTextures:
         frontAlbedo: "/textures/Leaf3/Leaf3_front.tga"
         frontNormal: "/textures/Leaf3/Leaf3_normals_front.tga"
@@ -349,22 +388,27 @@ sceneObjects:
       # Maximum number of iterations of the L-system
       maxIterations: 9 # exclusive
       # Density of models in the scene
-      density: 0.7
+      density: 0.5
       # Vary branch angle with height (higher branches point upwards, flattening around tH then pointing down)
       heightVaryingAngles: true
       # Use pine tree style branching (opposite and recursive)
       pineStyleBranches: false
+      lowLODEdges: 2
+      lowLODLeafMerges: 1
+      widenBase: true
+      maxAge: 200
+      seedRadiusMultiplier: 2.0
 
     - !TreeTypes$AspenTree
       name: Aspen
       lSystemParamsLower:
         lB: 4.0   # Base length
         lS: 0.5   # Side branch length
-        lSm: 0.24  # Min ratio for side branch length (of ls) and width (of ws)
+        lSm: 0.2  # Min ratio for side branch length (of ls) and width (of ws)
         wB: 0.5   # Base width
         nT: 10     # Number of steps in taper
         tP: 7.0   # Falloff power for taper
-        tF: 0.25  # Taper widest width as a factor of wB
+        tF: 0.5  # Taper widest width as a factor of wB
         wS: 0.35  # Side branch width
         wS2: 0.35  # 3rd level side branch width
         vr: 0.04  # Width of start of side branch
@@ -421,8 +465,8 @@ sceneObjects:
         lr2: 1.0  # Ratio of decrease of l2
         dL: 0.9 # Density of leaves
         e: 0.001    # Elasticity
-      instanceFraction: 0.2
-      scale: 1.0
+      numPerIterationSize: 3
+      scale: 0.9
       minScaleFactor: 0.7
       maxScaleFactor: 1.1
       yOffset: 0.0
@@ -432,6 +476,7 @@ sceneObjects:
       barkTexture:
         diffuse: "/textures/Aspen_bark_001_COLOR.jpg"
         normal: "/textures/Aspen_bark_001_NORM.jpg"
+        glossiness: "/textures/Aspen_bark_001_SPEC.jpg"
       leafTextures:
         frontAlbedo: "/textures/Leaf4/Autumn_leaf_08_1K_front_Base_Color.png"
         frontNormal: "/textures/Leaf4/Autumn_leaf_08_1K_front_Normal.png"
@@ -448,12 +493,17 @@ sceneObjects:
       numSides: 6
       minIterations: 6 # inclusive
       maxIterations: 11 # exclusive
-      density: 0.7
+      density: 0.5
       heightVaryingAngles: true
       pineStyleBranches: false
+      lowLODEdges: 2
+      lowLODLeafMerges: 1
+      widenBase: true
+      maxAge: 200
+      seedRadiusMultiplier: 2.0
 
     - !TreeTypes$PoplarTree
-      name: Lombardy Poplar
+      name: Poplar
       lSystemParamsLower:
         lB: 0.0   # Base length
         lS: 1.1  # Side branch length
@@ -469,8 +519,8 @@ sceneObjects:
         aS: 70.0  # Branch angle around trunk
         aMin: 0.0  # Minimum varying angle
         aMax: 0.0 # Maximum varying angle
-        aS2: 140.0 # 3rd level side branch angle
-        aS3: 30.0 # 3rd level side branch angle upwards
+        aS2: 120.0 # 3rd level side branch angle
+        aS3: 20.0 # 3rd level side branch angle upwards
         aS4: -30.0 # 3rd level side branch angle upwards for 2nd part
         aS5: 0.0   # Initial angle of rotation around branch for 3rd level side branches
         lS2: 0.25 # Distance ratio for gap between 3rd level branches (ignored for pine style branches)
@@ -518,7 +568,7 @@ sceneObjects:
         lr2: 1.0   # Ratio of decrease of l2
         dL: 1.1 # Density of leaves
         e: -0.01  # Elasticity
-      instanceFraction: 0.2
+      numPerIterationSize: 3
       scale: 0.7
       minScaleFactor: 0.7
       maxScaleFactor: 1.1
@@ -529,6 +579,7 @@ sceneObjects:
       barkTexture:
         diffuse: "/textures/Bark_06_BaseColor.jpg"
         normal: "/textures/Bark_06_Normal.jpg"
+        glossiness: "/textures/Bark_06_Glossiness.jpg"
       leafTextures:
         frontAlbedo: "/textures/Leaf2/Leaf2_front.tga"
         frontNormal: "/textures/Leaf2/Leaf2_normals_front.tga"
@@ -545,9 +596,14 @@ sceneObjects:
       numSides: 6
       minIterations: 6 # inclusive
       maxIterations: 18 # exclusive
-      density: 0.7
+      density: 0.5
       heightVaryingAngles: false
       pineStyleBranches: false
+      lowLODEdges: 2
+      lowLODLeafMerges: 1
+      widenBase: true
+      maxAge: 200
+      seedRadiusMultiplier: 2.75
 
     - !TreeTypes$PineTree
       name: Pine Tree
@@ -607,7 +663,7 @@ sceneObjects:
         lr2: 0.98   # Ratio of decrease of l2
         dL: 1.4 # Density of leaves
         e: 0.0     # Elasticity
-      instanceFraction: 0.2
+      numPerIterationSize: 3
       scale: 1.9
       minScaleFactor: 0.7
       maxScaleFactor: 1.1
@@ -618,6 +674,7 @@ sceneObjects:
       barkTexture:
         diffuse: "/textures/Bark_02_2K_Base_Color.png"
         normal: "/textures/Bark_02_2K_Normal.png"
+        glossiness: "/textures/Bark_Pine_glossiness.jpg"
       leafTextures:
         frontAlbedo: "/textures/Leaf3/Leaf3_front.tga"
         frontNormal: "/textures/Leaf3/Leaf3_normals_front.tga"
@@ -630,15 +687,22 @@ sceneObjects:
       numSides: 6
       minIterations: 6 # inclusive
       maxIterations: 16 # exclusive
-      density: 0.7
+      density: 0.5
       heightVaryingAngles: true
       pineStyleBranches: true
+      lowLODEdges: 2
+      lowLODLeafMerges: 1
+      widenBase: true
+      maxAge: 200
+      seedRadiusMultiplier: 2.0
 
   twigs:
+    # Number of different twig models per terrain quad
     typesPerQuad: 2
     texture:
       diffuse: "/textures/Bark_Pine_baseColor.jpg"
       normal: "/textures/Bark_Pine_normal.jpg"
+      glossiness: null
     numSides: 5
     # Size scalar for the models
     scale: 0.05
@@ -657,9 +721,6 @@ sceneObjects:
       # Path to directory containing model textures defined in material file (.mtl)
       texturesDir: "/models/Rock1"
       # Texture to overwrite the model texture with (default = <null, null>)
-      overwriteTexture:
-        diffuse: null
-        normal: null
       scale: 0.3
       minScaleFactor: 0.75
       maxScaleFactor: 1.2
@@ -720,7 +781,9 @@ sceneObjects:
 
 lighting:
   # Strength of the ambient lighting in the scene
-  ambientStrength: 0.3
+  ambientStrength: 0.4
+  # Power to use in the specular calcualtion
+  specularPower: 16
   hdr:
     enabled: true
     # The exposure value to use in the tone mapping algorithm (larger = more light)
@@ -737,7 +800,7 @@ lighting:
     # Number of sides to use in the polygon
     numSides: 10
     # Strength (and colour) of sun to use in lighting calculations
-    strength: [ 5.2, 4.7, 4.6 ]
+    strength: [ 3.8, 3.3, 3.2 ]
     # Position of the sun polygon and for use in lighting calculations (Currently overwritten by the HDR image)
     position: [ 50.0, 200.0, -50.0 ]
     # Scale of the sun polygon
@@ -758,11 +821,13 @@ lighting:
   translucency:
     enabled: true
     # Scalar for leaf translucency (larger = brighter impact from translucency)
-    factor: 0.5
+    factor: 0.1
   shadows:
     enabled: true
     # Resolution of the shadow map (larger scenes will need a larger resolution to avoid pixelation artefacts/missing details at the cost of GPU memory)
     resolution: 4096
+    # Bias to avoid shadow acne, reduce if shadows are detached from objects, increase if quantization errors (stripes) appear
+    bias: 0.005
   volumetricScattering:
     enabled: true
     # Number of samples along each light ray (larger = higher resolution)

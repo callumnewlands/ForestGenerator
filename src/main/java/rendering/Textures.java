@@ -19,19 +19,18 @@ public final class Textures {
 	public static Parameters parameters = ParameterLoader.getParameters();
 
 	public static Texture2D leaf = new Texture2D(
-			"textures/Leaf2_front_rotated.tga",
+			"textures/Leaf2/Leaf2_front.tga",
 			new Vector3f(0.1f, 0.3f, 0.1f),
 			0,
 			GL_SRGB_ALPHA,
 			GL_CLAMP_TO_EDGE);
 
 	public static Texture2D leafNormal = new Texture2D(
-			"textures/Leaf2_normals_front_rotated.tga",
+			"textures/Leaf2/Leaf2_normals_front.tga",
 			new Vector3f(0.1f, 0.3f, 0.1f),
 			1,
 			GL_RGBA,
 			GL_CLAMP_TO_EDGE);
-
 
 	public static Texture2D ground = new Texture2D(
 			parameters.terrain.texture.diffuse,
@@ -79,40 +78,6 @@ public final class Textures {
 			)
 			.collect(Collectors.toList());
 
-	// TODO non-hdr skybox?
-	//	public static CubemapTexture skybox = new CubemapTexture(
-//			List.of("right.jpg",
-//					"left.jpg",
-//					"top.jpg",
-//					"bottom.jpg",
-//					"front.jpg",
-//					"back.jpg"
-//			).stream().map(s ->  "textures/skybox/" + s).collect(Collectors.toList()),
-//			new Vector3f(.529f, .808f, .922f),
-//			8);
-//
-//	public static CubemapTexture skybox2 = new CubemapTexture(
-//			List.of("posx.jpg",
-//					"negx.jpg",
-//					"posy.jpg",
-//					"negy.jpg",
-//					"posz.jpg",
-//					"negz.jpg"
-//			).stream().map(s ->  "textures/skybox2/" + s).collect(Collectors.toList()),
-//			new Vector3f(.529f, .808f, .922f),
-//			8);
-//
-//	public static CubemapTexture skybox3 = new CubemapTexture(
-//			List.of("posx.jpg",
-//					"negx.jpg",
-//					"posy.jpg",
-//					"negy.jpg",
-//					"posz.jpg",
-//					"negz.jpg"
-//			).stream().map(s ->  "textures/skybox3/" + s).collect(Collectors.toList()),
-//			new Vector3f(.529f, .808f, .922f),
-//			8);
-
 	public static List<TreeTextures> treeTextures = parameters.sceneObjects.trees
 			.stream()
 			.map(params -> new TreeTextures(params.barkTexture, params.leafTextures))
@@ -122,7 +87,7 @@ public final class Textures {
 
 	}
 
-	// TODO check if file already loaded?
+	// Could check if textures are already loaded in a similar way to ExternalModel to reduce texture memory load
 	public static class TreeTextures {
 		public Texture2D bark;
 		public Texture2D barkNormal;

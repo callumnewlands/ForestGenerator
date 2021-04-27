@@ -1,46 +1,42 @@
 random:
-  seed: -1 #12
-
-input:
-  manual: true
-  stdin:
-    enabled: false
+  seed: 3177153814841920125 #12
 
 output:
   window:
     fullscreen: false
     width: 1400
     height: 780
-  frameImages: false
+  frameImages:
+    enabled: false
 
-#camera:
-#  startPosition: [ 0, 100, 0 ]
-#  startDirection: [ 0, -1, 0 ]
+ecosystemSimulation:
+  numIterations: 300
 
 terrain:
-  width: 75.0
+  width: 100.0
 quadtree:
   levels: 3
 sceneObjects:
   trees:
     - !TreeTypes$BranchingTree
-      density: 0.06
+      density: 0.1
+      numPerIterationSize: 1
     - !TreeTypes$OakTree
-      density: 0.1
+      density: 0.07
+      numPerIterationSize: 1
     - !TreeTypes$AspenTree
-      density: 0.1
-    - !TreeTypes$PoplarTree
       density: 0.2
+      numPerIterationSize: 1
+    - !TreeTypes$PoplarTree
+      density: 0.3
+      seedRadiusMultiplier: 3.0
+      numPerIterationSize: 1
     - !TreeTypes$PineTree
-      density: 0.1
-#  twigs:
-#    density: 0
-#  externalModels: [ ]
-#  crossedBillboards: [ ]
-#  fallenLeaves:
-#    density: 0
+      density: 0.2
+      numPerIterationSize: 1
+
 lighting:
+  shadows:
+    resolution: 16384
   sky:
-    hdrFile: "textures/qwantani_8k.hdr"
-  sun:
-    strength: [ 4.6, 4.1, 4.0 ]
+    hdrFile: "/textures/noon_grass_8k.hdr"

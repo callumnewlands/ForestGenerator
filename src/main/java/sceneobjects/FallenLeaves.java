@@ -13,7 +13,7 @@ import rendering.LevelOfDetail;
 import rendering.Textures;
 
 public class FallenLeaves extends InstancedGroundObject {
-	// TODO generate leaves from trees list
+	// Could generate leaves from trees list
 	public FallenLeaves(int numberOfTypes, int numberOfInstances, Vector2f regionCentre, float regionWidth, TerrainQuadtree quadtree) {
 		super(numberOfTypes, numberOfInstances, regionCentre, regionWidth, quadtree, ParameterLoader.getParameters().sceneObjects.fallenLeaves);
 		generate();

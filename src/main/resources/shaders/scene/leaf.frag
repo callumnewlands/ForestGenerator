@@ -104,7 +104,6 @@ void main() {
     dot(lightDir_TS, vec3(SQRT23, 0, -SQRT3)) * mapHalflife.z;
 
     if (dot(normalDir, viewDir) <= 0) {
-        // TODO check this
         diffTransl = -diffTransl;
     }
 

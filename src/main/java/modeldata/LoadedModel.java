@@ -146,7 +146,6 @@ public class LoadedModel implements Model {
 			if (loadedTextures.containsKey(texturePath)) {
 				diffuseTexture = loadedTextures.get(texturePath);
 			} else {
-				// TODO check textureUnit
 				diffuseTexture = new Texture2D(texturesDir + "/" + texturePath, new Vector3f(), 6,
 						GL_SRGB_ALPHA, GL_REPEAT);
 				loadedTextures.put(texturePath, diffuseTexture);
@@ -167,7 +166,6 @@ public class LoadedModel implements Model {
 			if (loadedTextures.containsKey(texturePath)) {
 				normalTexture = loadedTextures.get(texturePath);
 			} else {
-				// TODO check textureUnit
 				normalTexture = new Texture2D(texturesDir + "/" + texturePath, new Vector3f(), 7,
 						GL_RGBA, GL_REPEAT);
 				loadedTextures.put(texturePath, diffuseTexture);

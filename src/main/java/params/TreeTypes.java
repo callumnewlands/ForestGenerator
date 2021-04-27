@@ -58,7 +58,8 @@ public class TreeTypes {
 
 			barkTexture = new Parameters.Texture(
 					"/textures/Bark_02_2K_Base_Color.png",
-					"/textures/Bark_02_2K_Normal.png");
+					"/textures/Bark_02_2K_Normal.png",
+					null);
 			leafTextures = new Parameters.SceneObjects.LeafTextures(
 					"/textures/Leaf1/Leaf1_front.tga",
 					"/textures/Leaf1/Leaf1_normals_front.tga",
@@ -76,7 +77,6 @@ public class TreeTypes {
 			leafYScale = 0.7f;
 			minIterations = 5;
 			maxIterations = 9;
-			density = 0.8f;
 
 		}
 
@@ -96,7 +96,7 @@ public class TreeTypes {
 			super();
 			lSystemParamsLower = new HashMap<>(Map.ofEntries(
 					Map.entry("a0", 0f),        // Angle away after branching for first branch
-					Map.entry("a1", 5f),        // Angle away after branching
+					Map.entry("a1", 10f),        // Angle away after branching
 					Map.entry("a2", 25f),    // Angle around vertical axis between splittings
 					Map.entry("l1", 30f),        // Length of branches
 					Map.entry("pS", 0.48f),    // Probability of side branch
@@ -111,9 +111,9 @@ public class TreeTypes {
 					Map.entry("tF", 0.6f), // Taper widest width as a factor of wB
 					Map.entry("rl", 1f),        // Ratio of increase of branch length (from ends to trunk)
 					Map.entry("rw", 1.4f),    // Ratio of increase of branch width (from ends to trunk)
-					Map.entry("e", 0.005f)));    // Elasticity
+					Map.entry("e", 0.01f)));    // Elasticity
 			lSystemParamsUpper = new HashMap<>(Map.ofEntries(
-					Map.entry("a0", 0f),        // Angle away after branching for first branch
+					Map.entry("a0", 10f),        // Angle away after branching for first branch
 					Map.entry("a1", 35f),        // Angle away after branching
 					Map.entry("a2", 35f),    // Angle around vertical axis between splittings
 					Map.entry("l1", 30f),        // Length of branches
@@ -129,7 +129,7 @@ public class TreeTypes {
 					Map.entry("tF", 0.75f), // Taper widest width as a factor of wB
 					Map.entry("rl", 1.1f),        // Ratio of increase of branch length (from ends to trunk)
 					Map.entry("rw", 1.42f),    // Ratio of increase of branch width (from ends to trunk)
-					Map.entry("e", 0.005f)));    // Elasticity
+					Map.entry("e", 0.01f)));    // Elasticity
 			branchings = List.of(
 					new Branching(List.of(), List.of(), 0.5f),
 					new Branching(List.of(120f), List.of(240f), 0.5f)
@@ -151,12 +151,11 @@ public class TreeTypes {
 			leafColourFilter = new Parameters.ColourFilter(new Vector3f(0.7f, 0.6f, 0), 0.4f, false);
 			name = "Oak";
 			numSides = 6;
-			scale = 0.01f;
+			scale = 0.015f;
 			leafXScale = 0.4f;
 			leafYScale = 0.4f;
 			minIterations = 8;
 			maxIterations = 13;
-			density = 0.8f;
 		}
 
 	}
@@ -205,7 +204,7 @@ public class TreeTypes {
 			barkTexture = new Parameters.Texture(
 					"/textures/Bark_02_2K_Base_Color.png",
 					"/textures/Bark_02_2K_Normal.png",
-					"/textures/Bark_02_2K_Glossiness.png");
+					null);
 			leafTextures = new Parameters.SceneObjects.LeafTextures(
 					"/textures/Leaf3/Leaf3_front.tga",
 					"/textures/Leaf3/Leaf3_normals_front.tga",
@@ -222,7 +221,6 @@ public class TreeTypes {
 			leafYScale = 0.17f;
 			minIterations = 5;
 			maxIterations = 9;
-			density = 0.7f;
 		}
 	}
 
@@ -310,12 +308,11 @@ public class TreeTypes {
 			);
 			name = "Aspen";
 			numSides = 6;
-			scale = 1f;
+			scale = 0.9f;
 			leafXScale = 0.28f;
 			leafYScale = 0.28f;
 			minIterations = 6;
 			maxIterations = 11;
-			density = 0.7f;
 		}
 	}
 
@@ -402,13 +399,14 @@ public class TreeTypes {
 					"/textures/Leaf2/Leaf2_back_t.tga",
 					"/textures/Leaf2/Leaf2_halflife_back_t.tga"
 			);
-			name = "Lombardy Poplar";
+			name = "Poplar";
 			scale = 0.7f;
 			leafXScale = 0.15f;
 			leafYScale = 0.15f;
 			minIterations = 6;
 			maxIterations = 18;
 			heightVaryingAngles = false;
+			seedRadiusMultiplier = 2.75f;
 		}
 	}
 
@@ -493,7 +491,6 @@ public class TreeTypes {
 			leafYScale = 0.4f;
 			minIterations = 6;
 			maxIterations = 16;
-			density = 0.7f;
 			heightVaryingAngles = true;
 			pineStyleBranches = true;
 		}

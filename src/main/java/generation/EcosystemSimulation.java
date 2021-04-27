@@ -49,7 +49,7 @@ public class EcosystemSimulation {
 			int numTrees = (int) (GROUND_WIDTH * GROUND_WIDTH * DEFAULT_TREE_DENSITY * params.density / numTypes);
 			indicesByType.add(IntStream.range(indexCount, indexCount + numTrees).boxed().collect(Collectors.toList()));
 			for (int i = 0; i < numTrees; i++) {
-				plants.add(new Plant(type, 0));
+				plants.add(new Plant(type, r.nextInt(params.maxAge)));
 			}
 			indexCount += numTrees;
 			coveredAreaByType.add(0f);
@@ -100,6 +100,7 @@ public class EcosystemSimulation {
 		}
 
 		plants = plants.stream().filter(Objects::nonNull).collect(Collectors.toList());
+		System.out.println("Initial plant count: " + plants.size());
 	}
 
 	public List<Tree.Reference> simulate(int numIterations) {
@@ -119,7 +120,7 @@ public class EcosystemSimulation {
 			plants = plants.stream().filter(Predicate.not(Plant::isDead)).collect(Collectors.toList());
 			plants.forEach(Plant::grow);
 			if (i % stepsPerYear == 0) {
-				printAreas();
+				System.out.printf("Ecosystem simulated: %.2f%% %n", (float) i * 100 / numIterations);
 			}
 		}
 
@@ -136,7 +137,7 @@ public class EcosystemSimulation {
 			Parameters.SceneObjects.Tree params = parameters.sceneObjects.trees.get(type);
 			stringBuilder.append(params.name)
 					.append(": ")
-					.append(String.format("%.4f", coveredAreaByType.get(type) / totalArea))
+					.append(coveredAreaByType.get(type) / totalArea)
 					.append(", ");
 		}
 		System.out.println(stringBuilder.toString());
@@ -352,9 +353,10 @@ public class EcosystemSimulation {
 			float scaledAvgRadius = (avgRadius - minRadius) / (maxRadius - minRadius);
 			float scaledRadius = (this.getCanopyXZRadius() - minRadius) / (maxRadius - minRadius);
 			float p = parameters.ecosystemSimulation.smallRadiusViability;
+			float m = parameters.ecosystemSimulation.averageRadiusViability;
 			float radiusViability = scaledRadius < scaledAvgRadius
-					? (-p) / scaledAvgRadius * scaledRadius + p
-					: (scaledRadius - scaledAvgRadius) / (1 - scaledAvgRadius);
+					? (m - p) / scaledAvgRadius * scaledRadius + p
+					: (1 - m) * (scaledRadius - scaledAvgRadius) / (1 - scaledAvgRadius) + m;
 			float rW = parameters.ecosystemSimulation.radiusWeight;
 			return radiusViability * rW + speciesWeightedViability * (1 - rW);
 		}

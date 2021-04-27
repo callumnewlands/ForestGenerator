@@ -35,7 +35,7 @@ public class Camera {
 	public Camera(final Vector3f position, final Vector3f direction) {
 		this.direction = direction.normalize();
 		this.pitch = (float) Math.toDegrees(Math.asin(this.direction.y));
-		this.yaw = (float) Math.toDegrees(Math.acos(this.direction.x / Math.cos(Math.toRadians(pitch))));
+		this.yaw = (float) Math.toDegrees(Math.atan2(this.direction.z, this.direction.x));
 		this.position = position;
 		this.front = new Vector3f(this.direction.x, 0.0f, this.direction.z);
 		updateVectorsFromAngles();

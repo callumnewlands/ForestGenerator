@@ -1,0 +1,32 @@
+random:
+  seed: 926441221539677877 #12
+
+output:
+  window:
+    fullscreen: false
+    width: 1400
+    height: 780
+  frameImages:
+    enabled: false
+
+camera:
+  startPosition: [ -1.358E+1,  3.300E+0, -2.013E+1 ]
+  startDirection: [ 4.178E-1, -1.396E-2,  9.084E-1 ]
+
+ecosystemSimulation:
+  numIterations: 0
+
+terrain:
+  width: 100.0
+quadtree:
+  levels: 3
+sceneObjects:
+  trees:
+    - !TreeTypes$BranchingTree
+      density: 2.0
+    - !TreeTypes$OakTree
+      density: 3.0
+      minIterations: 11 # inclusive
+      maxIterations: 15 # exclusive
+    - !TreeTypes$PineTree
+      density: 3.0

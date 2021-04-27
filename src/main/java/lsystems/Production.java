@@ -53,28 +53,46 @@ public class Production {
 		return leftContextSatisfied(prev, ignored) && rightContextSatisfied(remaining, ignored);
 	}
 
-	private boolean sideContextSatisfied(List<Module> actual, List<PredecessorModule> expected, List<Module> ignored) {
-		int contextLength = expected.size();
-		List<Module> actualContext = actual
-				.stream()
-				.filter(m -> !ignored.contains(m))
-				.collect(Collectors.toList());
-		actualContext = actualContext.subList(actualContext.size() - contextLength, actualContext.size());
-		return expected.equals(actualContext);
-	}
+//	private boolean sideContextSatisfied(List<Module> actual, List<PredecessorModule> expected, List<Module> ignored) {
+//		int contextLength = expected.size();
+//		List<Module> actualContext = actual
+//				.stream()
+//				.filter(m -> !ignored.contains(m))
+//				.collect(Collectors.toList());
+//		actualContext = actualContext.subList(actualContext.size() - contextLength, actualContext.size());
+//		return expected.equals(actualContext);
+//	}
 
 	private boolean leftContextSatisfied(List<Module> prev, List<Module> ignored) {
 		if (leftContext == null) {
 			return true;
 		}
-		return sideContextSatisfied(prev, leftContext, ignored);
+		if (prev.size() == 0) {
+			return false;
+		}
+		int contextLength = leftContext.size();
+		List<Module> actualContext = prev
+				.stream()
+				.filter(m -> !ignored.contains(m))
+				.collect(Collectors.toList());
+		actualContext = actualContext.subList(actualContext.size() - contextLength, actualContext.size());
+		return leftContext.equals(actualContext);
 	}
 
 	private boolean rightContextSatisfied(List<Module> remaining, List<Module> ignored) {
 		if (rightContext == null) {
 			return true;
 		}
-		return sideContextSatisfied(remaining, rightContext, ignored);
+		if (remaining.size() == 0) {
+			return false;
+		}
+		int contextLength = rightContext.size();
+		List<Module> actualContext = remaining
+				.stream()
+				.filter(m -> !ignored.contains(m))
+				.collect(Collectors.toList());
+		actualContext = actualContext.subList(0, contextLength);
+		return rightContext.equals(actualContext);
 	}
 
 	// Given the modules in "currentPred" match this production, what are the values of the params?

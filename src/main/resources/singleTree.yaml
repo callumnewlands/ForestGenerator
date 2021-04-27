@@ -3,11 +3,17 @@ random:
 output:
   window:
     fullscreen: false
-    width: 1400
-    height: 780
+    width: 1000
+    height: 1000
+  frameImages:
+    enabled: false
+
+camera:
+  startPosition: [ 9.731E+0 , 8.421E+0 ,-1.447E+1 ]
+  startDirection: [ -4.936E-1, -1.167E-1 , 8.618E-1 ]
 
 terrain:
-  width: 10.0
+  width: 7.072
 quadtree:
   levels: 0
   frustumCulling: false
@@ -15,13 +21,13 @@ sceneObjects:
   trees:
     # To change tree type swap which line is uncommented
     #    - !TreeTypes$PineTree
-    #    - !TreeTypes$AspenTree
-    #    - !TreeTypes$PoplarTree
-    #    - !TreeTypes$MonopodialTree
-    - !TreeTypes$BranchingTree
+    - !TreeTypes$AspenTree
+      #    - !TreeTypes$PoplarTree
+      #    - !TreeTypes$BranchingTree
       #    - !TreeTypes$OakTree
-      #    - !TreeTypes$AspenTree
-      density: 0.8
+      density: 1.0
+      maxAge: 100
+      # To change tree's age/size set minIteration and maxIteration parameters
       numPerIterationSize: 1
   twigs:
     density: 0
@@ -31,15 +37,9 @@ sceneObjects:
     density: 0
 ecosystemSimulation:
   numIterations:
-    100
-  yearLength:
-    1000
+    0
 lighting:
-  #  volumetricScattering:
-  #    enabled: false
-  #  shadows:
-  #    enabled: false
-  sun:
-    display: false
-  sky:
-    hdrFile: "textures/qwantani_8k.hdr"
+  volumetricScattering:
+    enabled: false
+  shadows:
+    enabled: false

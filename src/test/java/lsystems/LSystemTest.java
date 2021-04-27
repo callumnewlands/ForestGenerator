@@ -51,7 +51,7 @@ class LSystemTest {
 		CharModule B = new CharModule('B');
 		LSystem ls = new LSystem(
 				List.of(A),
-				List.of(LB, RB),
+				List.of(),
 				List.of(new ProductionBuilder(
 								List.of(B),
 								List.of(B, B)
@@ -72,7 +72,7 @@ class LSystemTest {
 		CharModule X = new CharModule('X');
 		LSystem ls = new LSystem(
 				List.of(X),
-				List.of(LB, RB, PL, MI),
+				List.of(),
 				List.of(new ProductionBuilder(
 								List.of(X),
 								List.of(F, LB, PL, X, RB, LB, MI, X, RB, F, X)
@@ -94,7 +94,7 @@ class LSystemTest {
 	public void KochCurve() {
 		LSystem ls = new LSystem(
 				List.of(F),
-				List.of(PL, MI),
+				List.of(),
 				List.of(new ProductionBuilder(
 								List.of(F),
 								List.of(F, PL, F, MI, F, MI, F, PL, F)
@@ -218,5 +218,56 @@ class LSystemTest {
 		for (int i = 0; i < 10; i++) {
 			ls.performDerivationStep();
 		}
+	}
+
+	@Test
+	public void simpleContext() {
+		CharModule A = new CharModule('A');
+		CharModule B = new CharModule('B');
+		LSystem ls = new LSystem(
+				List.of(B, A, A, A, A, A, A, A, A),
+				List.of(),
+				List.of(new ProductionBuilder(
+								List.of(A),
+								List.of(B)
+						).withLeftContext(List.of(B)).build(),
+						new ProductionBuilder(
+								List.of(B),
+								List.of(A)
+						).build()
+				));
+		assertEquals("BAAAAAAAA", ls.getStateSting());
+		assertEquals("ABAAAAAAA", ls.performDerivationStep());
+		assertEquals("AABAAAAAA", ls.performDerivationStep());
+		assertEquals("AAABAAAAA", ls.performDerivationStep());
+		assertEquals("AAAABAAAA", ls.performDerivationStep());
+		assertEquals("AAAAABAAA", ls.performDerivationStep());
+		assertEquals("AAAAAABAA", ls.performDerivationStep());
+		assertEquals("AAAAAAABA", ls.performDerivationStep());
+		assertEquals("AAAAAAAAB", ls.performDerivationStep());
+
+	}
+
+	@Test
+	public void ignoredContext() {
+		CharModule A = new CharModule('A');
+		CharModule B = new CharModule('B');
+		LSystem ls = new LSystem(
+				List.of(A, PL, A, A, MI, A, A, PL, A, B),
+				List.of(MI, PL),
+				List.of(new ProductionBuilder(
+								List.of(A),
+								List.of(B)
+						).withRightContext(List.of(B)).build()
+				));
+		assertEquals("A+AA-AA+AB", ls.getStateSting());
+		assertEquals("A+AA-AA+BB", ls.performDerivationStep());
+		assertEquals("A+AA-AB+BB", ls.performDerivationStep());
+		assertEquals("A+AA-BB+BB", ls.performDerivationStep());
+		assertEquals("A+AB-BB+BB", ls.performDerivationStep());
+		assertEquals("A+BB-BB+BB", ls.performDerivationStep());
+		assertEquals("B+BB-BB+BB", ls.performDerivationStep());
+		assertEquals("B+BB-BB+BB", ls.performDerivationStep());
+
 	}
 }

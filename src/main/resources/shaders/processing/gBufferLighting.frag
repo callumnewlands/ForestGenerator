@@ -30,6 +30,9 @@ uniform mat4 view;
 uniform mat4 projection;
 uniform mat4 lightVP;
 uniform float farPlane;
+uniform float maxDepthOutput;
+uniform float shadowBias;
+uniform int specularPower;
 
 out vec4 fragColour;
 
@@ -39,7 +42,7 @@ float shadowCalculation(vec4 lightSpacePos, vec3 normal, vec3 lightDir) {
     vec3 lightScreenSpacePos = lightSpacePos.xyz / lightSpacePos.w  * 0.5 + 0.5;// Light clip-space to screen space range [0,1]
     float lightDistance = lightScreenSpacePos.z;
 
-    float bias = max(0.05 * (1.0 - dot(normal, lightDir)), 0.005);
+    float bias = shadowBias;
 
     // Average the 3x3 kernel around the position
     float shadow = 0.0;
@@ -76,8 +79,8 @@ void main() {
         float far = farPlane;
         const float near = 0.1;
         z = (2.0 * near * far) / (far + near - z * (far - near)) + 0.000001;// linear in [far, near]
-        const float maxDepth = 20;// TODO param
-        fragColour = vec4(vec3(min(z / maxDepth, 1)), 1.0);
+        float maxDepth = maxDepthOutput;
+        fragColour = vec4(vec3(min(z / maxDepth, 1.0)), 1.0);
         if (invertDepth) fragColour = 1.0 - fragColour;
         return;
     }
@@ -99,29 +102,18 @@ void main() {
         }
 
         float diffFactor = max(dot(norm, lightDir), 0.0f);
-        float specFactor = pow(max(dot(norm, halfwayDir), 0.0), 16);// TODO uniform 16
+        float specFactor = pow(max(dot(norm, halfwayDir), 0.0), specularPower);
 
         vec3 hdrColor =  ambient +
         (1.0 - shadow) * diffFactor * lightColour * diffuse +
         translucencyFactor * translColour * pixelTranslFactor * lightColour +
-        //                        transl * pixelTranslFactor * ((1 - translucencyFactor)*shadow + translucencyFactor)  +
         (1.0 - shadow) * specFactor * lightColour * spec +
         scattering;
 
-        // TODO which tone mapping algoritm? Also why is the sun AOE too large in gamrig.hdr?
         screenColour = hdrColor;
         if (hdrEnabled) {
-            //        // Reinhard tone mapping
-            //        screenColour = hdrColor / (hdrColor + vec3(1.0));
             //Exposure tone mapping
             screenColour = vec3(1.0) - exp(-hdrColor * toneExposure);
-            //        // Reinhard-Jodie tone mapping
-            //        float luminance = dot(hdrColor, vec3(0.2126f, 0.7152f, 0.0722f));
-            //        vec3 tv = hdrColor / (1.0f + hdrColor);
-            //        screenColour = mix(hdrColor / (1.0f + luminance), tv, tv);
-            // Extended Reinhard tone mapping
-            //        float luminance = dot(hdrColor, vec3(0.2126f, 0.7152f, 0.0722f));
-            //        screenColour = hdrColor / (vec3(1.0f) + luminance);
         }
     } else {
         screenColour = diffuse;
@@ -132,5 +124,5 @@ void main() {
     vec3 gammaCorrected = gammaEnabled ? pow(screenColour, vec3(1.0 / gamma)) : screenColour;
     fragColour = vec4(gammaCorrected, 1.0);
 
-    // fragColour = vec4(norm, 1.0);
+    //     fragColour = vec4(texture(shadowMap, textureCoord).xyz, 1.0);
 }

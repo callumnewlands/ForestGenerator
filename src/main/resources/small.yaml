@@ -1,5 +1,5 @@
 random:
-  seed: 9017602583077050593 #12
+  seed: -1
 
 input:
   manual: true
@@ -11,31 +11,39 @@ output:
     fullscreen: false
     width: 1400
     height: 780
-  frameImages: false
+  frameImages:
+    enabled: false
 
 camera:
-  startPosition: [ 0, 100, 0 ]
-  startDirection: [ 0, -1, 0 ]
+  startPosition: [ 3.243E+1 , 3.300E+0 , 7.986E+0 ]
+  startDirection: [ -9.941E-1 , 8.193E-2 , 7.126E-2 ]
+
+ecosystemSimulation:
+  numIterations: 200
 
 terrain:
   width: 75.0
+
 quadtree:
   levels: 3
 sceneObjects:
   trees:
     - !TreeTypes$BranchingTree
-      density: 0.65
+      density: 0.5
+      numPerIterationSize: 3
     - !TreeTypes$OakTree
-      density: 0.75
+      density: 0.5
+      numPerIterationSize: 3
     - !TreeTypes$AspenTree
-      density: 0.60
+      density: 0.5
+      numPerIterationSize: 3
     - !TreeTypes$PoplarTree
-      density: 0.4
+      density: 0.5
+      numPerIterationSize: 3
     - !TreeTypes$PineTree
-      density: 0.3
-#  twigs:
-#    density: 0
-#  externalModels: [ ]
-#  crossedBillboards: [ ]
-#  fallenLeaves:
-#    density: 0
+      density: 0.5
+      numPerIterationSize: 3
+
+lighting:
+  shadows:
+    resolution: 8192

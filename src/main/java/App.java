@@ -21,6 +21,7 @@ import static org.lwjgl.glfw.GLFW.GLFW_KEY_4;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_5;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_6;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_7;
+import static org.lwjgl.glfw.GLFW.GLFW_KEY_9;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_A;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_D;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE;
@@ -281,7 +282,7 @@ public class App {
 		glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
 		glEnable(GL_DEPTH_TEST);
 		glEnable(GL_MULTISAMPLE);
-		// TODO reincorporate this using combined forward and deferred shading
+		// Could be reincorporated with a forward rendering pass if it is not too detrimental to performance
 //		glEnable(GL_BLEND);
 //		glEnable(GL_SAMPLE_ALPHA_TO_COVERAGE);
 //		glEnable(GL_SAMPLE_ALPHA_TO_ONE);
@@ -305,9 +306,6 @@ public class App {
 	private long initWindow() {
 		System.out.println("Initialising window");
 		glfwDefaultWindowHints();
-//		if (!parameters.output.window.visible) {
-//			glfwWindowHint(GLFW_CONTEXT_CREATION_API, GLFW_OSMESA_CONTEXT_API);
-//		}
 		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, MAJOR_VERSION);
 		glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, MINOR_VERSION);
 		glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
@@ -399,14 +397,16 @@ public class App {
 			System.err.println();
 		}, 0);
 
-		glfwSetFramebufferSizeCallback(window, (window, width, height) -> {
-			windowWidth = width;
-			windowHeight = height;
-		});
+		if (parameters.output.window.visible) {
+			glfwSetFramebufferSizeCallback(window, (window, width, height) -> {
+				windowWidth = width;
+				windowHeight = height;
+			});
+		}
 
 		final float perspectiveAngle = (float) Math.toRadians(45.0f);
 		final float nearPlane = 0.1f;
-		final float farPlane = 250.0f; // TODO param
+		final float farPlane = parameters.output.renderDistance;
 		lightingPassShader.setUniform("farPlane", farPlane);
 		projection = new Matrix4f()
 				.perspective(perspectiveAngle, (float) windowWidth / windowHeight, nearPlane, farPlane);
@@ -562,7 +562,6 @@ public class App {
 
 		sun = new Polygon(parameters.lighting.sun.numSides, sunShader);
 
-
 		int quadtreeDepth = parameters.quadtree.levels;
 		quadtree = new TerrainQuadtree(
 				new Vector2f(0, 0),
@@ -597,6 +596,9 @@ public class App {
 		lightingPassShader.setUniform("translucencyEnabled", parameters.lighting.translucency.enabled);
 		lightingPassShader.setUniform("translucencyFactor", parameters.lighting.translucency.factor);
 		lightingPassShader.setUniform("toneExposure", parameters.lighting.hdr.exposure);
+		lightingPassShader.setUniform("shadowBias", parameters.lighting.shadows.bias);
+		lightingPassShader.setUniform("maxDepthOutput", parameters.output.maxDepthOutput);
+		lightingPassShader.setUniform("specularPower", parameters.lighting.specularPower);
 
 		scatteringShader.setUniform("numSamples", parameters.lighting.volumetricScattering.numSamples);
 		scatteringShader.setUniform("sampleDensity", parameters.lighting.volumetricScattering.sampleDensity);
@@ -604,34 +606,32 @@ public class App {
 		scatteringShader.setUniform("exposure", parameters.lighting.volumetricScattering.exposure);
 		scatteringShader.setUniform("maxBrightness", parameters.lighting.volumetricScattering.maxBrightness);
 
-		if (parameters.lighting.ssao.enabled) {
-			ssaoKernel = new ArrayList<>();
-			Random r = ParameterLoader.getParameters().random.generator;
-			for (int i = 0; i < parameters.lighting.ssao.kernelSize; i++) {
-				float scale = i / (float) parameters.lighting.ssao.kernelSize;
-				scale = lerp(0.1f, 1.0f, scale * scale);
-				Vector3f sample = new Vector3f(r.nextFloat() * 2.0f - 1.0f, r.nextFloat() * 2.0f - 1.0f, r.nextFloat())
-						.normalize()
-						.mul(r.nextFloat() * scale);
-				ssaoKernel.add(sample);
-			}
-
-			ssaoNoiseTexture = glGenTextures();
-			float[] image = new float[16 * 3];
-			for (int i = 0; i < 16; i++) {
-				image[i * 3] = r.nextFloat() * 2.0f - 1.0f;
-				image[i * 3 + 1] = r.nextFloat() * 2.0f - 1.0f;
-				image[i * 3 + 2] = 0.0f;
-			}
-			glActiveTexture(GL_TEXTURE3);
-			glBindTexture(GL_TEXTURE_2D, ssaoNoiseTexture);
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, 4, 4, 0, GL_RGB, GL_FLOAT, image);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-
+		ssaoKernel = new ArrayList<>();
+		Random r = ParameterLoader.getParameters().random.generator;
+		for (int i = 0; i < parameters.lighting.ssao.kernelSize; i++) {
+			float scale = i / (float) parameters.lighting.ssao.kernelSize;
+			scale = lerp(0.1f, 1.0f, scale * scale);
+			Vector3f sample = new Vector3f(r.nextFloat() * 2.0f - 1.0f, r.nextFloat() * 2.0f - 1.0f, r.nextFloat())
+					.normalize()
+					.mul(r.nextFloat() * scale);
+			ssaoKernel.add(sample);
 		}
+
+		ssaoNoiseTexture = glGenTextures();
+		float[] image = new float[16 * 3];
+		for (int i = 0; i < 16; i++) {
+			image[i * 3] = r.nextFloat() * 2.0f - 1.0f;
+			image[i * 3 + 1] = r.nextFloat() * 2.0f - 1.0f;
+			image[i * 3 + 2] = 0.0f;
+		}
+		glActiveTexture(GL_TEXTURE3);
+		glBindTexture(GL_TEXTURE_2D, ssaoNoiseTexture);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, 4, 4, 0, GL_RGB, GL_FLOAT, image);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
 		checkError("lighting init");
 	}
 
@@ -656,7 +656,7 @@ public class App {
 		}
 
 		float farPlane = furthestDistance + 10;
-		float nearPlane = Math.max(closestDistance - 10, 0.1f);
+		float nearPlane = 0.1f;
 		float halfMapWidth = Math.max(parameters.terrain.width * (float) Math.sqrt(2) / 2, 25);
 		Matrix4f lightProjection = new Matrix4f().ortho(-halfMapWidth, halfMapWidth, -halfMapWidth, halfMapWidth, nearPlane, farPlane);
 		Matrix4f lightView = new Matrix4f().lookAt(
@@ -686,20 +686,12 @@ public class App {
 		glCullFace(GL_BACK);
 	}
 
-	// Note: Occasionally (and seemingly randomly) the program runs through 2 render cycles just outputting a black
-	//  	screen and then on the third, crashes (on glfwSwapBuffers) with the exit code -1073740791 (0xc0000409)
-	//		An event in the Windows log which seems to coincide is:
-	//			A TDR has been detected. The application must close. Error code: 7 (pid=32376 tid=29344 java.exe 64bit)
-	//			Visit http://nvidia.custhelp.com/app/answers/detail/a_id/3633 for more information.
-	//		It has not happened since reducing the resolution of the shadow map (from 16k to 2k)
-	//		( and reducing the available JVM heap space from 12GB to 8GB)
-	// 		From this, and the TDR timeout, I assume it was simply a matter of overloading the GPU memory
 	private void loop() {
+		System.out.println("Render loop started");
 		while (!glfwWindowShouldClose(window)) {
 			updateDeltaTime();
 			stepper += deltaTime / 10;
 			stepper -= (int) stepper;
-//			System.out.println(1 / deltaTime + " fps");
 
 			glPolygonMode(GL_FRONT_AND_BACK, polygonMode);
 
@@ -810,13 +802,13 @@ public class App {
 			glActiveTexture(GL_TEXTURE8);
 			glBindTexture(GL_TEXTURE_2D, gTranslucency);
 
-			if (parameters.output.frameImages && parameters.output.colour) {
+			if (parameters.output.frameImages.enabled && parameters.output.colour) {
 				lightingPassShader.setUniform("renderDepth", false);
 			}
 			(new Quad(lightingPassShader)).render();
 
 			glfwSwapBuffers(window);
-			if (parameters.output.frameImages) {
+			if (parameters.output.frameImages.enabled) {
 				outputFrame(parameters.output.colour ? "colour" : "depth");
 
 				// If parameters.output.colour is set, then colour frame was just saved, so now save depth frame
@@ -933,11 +925,9 @@ public class App {
 		}
 		if (glfwGetKey(window, GLFW_KEY_3) == GLFW_PRESS) {
 			lightingPassShader.setUniform("hdrEnabled", !parameters.lighting.hdr.enabled);
-			scatteringShader.setUniform("hdrEnabled", !parameters.lighting.hdr.enabled);
 		}
 		if (glfwGetKey(window, GLFW_KEY_3) == GLFW_RELEASE) {
 			lightingPassShader.setUniform("hdrEnabled", parameters.lighting.hdr.enabled);
-			scatteringShader.setUniform("hdrEnabled", parameters.lighting.hdr.enabled);
 		}
 		if (glfwGetKey(window, GLFW_KEY_4) == GLFW_PRESS) {
 			lightingPassShader.setUniform("aoEnabled", !parameters.lighting.ssao.enabled);
@@ -962,6 +952,9 @@ public class App {
 		}
 		if (glfwGetKey(window, GLFW_KEY_7) == GLFW_RELEASE) {
 			lightingPassShader.setUniform("translucencyEnabled", parameters.lighting.translucency.enabled);
+		}
+		if (glfwGetKey(window, GLFW_KEY_9) == GLFW_PRESS) {
+			System.out.println("Pos: " + camera.getPosition() + " Dir: " + camera.getDirection());
 		}
 	}
 
@@ -1002,10 +995,12 @@ public class App {
 			int b = (int) (array[i * 3 + 2] * 255);
 			image.setRGB(i % windowWidth, windowHeight - 1 - i / windowWidth, (r << 16) + (g << 8) + b);
 		}
+		String name = parameters.output.frameImages.filePrefix;
+		String fileExtension = parameters.output.frameImages.fileExtension;
 		try {
 			File dir = new File("./frames");
 			dir.mkdir();
-			File file = new File(String.format("./frames/frame-%s-%d.jpg", type, frame));
+			File file = new File(String.format("./frames/frame-%s-%s-%d.%s", name, type, frame, fileExtension));
 			file.createNewFile();
 			ImageIO.write(image, "jpg", file);
 		} catch (IOException e) {

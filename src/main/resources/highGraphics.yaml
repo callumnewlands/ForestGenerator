@@ -1,0 +1,106 @@
+random:
+  seed: -414756228664697700
+
+output:
+  window:
+    visible: true
+    fullscreen: false
+    width: 1920
+    height: 1080
+  frameImages:
+    enabled: false
+
+terrain:
+  width: 100.0
+  vertexDensity: 1.5
+quadtree:
+  levels: 4
+  thresholdCoefficient: 10.0
+
+camera:
+  startPosition: [ 4.386E+1 , 4.642E+0 , 1.848E+1 ]
+  startDirection: [ -9.457E-1,  9.411E-2, -3.110E-1 ]
+
+sceneObjects:
+  trees:
+    - !TreeTypes$BranchingTree
+      density: 0.6
+      numPerIterationSize: 1
+      numSides: 20
+    - !TreeTypes$OakTree
+      density: 0.6
+      numPerIterationSize: 1
+      numSides: 20
+    - !TreeTypes$AspenTree
+      density: 0.5
+      numPerIterationSize: 1
+      numSides: 20
+    - !TreeTypes$PoplarTree
+      density: 0.5
+      numPerIterationSize: 1
+      numSides: 20
+  twigs:
+    typesPerQuad: 10
+    numSides: 10
+  crossedBillboards:
+    - texture:
+        diffuse: "/textures/grass2.png"
+        normal: null
+      numBoards: 6
+      xScale: 1.0
+      yScale: 0.35
+      scale: 0.7
+      minScaleFactor: 0.75
+      maxScaleFactor: 1.2
+      yOffset: 0.0
+      pitchVariability: 0.1
+      density: 20.0
+    - texture:
+        diffuse: "/textures/fern1_rotated.png"
+        normal: null
+      numBoards: 5
+      xScale: 1.2
+      yScale: 1.2
+      scale: 0.7
+      minScaleFactor: 0.75
+      maxScaleFactor: 1.2
+      yOffset: 0.0
+      pitchVariability: 0.1
+      density: 0.2
+    - texture:
+        diffuse: "/textures/fern2_rotated.png"
+        normal: null
+      numBoards: 5
+      xScale: 1.2
+      yScale: 1.2
+      scale: 0.7
+      minScaleFactor: 0.75
+      maxScaleFactor: 1.2
+      yOffset: 0.0
+      pitchVariability: 0.1
+      density: 0.2
+lighting:
+  ambientStrength: 0.3
+  sky:
+    hdrFile: "textures/gamrig_8k.hdr"
+    resolution: 4096
+  ssao:
+    enabled: true
+    kernelSize: 64
+    radius: 0.5
+    bias: 0.025
+  translucency:
+    enabled: true
+    factor: 0.5
+  shadows:
+    enabled: true
+    resolution: 16384
+  volumetricScattering:
+    enabled: true
+    numSamples: 200
+    sampleDensity: 1.3
+    decay: 0.99
+    exposure: 0.0015
+    maxBrightness: 100.0
+  sun:
+    strength: [ 3.8, 3.3, 3.2 ]

@@ -184,11 +184,6 @@
             <version>3.11</version>
         </dependency>
         <dependency>
-            <groupId>org.j3d</groupId>
-            <artifactId>j3d-texture</artifactId>
-            <version>3.0.1</version>
-        </dependency>
-        <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <version>1.18.16</version>

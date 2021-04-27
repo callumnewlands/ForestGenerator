@@ -57,7 +57,7 @@ public class HDRTexture extends CubemapTexture {
 
 		Texture2D hdr2DImage = new Texture2D(path, colour, 0, GL_RGB16F, GL_CLAMP_TO_EDGE, true);
 
-		// TODO could use this area to determine sun brightness
+		// Could use this area to determine sun brightness
 		brightestArea = getBrightestArea(hdr2DImage);
 
 		this.bind();

@@ -43,7 +43,7 @@ public class TerrainGenerator {
 		return Math.round(f * precision) / (float) precision;
 	}
 
-	// TODO store this so it doesnt need calculated each time?
+	// Could store this so it doesnt need calculated each time
 	public float getHeight(float x, float y) {
 		return noiseGenerator.GetNoise(x / NOISE_SCALE_X, y / NOISE_SCALE_Y) * VERTICAL_SCALE;
 	}
