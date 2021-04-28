@@ -2,7 +2,7 @@
 
 ![GitHub release (latest by date)](https://img.shields.io/github/v/release/callumnewlands/ForestGenerator)
 
-An application for generating and rendering realistic forest scenes using L-systems and OpenGL
+An application for generating and rendering realistic forest scenes using L-systems and OpenGL created for my [MEng Computer Science Individual Project](https://www.southampton.ac.uk/courses/modules/comp3200)
 
 ![Screenshot](https://user-images.githubusercontent.com/26446570/116328276-94fb7900-a7c0-11eb-8712-d7c22463e47b.jpg)
 
