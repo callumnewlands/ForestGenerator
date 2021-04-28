@@ -96,7 +96,6 @@ file-name prefix is given along with the source.
 | fern1_rotated.png        | Fern billboard texture      | Personal Use | https://www.clipartmax.com/middle/m2H7i8d3A0N4H7K9_fern-texture-png/                       |
 | fern2_rotated.png        | Fern billboard texture      | Personal Use | https://www.clipartmax.com/middle/m2H7i8d3A0N4H7K9_fern-texture-png/                       |
 | floor2.png               | Ground texture              | Unlimited    | https://www.deviantart.com/fabooguy/art/Dirt-Ground-Texture-Tileable-2048x2048-441212191   |
-| gamrig_8k.hdr            | HDR environment map         | CC0          | https://hdrihaven.com/hdri/?h=gamrig                                                       |
 | grass2.png               | Grass billboard texture     | Personal Use | https://www.clipartmax.com/middle/m2i8Z5i8H7K9b1G6_free-icons-png-grass-alpha-texture-png/ |
 | Leaf1                    | Sycamore-like leaf textures |              | https://www.cg.tuwien.ac.at/research/publications/2007/Habel_2007_RTT/                     |
 | Leaf2                    | Hazel leaf textures         |              | https://www.cg.tuwien.ac.at/research/publications/2007/Habel_2007_RTT/                     |
