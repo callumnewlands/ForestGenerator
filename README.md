@@ -1,5 +1,7 @@
 # ForestGenerator
 
+![Screenshot](https://user-images.githubusercontent.com/26446570/116328276-94fb7900-a7c0-11eb-8712-d7c22463e47b.jpg)
+
 ## Prerequisites
 
 * Java 14 (https://jdk.java.net/14/)
