@@ -4,7 +4,7 @@
 
 An application for generating and rendering realistic forest scenes using L-systems and OpenGL created for my [MEng Computer Science Individual Project](https://www.southampton.ac.uk/courses/modules/comp3200)
 
-![Screenshot](https://user-images.githubusercontent.com/26446570/116328276-94fb7900-a7c0-11eb-8712-d7c22463e47b.jpg)
+![Screenshots](https://github.com/callumnewlands/ForestGenerator/blob/master/screenshots.png)
 
 ## Prerequisites
 
@@ -44,25 +44,25 @@ recommended to download them and save them inside the ```/resources/textures/```
 
 1. Run ```mvn clean install``` in the root directory
 2. Navigate into the ```target/``` directory
-3. In the root directory run the qcommand:
+3. In the root directory run the command:
    ```java -jar ForestGenerator-1.0-windows.jar [config.yaml]```
+   * For unix or mac systems use file ```ForestGenerator-1.0-unix.jar``` or ```ForestGenerator-1.0-mac.jar```
+     respectively
    * ```config.yaml``` (optional) is the path to the yaml config file (see below)
    * Note: The ```resourcesRoot``` configuration parameter will need to be set to ```./classes/```
    * In the event of a ```java.lang.OutOfMemoryError: Java heap space``` error, the allocated heap space for the JVM may
      need to be increased with e.g.: ```java -jar -Xmx4G ...```
-   * For unix or mac systems use file ```ForestGenerator-1.0-unix.jar``` or ```ForestGenerator-1.0-mac.jar```
-     respectively
 
 ## Running the Application (from release)
 
 1. Download and extract the latest release file (.zip)
 2. In the root directory run the command:
    ```java -jar ForestGenerator-1.0-windows.jar [config.yaml]```
+   * For unix or mac systems use file ```ForestGenerator-1.0-unix.jar``` or ```ForestGenerator-1.0-mac.jar```
+     respectively
    * ```config.yaml``` (optional) is the path to the yaml config file (see below)
    * In the event of a ```java.lang.OutOfMemoryError: Java heap space``` error, the allocated heap space for the JVM may
      need to be increased with e.g.: ```java -jar -Xmx4G ...```
-   * For unix or mac systems use file ```ForestGenerator-1.0-unix.jar``` or ```ForestGenerator-1.0-mac.jar```
-     respectively
 
 ## Controls:
 
