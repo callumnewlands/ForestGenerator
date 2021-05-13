@@ -7,7 +7,7 @@ An application for generating and rendering realistic forest scenes using L-syst
 ![Screenshots](https://github.com/callumnewlands/ForestGenerator/blob/master/screenshots.png)
 
 ## Demo Video:
-https://youtu.be/82JUq6yR35Y
+[![Demo vide screenshot](https://github.com/callumnewlands/ForestGenerator/blob/master/video-screenshot.png)](https://youtu.be/82JUq6yR35Y)
 
 ## Prerequisites
 
