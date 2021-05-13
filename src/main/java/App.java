@@ -576,6 +576,8 @@ public class App {
 		HDRTexture skyboxTexture = new HDRTexture(parameters.lighting.sky.hdrFile, parameters.lighting.sky.resolution, new Vector3f(.529f, .808f, .922f), 8);
 		if (parameters.lighting.sun.autoPosition) {
 			sunPosition = skyboxTexture.getBrightestArea();
+		} else {
+			sunPosition = parameters.lighting.sun.position;
 		}
 		skybox.addTexture("skyboxTexture", skyboxTexture);
 		checkError("skybox loading");
@@ -603,6 +605,7 @@ public class App {
 	}
 
 	private void initLighting() {
+		sunPosition = parameters.lighting.sun.position;
 		ShaderPrograms.forAll(sp -> sp.setUniform("lightPos", parameters.lighting.sun.position));
 		ShaderPrograms.forAll(sp -> sp.setUniform("lightColour", parameters.lighting.sun.strength));
 		ShaderPrograms.forAll(sp -> sp.setUniform("ambientStrength", parameters.lighting.ambientStrength));
