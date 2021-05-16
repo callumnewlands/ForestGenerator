@@ -55,6 +55,10 @@ output:
   renderDistance: 300.0
   # Maximum depth for depth output
   maxDepthOutput: 20.0
+  # Whether to detect and output collisions with tree trunks and rocks
+  collisions:
+    enabled: false
+    userRadius: 0.5
 
 camera:
   startPosition: [ 0.0, 3.3, 0.0 ]
@@ -722,6 +726,8 @@ sceneObjects:
       texturesDir: "/models/Rock1"
       # Texture to overwrite the model texture with (default = <null, null>)
       scale: 0.3
+      # Whether the object should be checked for collisions
+      collidable: true
       minScaleFactor: 0.75
       maxScaleFactor: 1.2
       yOffset: -0.1

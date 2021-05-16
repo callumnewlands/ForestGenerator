@@ -24,6 +24,7 @@ package modeldata;
 import java.io.File;
 import java.nio.IntBuffer;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -44,6 +45,7 @@ import static org.lwjgl.opengl.GL11C.GL_RGBA;
 import static org.lwjgl.opengl.GL21C.GL_SRGB_ALPHA;
 import static rendering.ShaderPrograms.textureShader;
 
+import lombok.Getter;
 import modeldata.meshdata.Mesh;
 import modeldata.meshdata.Texture;
 import modeldata.meshdata.Texture2D;
@@ -69,6 +71,10 @@ public class LoadedModel implements Model {
 	private final SingleModel model;
 	private final Map<String, Texture> loadedTextures = new HashMap<>();
 	private final String texturesDir;
+	@Getter
+	private float maskRadius;
+	@Getter
+	private float maskHeight;
 
 	public LoadedModel(final String resourcePath, final String texturesDir) {
 		this(resourcePath,
@@ -223,6 +229,8 @@ public class LoadedModel implements Model {
 		List<Vector2f> textureCoordinates = processTexCoords(mesh);
 		List<Vertex> vertices = listsToVertexArray(positions, normals, tangents, textureCoordinates);
 
+		setMask(positions);
+
 		List<Integer> indices = processIndices(mesh);
 		int[] indexData = new int[indices.size()];
 		for (int i = 0; i < indices.size(); i++) {
@@ -242,6 +250,20 @@ public class LoadedModel implements Model {
 		meshData.setShaderProgram(textureShader);
 		return meshData;
 
+	}
+
+	private void setMask(List<Vector3f> positions) {
+		float maxRadius = 0;
+		for (Vector3f position : positions) {
+			float len = (new Vector2f(position.x, position.z)).length();
+			if (len > maxRadius) {
+				maxRadius = len;
+			}
+		}
+		maskRadius = maxRadius;
+		Vector3f topPoint = positions.stream().max(Comparator.comparingDouble(p -> p.y)).orElse(new Vector3f());
+		Vector3f bottomPoint = positions.stream().min(Comparator.comparingDouble(p -> p.y)).orElse(new Vector3f());
+		maskHeight = Math.abs(topPoint.y - bottomPoint.y);
 	}
 
 	private List<Vector3f> processPositions(final AIMesh mesh) {

@@ -99,6 +99,10 @@ public class TreePool {
 		return maxMasks.get(type);
 	}
 
+	public Tree.Mask getInstanceMask(int type, int index) {
+		return getTree(type, index).getMask();
+	}
+
 	public void renderTreeWithModel(int type, int index, Matrix4f model, LevelOfDetail levelOfDetail, boolean renderForShadows) {
 		Tree tree = getTree(type, index);
 		tree.setModelMatrix(model);

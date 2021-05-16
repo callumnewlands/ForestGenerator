@@ -705,7 +705,7 @@ public class App {
 
 		// render all shadow casting objects
 		shadowsShader.setUniform("lightVP", lightVP);
-		quadtree.render(lightVP, true);
+		quadtree.render(lightVP, null, true);
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		glCullFace(GL_BACK);
 	}
@@ -879,7 +879,7 @@ public class App {
 	}
 
 	private void renderScene() {
-		quadtree.render(camera.getViewMatrix().mulLocal(projection));
+		quadtree.render(camera.getViewMatrix().mulLocal(projection), camera.getPosition());
 
 		glDepthFunc(GL_LEQUAL);
 

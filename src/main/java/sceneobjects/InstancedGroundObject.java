@@ -40,6 +40,8 @@ import rendering.LevelOfDetail;
 
 public abstract class InstancedGroundObject {
 
+	protected final List<Vector3f> positions = new ArrayList<>();
+	protected final List<Float> scales = new ArrayList<>();
 	private final List<InstancedLODModel> models = new ArrayList<>();
 	private final int numberOfTypes;
 	private final int numberOfInstances;
@@ -82,19 +84,22 @@ public abstract class InstancedGroundObject {
 			lodModel.generateModelMatrices(() -> {
 				float x = (r.nextFloat() - 0.5f) * regionWidth + regionCentre.x;
 				float z = (r.nextFloat() - 0.5f) * regionWidth + regionCentre.y;
+				float y = quadtree.getHeight(x, z) + params.yOffset;
 				Matrix4f model = new Matrix4f()
 						.identity()
-						.translate(x, quadtree.getHeight(x, z) + params.yOffset, z);
+						.translate(x, y, z);
 				if (params.pitchVariability > 0) {
 					model = model.rotate(
 							r.nextFloat() * (float) Math.PI * params.pitchVariability,
 							new Vector3f(r.nextFloat(), 0, r.nextFloat()).normalize()
 					);
 				}
-				return model.rotate(r.nextFloat() * (float) Math.PI * 2, new Vector3f(0, 1, 0))
-						.scale(params.scale * (
-								r.nextFloat() * (params.maxScaleFactor - params.minScaleFactor) + params.minScaleFactor)
-						);
+				float scale = params.scale * (r.nextFloat() * (params.maxScaleFactor - params.minScaleFactor) + params.minScaleFactor);
+				positions.add(new Vector3f(x, y, z));
+				scales.add(scale);
+				return model
+						.rotate(r.nextFloat() * (float) Math.PI * 2, new Vector3f(0, 1, 0))
+						.scale(scale);
 			});
 			models.add(lodModel);
 		}

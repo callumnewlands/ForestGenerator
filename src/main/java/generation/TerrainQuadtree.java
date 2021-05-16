@@ -33,6 +33,7 @@ import modeldata.meshdata.Mesh;
 import modeldata.meshdata.Texture2D;
 import org.joml.Matrix4f;
 import org.joml.Vector2f;
+import org.joml.Vector3f;
 import params.ParameterLoader;
 import params.Parameters;
 import rendering.LevelOfDetail;
@@ -86,15 +87,15 @@ public class TerrainQuadtree {
 		return terrainGenerator.getHeight(x, z);
 	}
 
-	public void render(Matrix4f MVP, boolean renderForShadows) {
+	public void render(Matrix4f MVP, Vector3f userPosition, boolean renderForShadows) {
 		List<Quad> tiles = quad.getVisibleQuads(MVP);
 		for (Quad tile : tiles) {
-			tile.render(renderForShadows);
+			tile.render(renderForShadows, userPosition);
 		}
 	}
 
-	public void render(Matrix4f MVP) {
-		render(MVP, false);
+	public void render(Matrix4f MVP, Vector3f userPosition) {
+		render(MVP, userPosition, false);
 	}
 
 	public void placeTree(Tree.Reference tree) {
@@ -195,7 +196,7 @@ public class TerrainQuadtree {
 			return children.stream().flatMap(q -> q.getMeshes().stream()).collect(Collectors.toList());
 		}
 
-		public void render(boolean renderForShadows) {
+		public void render(boolean renderForShadows, Vector3f userPosition) {
 			for (Mesh mesh : getMeshes()) {
 				mesh.render(renderForShadows);
 			}
@@ -210,6 +211,9 @@ public class TerrainQuadtree {
 			if (parameters.sceneObjects.display) {
 				for (LeafQuad.SceneObjects objects : getSceneObjects()) {
 					objects.render(levelOfDetail, renderForShadows);
+					if (parameters.output.collisions.enabled && !renderForShadows) {
+						objects.checkCollisions(userPosition);
+					}
 				}
 			}
 		}
@@ -313,6 +317,15 @@ public class TerrainQuadtree {
 
 			public void addTree(Tree.Reference tree) {
 				trees.add(tree);
+			}
+
+			public void checkCollisions(Vector3f userPosition) {
+				for (Tree.Reference tree : trees) {
+					tree.checkCollisions(userPosition);
+				}
+				for (ExternalModels model : externalModels) {
+					model.checkCollisions(userPosition);
+				}
 			}
 		}
 	}

@@ -14,6 +14,9 @@ output:
     enabled: true
   colour: true
   depth: true
+  collisions:
+    enabled: false
+    userRadius: 0.5
 
 terrain:
   width: 100.0

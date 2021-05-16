@@ -21,6 +21,8 @@
 
 package utils;
 
+import org.joml.Vector2f;
+
 public final class MathsUtils {
 
 	private MathsUtils() {
@@ -31,5 +33,24 @@ public final class MathsUtils {
 	 */
 	public static float lerp(float x0, float x1, float p) {
 		return x0 + p * (x1 - x0);
+	}
+
+
+	public static boolean circlesColliding(Vector2f centre1, float radius1, Vector2f centre2, float radius2) {
+		float distanceSquared = centre1.distanceSquared(centre2);
+		float radiusSum = radius1 + radius2;
+		return (distanceSquared < (radiusSum * radiusSum));
+	}
+
+	public static boolean cylindersColliding(Vector2f centre1, float centre1Y, float radius1, float height1,
+											 Vector2f centre2, float centre2Y, float radius2, float height2) {
+		float distanceSquared = centre1.distanceSquared(centre2);
+		float radiusSum = radius1 + radius2;
+		if (distanceSquared < (radiusSum * radiusSum)) {
+			float heightDist = Math.abs(centre2Y - centre1Y);
+			float ySum = height1 + height2;
+			return heightDist < ySum;
+		}
+		return false;
 	}
 }

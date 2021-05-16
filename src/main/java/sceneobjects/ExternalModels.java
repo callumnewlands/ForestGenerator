@@ -26,17 +26,18 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import generation.TerrainQuadtree;
 import modeldata.LoadedModel;
-import modeldata.Model;
 import modeldata.meshdata.Mesh;
 import org.joml.Vector2f;
+import org.joml.Vector3f;
 import params.ParameterLoader;
 import params.Parameters;
 import rendering.LevelOfDetail;
+import utils.MathsUtils;
 
 public class ExternalModels extends InstancedGroundObject {
 
 	private static final Parameters parameters = ParameterLoader.getParameters();
-	private static final List<Model> models = parameters
+	private static final List<LoadedModel> models = parameters
 			.sceneObjects
 			.externalModels
 			.stream()
@@ -53,12 +54,25 @@ public class ExternalModels extends InstancedGroundObject {
 	@Override
 	Map<LevelOfDetail, List<Mesh>> getMeshes() {
 		List<Mesh> meshes = models.get(index).getMeshes();
-//		meshes.forEach(m -> {
-//			m.setShaderProgram(instancedNormalTextureShaderProgram);
-//			m.addTexture("diffuseTexture", Textures.rock);
-//			m.addTexture("normalTexture", Textures.rockNormal);
-//		});
 		return Map.of(LevelOfDetail.HIGH, meshes);
 	}
 
+	public void checkCollisions(Vector3f userPosition) {
+		if (parameters.sceneObjects.externalModels.get(index).collidable) {
+			for (int i = 0; i < positions.size(); i++) {
+				float userRadius = parameters.output.collisions.userRadius;
+				float objectHeight = models.get(index).getMaskHeight() * scales.get(i);
+				float yPos = positions.get(i).y;
+				if (userPosition.y + userRadius < yPos || userPosition.y - userRadius > yPos + objectHeight) {
+					return;
+				}
+				float objectRadius = models.get(index).getMaskRadius() * scales.get(i);
+				Vector2f objectPosition = new Vector2f(positions.get(i).x, positions.get(i).z);
+				if (MathsUtils.circlesColliding(objectPosition, objectRadius,
+						new Vector2f(userPosition.x, userPosition.z), userRadius)) {
+					System.out.println("COLLISION: MODEL: type=" + index);
+				}
+			}
+		}
+	}
 }

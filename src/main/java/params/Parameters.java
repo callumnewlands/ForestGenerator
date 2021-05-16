@@ -79,6 +79,7 @@ public class Parameters {
 		public boolean invertDepth = true;
 		public float renderDistance = 300.0f;
 		public float maxDepthOutput = 20.0f;
+		public Collisions collisions = new Collisions();
 
 		@NoArgsConstructor
 		@Setter
@@ -95,6 +96,13 @@ public class Parameters {
 			public boolean enabled = false;
 			public String fileExtension = "jpg";
 			public String filePrefix = "";
+		}
+
+		@NoArgsConstructor
+		@Setter
+		public static class Collisions {
+			public boolean enabled = false;
+			public float userRadius = 0.5f;
 		}
 	}
 
@@ -195,7 +203,7 @@ public class Parameters {
 		);
 		public Twigs twigs = new Twigs();
 		public List<ExternalModel> externalModels = List.of(
-				new ExternalModel("/models/Rock1/Rock1.obj", "/models/Rock1", 0.3f)
+				new ExternalModel("/models/Rock1/Rock1.obj", "/models/Rock1", true, 0.3f)
 		);
 		public List<CrossedBillboard> crossedBillboards = List.of(
 				new CrossedBillboard(new Texture("/textures/grass2.png"), 4, 1.0f, 0.35f, 20.0f),
@@ -258,14 +266,15 @@ public class Parameters {
 		public static class ExternalModel extends SceneObject {
 			public String modelPath = "/models/Rock1/Rock1.obj";
 			public String texturesDir = "/models/Rock1";
+			public boolean collidable = true;
 
 			public ExternalModel() {
 				super();
 				this.yOffset = -0.1f;
 			}
 
-			public ExternalModel(String modelPath, String texturesDir, float scale) {
-				this(modelPath, texturesDir);
+			public ExternalModel(String modelPath, String texturesDir, boolean collidable, float scale) {
+				this(modelPath, texturesDir, collidable);
 				this.scale = scale;
 				this.yOffset = -0.1f;
 			}

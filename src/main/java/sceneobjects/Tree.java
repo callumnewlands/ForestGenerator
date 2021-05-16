@@ -55,6 +55,7 @@ import params.Parameters;
 import params.TreeTypes;
 import rendering.LevelOfDetail;
 import rendering.Textures;
+import utils.MathsUtils;
 import utils.MeshUtils;
 import utils.VectorUtils;
 
@@ -261,12 +262,28 @@ public class Tree {
 		private int treePoolIndex;
 		private Vector3f position;
 		private Matrix4f model;
+		private float scale;
 
 		public void render(LevelOfDetail levelOfDetail, boolean renderForShadows) {
 			TreePool treePool = TreePool.getTreePool();
 			treePool.renderTreeWithModel(typeIndex, treePoolIndex, model, levelOfDetail, renderForShadows);
 		}
 
+		public void checkCollisions(Vector3f userPosition) {
+			float userRadius = parameters.output.collisions.userRadius;
+			TreePool treePool = TreePool.getTreePool();
+			Mask mask = treePool.getInstanceMask(typeIndex, treePoolIndex);
+			float treeHeight = position.y + (mask.getCanopyCentre().y + mask.getCanopyYRadius()) * scale;
+			if (userPosition.y + userRadius < position.y || userPosition.y + userRadius > position.y + treeHeight - userRadius) {
+				return;
+			}
+			float trunkRadius = mask.getTrunkRadius() * scale;
+			Vector2f trunkPosition = new Vector2f(position.x, position.z);
+			if (MathsUtils.circlesColliding(trunkPosition, trunkRadius,
+					new Vector2f(userPosition.x, userPosition.z), userRadius)) {
+				System.out.println("COLLISION: TREE: type=" + typeIndex);
+			}
+		}
 	}
 
 	@Getter

@@ -30,6 +30,10 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+
+import static utils.MathsUtils.circlesColliding;
+import static utils.MathsUtils.cylindersColliding;
+
 import org.apache.commons.math3.util.Pair;
 import org.joml.Matrix4f;
 import org.joml.Vector2f;
@@ -286,24 +290,6 @@ public class EcosystemSimulation {
 				p2.position, p2.getCanopyCentreY(), p2.getCanopyXZRadius(), p2.getCanopyYRadius());
 	}
 
-	private boolean circlesColliding(Vector2f centre1, float radius1, Vector2f centre2, float radius2) {
-		float distanceSquared = centre1.distanceSquared(centre2);
-		float radiusSum = radius1 + radius2;
-		return (distanceSquared < (radiusSum * radiusSum));
-	}
-
-	private boolean cylindersColliding(Vector2f centre1, float centre1Y, float radius1, float height1,
-									   Vector2f centre2, float centre2Y, float radius2, float height2) {
-		float distanceSquared = centre1.distanceSquared(centre2);
-		float radiusSum = radius1 + radius2;
-		if (distanceSquared < (radiusSum * radiusSum)) {
-			float heightDist = Math.abs(centre2Y - centre1Y);
-			float ySum = height1 + height2;
-			return heightDist < ySum;
-		}
-		return false;
-	}
-
 	private class Plant {
 		private final int maxAge;
 		private final int type;
@@ -417,7 +403,7 @@ public class EcosystemSimulation {
 			TreePool treePool = TreePool.getTreePool();
 			int poolIndex = treePool.getTreeIndexWithIterations(type, iterations);
 
-			return new Tree.Reference(type, poolIndex, new Vector3f(x, y, z), model);
+			return new Tree.Reference(type, poolIndex, new Vector3f(x, y, z), model, scaleFactor * modelScale);
 		}
 
 		public void grow() {
