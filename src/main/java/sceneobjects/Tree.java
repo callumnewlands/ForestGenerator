@@ -274,7 +274,7 @@ public class Tree {
 			TreePool treePool = TreePool.getTreePool();
 			Mask mask = treePool.getInstanceMask(typeIndex, treePoolIndex);
 			float treeHeight = position.y + (mask.getCanopyCentre().y + mask.getCanopyYRadius()) * scale;
-			if (userPosition.y + userRadius < position.y || userPosition.y + userRadius > position.y + treeHeight - userRadius) {
+			if (userPosition.y + userRadius < position.y || userPosition.y - userRadius > position.y + treeHeight) {
 				return;
 			}
 			float trunkRadius = mask.getTrunkRadius() * scale;
