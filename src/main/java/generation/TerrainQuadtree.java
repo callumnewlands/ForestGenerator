@@ -88,6 +88,12 @@ public class TerrainQuadtree {
 	}
 
 	public void render(Matrix4f MVP, Vector3f userPosition, boolean renderForShadows) {
+
+		if (parameters.output.collisions.enabled && !renderForShadows) {
+			if (!quad.containsPoint(new Vector2f(userPosition.x, userPosition.z))) {
+				System.out.println("COLLISION: OUT OF FOREST");
+			}
+		}
 		List<Quad> tiles = quad.getVisibleQuads(MVP);
 		for (Quad tile : tiles) {
 			tile.render(renderForShadows, userPosition);
@@ -212,7 +218,9 @@ public class TerrainQuadtree {
 				for (LeafQuad.SceneObjects objects : getSceneObjects()) {
 					objects.render(levelOfDetail, renderForShadows);
 					if (parameters.output.collisions.enabled && !renderForShadows) {
-						objects.checkCollisions(userPosition);
+						if (this.containsPoint(new Vector2f(userPosition.x, userPosition.z))) {
+							objects.checkCollisions(userPosition);
+						}
 					}
 				}
 			}
