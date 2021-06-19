@@ -28,6 +28,7 @@ target/
 # Project exclude paths
 /target/
 /frames/
+/checkpoints/
 
 # Large files
 *.hdr

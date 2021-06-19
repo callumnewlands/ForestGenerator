@@ -25,11 +25,14 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.Random;
+import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
+import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import org.joml.Vector3f;
 
@@ -51,6 +54,11 @@ public final class ParameterLoader {
 		setRandomGenerator();
 		System.out.println("Parameters loaded from file: " + filePath);
 		return parameters;
+	}
+
+	public static void outputParameters(String filePath, Parameters parameters) throws IOException {
+		ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
+		mapper.writeValue(new File(filePath), parameters);
 	}
 
 	public static Parameters getParameters() {
@@ -86,4 +94,15 @@ public final class ParameterLoader {
 		}
 	}
 
+	static class Vec3Serializer extends JsonSerializer<Vector3f> {
+
+		@Override
+		public void serialize(Vector3f vector3f, JsonGenerator jsonGenerator, SerializerProvider serializerProvider) throws IOException {
+			jsonGenerator.writeStartArray();
+			jsonGenerator.writeNumber(vector3f.x);
+			jsonGenerator.writeNumber(vector3f.y);
+			jsonGenerator.writeNumber(vector3f.z);
+			jsonGenerator.writeEndArray();
+		}
+	}
 }

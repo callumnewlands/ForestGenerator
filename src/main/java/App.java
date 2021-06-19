@@ -24,7 +24,9 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.Random;
@@ -978,13 +980,14 @@ public class App {
 			lightingPassShader.setUniform("translucencyEnabled", parameters.lighting.translucency.enabled);
 		}
 		if (glfwGetKey(window, GLFW_KEY_9) == GLFW_PRESS) {
-			System.out.println("Pos: " + camera.getPosition() + " Dir: " + camera.getDirection());
+			checkpoint();
 		}
 	}
 
 	private void blockAndProcessInputStream() {
 		final float LOOK_OFFSET = parameters.input.stdin.lookOffset * 30f / parameters.input.stdin.fps;
 		try {
+			glfwPollEvents();
 			String s = inputStream.readLine().toUpperCase();
 			for (char c : s.toCharArray()) {
 				switch (c) {
@@ -998,6 +1001,7 @@ public class App {
 					case 'K' -> camera.processMouseMovement(0, -LOOK_OFFSET);
 					case 'J' -> camera.processMouseMovement(-LOOK_OFFSET, 0);
 					case 'L' -> camera.processMouseMovement(LOOK_OFFSET, 0);
+					case 'C' -> checkpoint();
 					case 'X' -> exit();
 				}
 				quadtree.setSeedPoint(camera.getPosition().x, camera.getPosition().z);
@@ -1005,6 +1009,27 @@ public class App {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+	}
+
+	private void checkpoint() {
+		String fileName = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss").format(new Date()) + ".yaml";
+
+		Parameters currentParams = ParameterLoader.getParameters();
+		Parameters.Camera cameraParams = new Parameters.Camera();
+		cameraParams.setVerticalMovement(currentParams.camera.verticalMovement);
+		cameraParams.setStartDirection(camera.getDirection());
+		cameraParams.setStartPosition(camera.getPosition());
+		Parameters newParams = currentParams.toBuilder().camera(cameraParams).build();
+		try {
+			File dir = new File("./checkpoints");
+			dir.mkdir();
+			ParameterLoader.outputParameters("./checkpoints/" + fileName, newParams);
+			System.out.println("Checkpoint: " + fileName + " created");
+		} catch (IOException e) {
+			System.out.println("Error: Unable to checkpoint:");
+			e.printStackTrace();
+		}
+		System.out.println("Pos: " + camera.getPosition() + " Dir: " + camera.getDirection());
 	}
 
 	private void outputFrame(String type) {

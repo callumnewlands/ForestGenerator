@@ -26,12 +26,16 @@ import java.util.Map;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.joml.Vector3f;
 
+@Builder(toBuilder = true)
 @NoArgsConstructor
+@AllArgsConstructor
 @Setter
 public class Parameters {
 
@@ -110,8 +114,10 @@ public class Parameters {
 	@Setter
 	public static class Camera {
 		@JsonDeserialize(using = ParameterLoader.Vec3Deserializer.class)
+		@JsonSerialize(using = ParameterLoader.Vec3Serializer.class)
 		public Vector3f startPosition = new Vector3f(0, 3.3f, 0);
 		@JsonDeserialize(using = ParameterLoader.Vec3Deserializer.class)
+		@JsonSerialize(using = ParameterLoader.Vec3Serializer.class)
 		public Vector3f startDirection = new Vector3f(0, 0, 1);
 		public boolean verticalMovement = true;
 	}
@@ -139,6 +145,7 @@ public class Parameters {
 	@Setter
 	public static class ColourFilter {
 		@JsonDeserialize(using = ParameterLoader.Vec3Deserializer.class)
+		@JsonSerialize(using = ParameterLoader.Vec3Serializer.class)
 		public Vector3f colour = new Vector3f(1, 0, 1);
 		public float mixFactor = 0f;
 		public boolean expMix = false;
@@ -349,9 +356,11 @@ public class Parameters {
 			public boolean autoPosition = true;
 			public int numSides = 10;
 			@JsonDeserialize(using = ParameterLoader.Vec3Deserializer.class)
+			@JsonSerialize(using = ParameterLoader.Vec3Serializer.class)
 			public Vector3f strength = new Vector3f(3.8f, 3.3f, 3.2f);
 			public float scale = 20f;
 			@JsonDeserialize(using = ParameterLoader.Vec3Deserializer.class)
+			@JsonSerialize(using = ParameterLoader.Vec3Serializer.class)
 			public Vector3f position = new Vector3f(50.0f, 200.0f, -50.0f);
 		}
 
