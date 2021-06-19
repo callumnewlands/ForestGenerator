@@ -85,7 +85,7 @@ recommended to download them and save them inside the ```/resources/textures/```
 | 5     | (use config file) | Toggle depth output                    |
 | 6     | (use config file) | Toggle shadows                         |
 | 7     | (use config file) | Toggle leaf translucency               |
-| 9     |                   | Print current position and direction   |
+| 9     | C                 | Create a checkpoint yaml file for the current position and direction |
 | Mouse | I                 | Look up                                |
 | Mouse | K                 | Look down                              |
 | Mouse | J                 | Look left                              |

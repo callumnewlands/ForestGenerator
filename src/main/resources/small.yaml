@@ -2,9 +2,9 @@ random:
   seed: -1
 
 input:
-  manual: true
+  manual: false
   stdin:
-    enabled: false
+    enabled: true
 
 output:
   window:
@@ -22,7 +22,7 @@ ecosystemSimulation:
   numIterations: 200
 
 terrain:
-  width: 75.0
+  width: 35.0
 
 quadtree:
   levels: 3
