@@ -987,6 +987,7 @@ public class App {
 	private void blockAndProcessInputStream() {
 		final float LOOK_OFFSET = parameters.input.stdin.lookOffset * 30f / parameters.input.stdin.fps;
 		try {
+			glfwPollEvents();
 			String s = inputStream.readLine().toUpperCase();
 			for (char c : s.toCharArray()) {
 				switch (c) {
