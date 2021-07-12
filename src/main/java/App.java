@@ -988,7 +988,11 @@ public class App {
 		final float LOOK_OFFSET = parameters.input.stdin.lookOffset * 30f / parameters.input.stdin.fps;
 		try {
 			glfwPollEvents();
-			String s = inputStream.readLine().toUpperCase();
+			String s = inputStream.readLine();
+			if (s == null) {
+				return;
+			}
+			s = s.toUpperCase();
 			for (char c : s.toCharArray()) {
 				switch (c) {
 					case 'W' -> camera.move(Camera.MovementDirection.FORWARD, (float) deltaTime);
