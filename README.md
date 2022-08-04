@@ -7,7 +7,23 @@ A cross-platform application for generating and rendering realistic forest scene
 ![Screenshots](https://github.com/callumnewlands/ForestGenerator/blob/master/screenshots.png)
 
 ## Demo Video:
-[![Demo vide screenshot](https://github.com/callumnewlands/ForestGenerator/blob/master/video-screenshot.png)](https://youtu.be/82JUq6yR35Y)
+[![Demo video screenshot](https://github.com/callumnewlands/ForestGenerator/blob/master/video-screenshot.png)](https://youtu.be/82JUq6yR35Y)
+
+## Technical Paper Pre-Print
+This work has been submitted to the [Computer Graphics Forum (CGF)](https://onlinelibrary.wiley.com/journal/14678659) and the pre-print version is currently avaiable on [arXiv](https://arxiv.org/abs/2208.01471)
+
+### Pre-print Bibtex Citation
+If citing the pre-print work, please use the following citation:
+```bibtex
+@misc{Newlands2022ForestGenerator,
+  author = {Newlands, Callum and Zauner, Klaus-Peter},
+  title = {Procedural Generation and Rendering of Realistic, Navigable Forest Environments: An Open-Source Tool},
+  doi = {10.48550/ARXIV.2208.01471},
+  url = {https://arxiv.org/abs/2208.01471},
+  publisher = {arXiv},
+  year = {2022},
+}
+```
 
 ## Prerequisites
 
