@@ -18,6 +18,7 @@ uniform bool aoEnabled;
 uniform bool shadowsEnabled;
 uniform bool translucencyEnabled;
 uniform bool renderDepth;
+uniform bool renderSegmentation;
 uniform bool invertDepth;
 
 uniform float gamma;

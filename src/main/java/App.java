@@ -860,6 +860,7 @@ public class App {
 
 			if (parameters.output.frameImages.enabled && parameters.output.colour) {
 				lightingPassShader.setUniform("renderDepth", false);
+				lightingPassShader.setUniform("renderSegmentation", false);
 			}
 			(new Quad(lightingPassShader)).render();
 
