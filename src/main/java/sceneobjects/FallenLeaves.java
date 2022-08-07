@@ -45,6 +45,7 @@ public class FallenLeaves extends InstancedGroundObject {
 		Mesh leafMesh = new Mesh(Tree.leaf);
 		leafMesh.addTexture("diffuseTexture", Textures.leaf);
 		leafMesh.addTexture("normalTexture", Textures.leafNormal);
+		leafMesh.setSegColour(Colour.fallenLeaves);
 		leafMesh.setShaderProgram(textureShader);
 		return Map.of(LevelOfDetail.LOW, List.of(leafMesh));
 	}

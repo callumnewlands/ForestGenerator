@@ -54,6 +54,11 @@ public class ExternalModels extends InstancedGroundObject {
 	@Override
 	Map<LevelOfDetail, List<Mesh>> getMeshes() {
 		List<Mesh> meshes = models.get(index).getMeshes();
+
+		for (Mesh mesh : meshes) {
+			mesh.setSegColour(Colour.extModel);
+		}
+
 		return Map.of(LevelOfDetail.HIGH, meshes);
 	}
 

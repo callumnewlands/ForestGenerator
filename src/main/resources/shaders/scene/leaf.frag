@@ -9,6 +9,7 @@ layout (location = 1) out vec3 gNormal;
 layout (location = 2) out vec4 gAlbedoSpec;
 layout (location = 3) out float gOcclusion;
 layout (location = 4) out vec4 gTranslucency;
+layout (location = 5) out vec3 gSegmentation;
 
 uniform vec3 lightPos;
 uniform vec3 viewPos;
@@ -114,4 +115,5 @@ void main() {
     gOcclusion = 0;
     gTranslucency.rgb = translColour.rgb;
     gTranslucency.a = max(0.0f, diffTransl);
+    gSegmentation = vec3(0.0, 0.5, 0.0); // Leaves as ONLY vegetation class. (non-terrain)
 }

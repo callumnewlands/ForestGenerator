@@ -7,6 +7,7 @@ uniform sampler2D gAlbedoSpec;
 uniform sampler2D ssao;
 uniform sampler2D occlusion;
 uniform sampler2D gTranslucency;
+uniform sampler2D gSegmentation;
 uniform sampler2D scatter;
 uniform sampler2D gDepth;
 uniform sampler2D shadowMap;
@@ -73,6 +74,12 @@ void main() {
     vec3 occ = texture(occlusion, textureCoord).rgb;
     vec3 scattering = texture(scatter, textureCoord).rgb;
     float depth = texture(gDepth, textureCoord).r;
+
+    if (renderSegmentation) {
+        vec3 segcol = texture(gSegmentation, textureCoord).rgb;
+        fragColour = vec4(segcol, 1.0);
+        return;
+    }
 
     if (renderDepth) {
         float z = depth * 2.0 - 1.0;// nonlinear in [-1, 1]

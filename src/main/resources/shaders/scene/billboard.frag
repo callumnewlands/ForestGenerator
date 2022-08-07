@@ -9,6 +9,7 @@ layout (location = 1) out vec3 gNormal;
 layout (location = 2) out vec4 gAlbedoSpec;
 layout (location = 3) out vec3 gOcclusion;
 layout (location = 4) out vec4 gTranslucency;
+layout (location = 5) out vec3 gSegmentation;
 
 uniform vec3 viewPos;
 uniform bool hasNormalMap;
@@ -44,4 +45,5 @@ void main() {
     gAlbedoSpec.a = 0;
     gOcclusion = vec3(0);
     gTranslucency = vec4(0);
+    gSegmentation = vec3(0.5, 0.5, 0.5); // Only grass should be enabled, we class this as TERRAIN (grey)
 }

@@ -9,12 +9,16 @@ layout (location = 1) out vec3 gNormal;
 layout (location = 2) out vec4 gAlbedoSpec;
 layout (location = 3) out vec3 gOcclusion;
 layout (location = 4) out vec4 gTranslucency;
+layout (location = 5) out vec3 gSegmentation;
 
 uniform bool hasNormalMap;
 uniform bool hasSpecularMap;
 uniform sampler2D diffuseTexture;
 uniform sampler2D normalTexture;
 uniform sampler2D specularTexture;
+
+uniform bool hasSegCol;
+uniform vec3 segCol;
 
 void main() {
 
@@ -37,4 +41,10 @@ void main() {
     gAlbedoSpec.a = hasSpecularMap ? texture(specularTexture, textureCoord).r : 0;
     gOcclusion = vec3(0);
     gTranslucency = vec4(0);
+
+    if (hasSegCol) {
+        gSegmentation = segCol;
+    } else {
+        gSegmentation = vec3(1.0, 0.5, 0.0);// This will be tree bark so orange (OBSTACLE);
+    }
 }
