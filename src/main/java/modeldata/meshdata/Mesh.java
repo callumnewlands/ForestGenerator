@@ -61,6 +61,13 @@ public class Mesh {
 	private boolean hasHalfLifeBasisMap;
 	private ShaderProgram shaderProgram;
 
+	private boolean hasSegColour = false;
+	private Vector3f segColour;
+	public void setSegColour(Vector3f segColour) {
+		hasSegColour = true;
+		this.segColour = segColour;
+	}
+
 	public Mesh(List<Vertex> vertices, int[] indices, List<VertexAttribute> vertexAttributes) {
 		this(vertices, indices, vertexAttributes, false, false, false, false, false, false);
 	}
@@ -84,6 +91,8 @@ public class Mesh {
 		this.hasHalfLifeBasisMap = hasHalfLifeBasisMap;
 		this.isLeaf = isLeaf;
 		this.colourFilter = null;
+		this.hasSegColour = mesh.hasSegColour;
+		this.segColour = mesh.segColour;
 		this.vertexArray = createVAO();
 	}
 
@@ -183,6 +192,11 @@ public class Mesh {
 			shaderProgram.setUniform("expMix", colourFilter.expMix);
 		} else {
 			shaderProgram.setUniform("mixFactor", 0.0f);
+		}
+
+		shaderProgram.setUniform("hasSegCol", hasSegColour);
+		if (hasSegColour) {
+			shaderProgram.setUniform("segCol", segColour);
 		}
 	}
 
