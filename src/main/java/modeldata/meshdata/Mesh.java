@@ -91,8 +91,6 @@ public class Mesh {
 		this.hasHalfLifeBasisMap = hasHalfLifeBasisMap;
 		this.isLeaf = isLeaf;
 		this.colourFilter = null;
-		this.hasSegColour = mesh.hasSegColour;
-		this.segColour = mesh.segColour;
 		this.vertexArray = createVAO();
 	}
 
@@ -123,6 +121,8 @@ public class Mesh {
 		this.isLeaf = mesh.isLeaf;
 		this.vertexArray = createVAO();
 		this.colourFilter = mesh.colourFilter != null ? new Parameters.ColourFilter(mesh.colourFilter) : null;
+		this.hasSegColour = mesh.hasSegColour;
+		this.segColour = mesh.segColour;
 	}
 
 	public void addTexture(String uniform, Texture texture) {

@@ -32,6 +32,7 @@ import org.joml.Vector2f;
 import params.ParameterLoader;
 import rendering.LevelOfDetail;
 import rendering.Textures;
+import segmentation.Colour;
 
 public class FallenLeaves extends InstancedGroundObject {
 	// Could generate leaves from trees list

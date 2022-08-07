@@ -32,6 +32,7 @@ import org.joml.Vector3f;
 import params.ParameterLoader;
 import params.Parameters;
 import rendering.LevelOfDetail;
+import segmentation.Colour;
 import utils.MathsUtils;
 
 public class ExternalModels extends InstancedGroundObject {
