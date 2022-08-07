@@ -148,6 +148,7 @@ public class TerrainGenerator {
 
 		Mesh mesh = new Mesh(vertices, indices, List.of(VertexAttribute.POSITION, VertexAttribute.NORMAL, VertexAttribute.TANGENT, VertexAttribute.TEXTURE));
 		mesh.addTexture("diffuseTexture", texture);
+		mesh.setSegColour(Colour.Ground);
 		return mesh;
 	}
 
