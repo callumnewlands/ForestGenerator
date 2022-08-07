@@ -717,6 +717,30 @@ public class App {
 	private void loop() {
 		System.out.println("Render loop started");
 		while (!glfwWindowShouldClose(window)) {
+
+			// Generate reasonable random data collection positions if enabled
+			if (parameters.input.random.enabled) {
+				float min = -130.f / 2;
+				float max = 130.f / 2;
+				float rX = min + (float) Math.random() * (max - min);
+				float rZ = min + (float) Math.random() * (max - min);
+				float rYaw = (float) Math.random() * 359.f;
+				float rPitch = -30.f + (float) Math.random() * (30.f - (-30.f));
+				float rHeight = 0.15f + (float) Math.random() * (1.f - 0.3f);
+
+				float height = quadtree.getHeight(rX, rZ) + rHeight;
+
+				camera.setPosition(new Vector3f(rX, height, rZ));
+
+				camera.setYaw(rYaw);
+				camera.setPitch(rPitch);
+				camera.updateVectorsFromAngles();
+
+				if (frame >= parameters.input.random.endMax - 1) {
+					exit();
+				}
+			}
+
 			updateDeltaTime();
 			stepper += deltaTime / 10;
 			stepper -= (int) stepper;
@@ -830,6 +854,10 @@ public class App {
 			glActiveTexture(GL_TEXTURE8);
 			glBindTexture(GL_TEXTURE_2D, gTranslucency);
 
+			lightingPassShader.setUniform("gSegmentation", 9);
+			glActiveTexture(GL_TEXTURE9);
+			glBindTexture(GL_TEXTURE_2D, gSegmentation);
+
 			if (parameters.output.frameImages.enabled && parameters.output.colour) {
 				lightingPassShader.setUniform("renderDepth", false);
 			}
@@ -847,6 +875,16 @@ public class App {
 					glfwSwapBuffers(window);
 					outputFrame("depth");
 				}
+
+				// And now save the segmentation frame.
+				if (parameters.output.colour && parameters.output.segmentation) {
+					glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+					lightingPassShader.setUniform("renderSegmentation", true);
+					(new Quad(lightingPassShader)).render();
+					glfwSwapBuffers(window);
+					outputFrame("seg");
+				}
+				lightingPassShader.setUniform("renderSegmentation", parameters.output.segmentation);
 
 				lightingPassShader.setUniform("renderDepth", parameters.output.depth);
 				frame += 1;

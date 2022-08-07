@@ -79,6 +79,7 @@ public class Parameters {
 		public FrameImages frameImages = new FrameImages();
 		public Window window = new Window();
 		public boolean colour = true;
+		public boolean segmentation = false;
 		public boolean depth = false;
 		public boolean invertDepth = true;
 		public float renderDistance = 300.0f;
