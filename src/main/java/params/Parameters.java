@@ -61,6 +61,15 @@ public class Parameters {
 	@NoArgsConstructor
 	@Setter
 	public static class Input {
+
+		public Random random = new Random();
+		@NoArgsConstructor
+		@Setter
+		public static class Random {
+			public boolean enabled = false;
+			public int endMax = 100;
+		}
+
 		public boolean manual = true;
 		public StdIn stdin = new StdIn();
 
