@@ -187,10 +187,10 @@ random:
    seed: -1 # A value of -1 will result in a seed derived from the system clock value
 
 input:
-  # Random data collection
-  random:
+  # Collect data from random locations
+  randomDataCollection:
    enabled: false
-   endMax: 1000
+   maxFrames: 1000 # Number of frames of random data to collect before exit
    # It is advised to set one of manual XOR stdin to true
    # Enable keyboard and mouse input (via the application window)
    manual: true
@@ -218,7 +218,7 @@ output:
    # Output a depth image
    depth: false # If outputting to window the depth output will be displayed instead of colour if this is true, if rendering to images, both can be output
    # Output a segmentation map
-   segmentation: true
+   segmentation: false
    # Invert the depth colours (default: near = black, far = white)
    invertDepth: true
    # Distance to the far plane of the scene

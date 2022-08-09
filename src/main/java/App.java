@@ -719,7 +719,7 @@ public class App {
 		while (!glfwWindowShouldClose(window)) {
 
 			// Generate reasonable random data collection positions if enabled
-			if (parameters.input.random.enabled) {
+			if (parameters.input.randomDataCollection.enabled) {
 				float min = -130.f / 2;
 				float max = 130.f / 2;
 				float rX = min + (float) Math.random() * (max - min);
@@ -736,7 +736,7 @@ public class App {
 				camera.setPitch(rPitch);
 				camera.updateVectorsFromAngles();
 
-				if (frame >= parameters.input.random.endMax - 1) {
+				if (frame >= parameters.input.randomDataCollection.maxFrames - 1) {
 					exit();
 				}
 			}

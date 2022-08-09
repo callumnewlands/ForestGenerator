@@ -62,12 +62,12 @@ public class Parameters {
 	@Setter
 	public static class Input {
 
-		public Random random = new Random();
+		public RandomDataCollection randomDataCollection = new RandomDataCollection();
 		@NoArgsConstructor
 		@Setter
-		public static class Random {
+		public static class RandomDataCollection {
 			public boolean enabled = false;
-			public int endMax = 100;
+			public int maxFrames = 100;
 		}
 
 		public boolean manual = true;
