@@ -720,25 +720,7 @@ public class App {
 
 			// Generate reasonable random data collection positions if enabled
 			if (parameters.input.randomDataCollection.enabled) {
-				float min = -130.f / 2;
-				float max = 130.f / 2;
-				float rX = min + (float) Math.random() * (max - min);
-				float rZ = min + (float) Math.random() * (max - min);
-				float rYaw = (float) Math.random() * 359.f;
-				float rPitch = -30.f + (float) Math.random() * (30.f - (-30.f));
-				float rHeight = 0.15f + (float) Math.random() * (1.f - 0.3f);
-
-				float height = quadtree.getHeight(rX, rZ) + rHeight;
-
-				camera.setPosition(new Vector3f(rX, height, rZ));
-
-				camera.setYaw(rYaw);
-				camera.setPitch(rPitch);
-				camera.updateVectorsFromAngles();
-
-				if (frame >= parameters.input.randomDataCollection.maxFrames - 1) {
-					exit();
-				}
+				updateRandomPosition();
 			}
 
 			updateDeltaTime();
@@ -900,6 +882,28 @@ public class App {
 			}
 
 			checkError("render loop");
+		}
+	}
+
+	private void updateRandomPosition() {
+		float min = -130.f / 2;
+		float max = 130.f / 2;
+		float rX = min + (float) Math.random() * (max - min);
+		float rZ = min + (float) Math.random() * (max - min);
+		float rYaw = (float) Math.random() * 359.f;
+		float rPitch = -30.f + (float) Math.random() * (30.f - (-30.f));
+		float rHeight = 0.15f + (float) Math.random() * (1.f - 0.3f);
+
+		float height = quadtree.getHeight(rX, rZ) + rHeight;
+
+		camera.setPosition(new Vector3f(rX, height, rZ));
+
+		camera.setYaw(rYaw);
+		camera.setPitch(rPitch);
+		camera.updateVectorsFromAngles();
+
+		if (frame >= parameters.input.randomDataCollection.maxFrames - 1) {
+			exit();
 		}
 	}
 
