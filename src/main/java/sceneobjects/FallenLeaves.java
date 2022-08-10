@@ -32,6 +32,7 @@ import org.joml.Vector2f;
 import params.ParameterLoader;
 import rendering.LevelOfDetail;
 import rendering.Textures;
+import segmentation.Colour;
 
 public class FallenLeaves extends InstancedGroundObject {
 	// Could generate leaves from trees list
@@ -45,6 +46,7 @@ public class FallenLeaves extends InstancedGroundObject {
 		Mesh leafMesh = new Mesh(Tree.leaf);
 		leafMesh.addTexture("diffuseTexture", Textures.leaf);
 		leafMesh.addTexture("normalTexture", Textures.leafNormal);
+		leafMesh.setSegColour(Colour.fallenLeaves);
 		leafMesh.setShaderProgram(textureShader);
 		return Map.of(LevelOfDetail.LOW, List.of(leafMesh));
 	}

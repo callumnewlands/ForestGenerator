@@ -6,6 +6,7 @@ out vec4 fragColour;
 layout (location = 2) out vec4 gAlbedoSpec;
 layout (location = 3) out vec3 gOcclusion;
 layout (location = 4) out vec4 gTranslucency;
+layout (location = 5) out vec3 gSegmentation;
 
 uniform vec3 lightColour;
 
@@ -16,4 +17,5 @@ void main() {
     gAlbedoSpec.a = 1.0f;
     gOcclusion = lightColour;
     gTranslucency = vec4(0);
+    gSegmentation = vec3(0); // Sun should be black
 }

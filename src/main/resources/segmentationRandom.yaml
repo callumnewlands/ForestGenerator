@@ -1,0 +1,19 @@
+input:
+   # Collect data from random locations
+   randomDataCollection:
+      enabled: true
+      maxFrames: 1000 # Number of frames of random data to collect before exit
+
+output:
+   window:
+      width: 640
+      height: 480
+   # Output the frames of the application to the /frames directory
+   frameImages:
+      enabled: true
+      fileExtension: png
+      filePrefix: ""
+   # Output a depth image
+   depth: true # If outputting to window the depth output will be displayed instead of colour if this is true, if rendering to images, both can be output
+   # Output a segmentation map
+   segmentation: true

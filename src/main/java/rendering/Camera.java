@@ -44,6 +44,22 @@ public class Camera {
 	private Vector3f right;
 	private Vector3f up;
 
+	public void setYaw(float yaw) {
+		this.yaw = yaw;
+	}
+
+	public void setPitch(float pitch) {
+		this.pitch = pitch;
+	}
+
+	public void setPosition(Vector3f position) {
+		this.position = position;
+	}
+
+	public void setDirection(Vector3f direction) {
+		this.direction = direction;
+	}
+
 	public Camera(final Vector3f position, final float yaw, final float pitch) {
 		this.yaw = yaw;
 		this.pitch = pitch;
@@ -62,7 +78,7 @@ public class Camera {
 		updateVectorsFromAngles();
 	}
 
-	private void updateVectorsFromAngles() {
+	public void updateVectorsFromAngles() {
 		this.direction.x = (float) Math.cos(Math.toRadians(yaw)) * (float) Math.cos(Math.toRadians(pitch));
 		this.direction.y = (float) Math.sin(Math.toRadians(pitch));
 		this.direction.z = (float) Math.sin(Math.toRadians(yaw)) * (float) Math.cos(Math.toRadians(pitch));

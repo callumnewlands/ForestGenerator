@@ -45,6 +45,7 @@ import org.joml.Vector3f;
 import params.ParameterLoader;
 import rendering.LevelOfDetail;
 import rendering.Textures;
+import segmentation.Colour;
 import utils.MeshUtils;
 
 public class Twigs extends InstancedGroundObject {
@@ -67,6 +68,7 @@ public class Twigs extends InstancedGroundObject {
 		twig.addTexture("normalTexture", Textures.twigBarkNormal);
 		twig.addTexture("specularTexture", Textures.twigBarkGlossiness);
 		twig.setShaderProgram(textureShader);
+		twig.setSegColour(Colour.twig);
 		return Map.of(LevelOfDetail.HIGH, List.of(twig));
 	}
 

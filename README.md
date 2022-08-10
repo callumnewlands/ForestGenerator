@@ -142,20 +142,22 @@ are floating -point numbers
 
 ### Example files supplied:
 
-| File                  | Description                                                                                                                  |
-|-----------------------|------------------------------------------------------------------------------------------------------------------------------|
-| async.yaml            | A small scene which receives only stdin input and outputs only frame images                                                  |
-| default.yaml          | A full list of all of the configuration parameters and their default values (these are the values used if no file is loaded) |
-| dense.yaml            | A dense forest                                                                                                               |
-| ground.yaml           | Just generates and renders the ground terrain                                                                                |
-| highGraphics.yaml     | A scene with high-quality render settings                                                                                    |
-| large.yaml            | A large scene                                                                                                                |
-| lowGraphics.yaml      | A small scene where lighting effects are disabled and render quality is reduced                                              |
-| medium.yaml           | A medium size scene                                                                                                          |
-| singleTree.yaml       | A single tree                                                                                                                | 
-| singleTypeForest.yaml | A forest consisting of a single tree type                                                                                    |
-| small.yaml            | A small scene                                                                                                                |
-| sparse.yaml           | A sparse forest                                                                                                               |
+| File                      | Description                                                                                                                  |
+|-----------------------    |------------------------------------------------------------------------------------------------------------------------------|
+| async.yaml                | A small scene which receives only stdin input and outputs only frame images                                                  |
+| default.yaml              | A full list of all of the configuration parameters and their default values (these are the values used if no file is loaded) |
+| dense.yaml                | A dense forest                                                                                                               |
+| ground.yaml               | Just generates and renders the ground terrain                                                                                |
+| highGraphics.yaml         | A scene with high-quality render settings                                                                                    |
+| large.yaml                | A large scene                                                                                                                |
+| lowGraphics.yaml          | A small scene where lighting effects are disabled and render quality is reduced                                              |
+| medium.yaml               | A medium size scene                                                                                                          |
+| segmentation.yaml         | A scene which outputs segmentation maps                                                                                      | 
+| segmentationRandom.yaml   | A scene which outputs segmentation maps from random positions                                                                |
+| singleTree.yaml           | A single tree                                                                                                                | 
+| singleTypeForest.yaml     | A forest consisting of a single tree type                                                                                    |
+| small.yaml                | A small scene                                                                                                                |
+| sparse.yaml               | A sparse forest                                                                                                              |
 
 ### default.yaml:
 
@@ -185,6 +187,10 @@ random:
    seed: -1 # A value of -1 will result in a seed derived from the system clock value
 
 input:
+  # Collect data from random locations
+  randomDataCollection:
+   enabled: false
+   maxFrames: 1000 # Number of frames of random data to collect before exit
    # It is advised to set one of manual XOR stdin to true
    # Enable keyboard and mouse input (via the application window)
    manual: true
@@ -211,6 +217,8 @@ output:
    colour: true
    # Output a depth image
    depth: false # If outputting to window the depth output will be displayed instead of colour if this is true, if rendering to images, both can be output
+   # Output a segmentation map
+   segmentation: false
    # Invert the depth colours (default: near = black, far = white)
    invertDepth: true
    # Distance to the far plane of the scene

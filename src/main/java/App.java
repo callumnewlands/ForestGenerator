@@ -138,15 +138,7 @@ import static org.lwjgl.opengl.GL12C.GL_CLAMP_TO_EDGE;
 import static org.lwjgl.opengl.GL13.GL_TEXTURE1;
 import static org.lwjgl.opengl.GL13.GL_TEXTURE2;
 import static org.lwjgl.opengl.GL13.GL_TEXTURE8;
-import static org.lwjgl.opengl.GL13C.GL_CLAMP_TO_BORDER;
-import static org.lwjgl.opengl.GL13C.GL_MULTISAMPLE;
-import static org.lwjgl.opengl.GL13C.GL_TEXTURE0;
-import static org.lwjgl.opengl.GL13C.GL_TEXTURE3;
-import static org.lwjgl.opengl.GL13C.GL_TEXTURE4;
-import static org.lwjgl.opengl.GL13C.GL_TEXTURE5;
-import static org.lwjgl.opengl.GL13C.GL_TEXTURE6;
-import static org.lwjgl.opengl.GL13C.GL_TEXTURE7;
-import static org.lwjgl.opengl.GL13C.glActiveTexture;
+import static org.lwjgl.opengl.GL13C.*;
 import static org.lwjgl.opengl.GL20C.glDrawBuffers;
 import static org.lwjgl.opengl.GL30.GL_COLOR_ATTACHMENT0;
 import static org.lwjgl.opengl.GL30.GL_COLOR_ATTACHMENT1;
@@ -161,6 +153,7 @@ import static org.lwjgl.opengl.GL30.glBindFramebuffer;
 import static org.lwjgl.opengl.GL30.glCheckFramebufferStatus;
 import static org.lwjgl.opengl.GL30.glFramebufferTexture2D;
 import static org.lwjgl.opengl.GL30.glGenFramebuffers;
+import static org.lwjgl.opengl.GL30C.GL_COLOR_ATTACHMENT5;
 import static org.lwjgl.opengl.GL30C.GL_INVALID_FRAMEBUFFER_OPERATION;
 import static org.lwjgl.opengl.GL43C.GL_DEBUG_OUTPUT;
 import static org.lwjgl.opengl.GL43C.GL_DEBUG_OUTPUT_SYNCHRONOUS;
@@ -230,7 +223,7 @@ public class App {
 	private int windowHeight;
 	private long window;
 	private int gBuffer, ssaoBuffer, ssaoBlurBuffer, scatterBuffer, shadowBuffer;
-	private int gNormal, gAlbedoSpecular, gPosition, gOcclusion, gTranslucency, gDepth;
+	private int gNormal, gAlbedoSpecular, gPosition, gOcclusion, gTranslucency, gDepth, gSegmentation;
 	private int ssaoColor, ssaoColorBlur;
 	private int scatterColor;
 	private int shadowMap;
@@ -480,7 +473,15 @@ public class App {
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT4, GL_TEXTURE_2D, gTranslucency, 0);
 
-		glDrawBuffers(new int[] {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3, GL_COLOR_ATTACHMENT4});
+		gSegmentation = glGenTextures();
+		glActiveTexture(GL_TEXTURE9);
+		glBindTexture(GL_TEXTURE_2D, gSegmentation);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, windowWidth, windowHeight, 0, GL_RGBA, GL_FLOAT, NULL);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT5, GL_TEXTURE_2D, gSegmentation, 0);
+
+		glDrawBuffers(new int[] {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3, GL_COLOR_ATTACHMENT4, GL_COLOR_ATTACHMENT5});
 
 		gDepth = glGenTextures();
 		glActiveTexture(GL_TEXTURE6);
@@ -617,6 +618,7 @@ public class App {
 		lightingPassShader.setUniform("gamma", parameters.lighting.gammaCorrection.gamma);
 		lightingPassShader.setUniform("aoEnabled", parameters.lighting.ssao.enabled);
 		lightingPassShader.setUniform("renderDepth", parameters.output.depth);
+		lightingPassShader.setUniform("renderSegmentation", parameters.output.segmentation);
 		lightingPassShader.setUniform("invertDepth", parameters.output.invertDepth);
 		lightingPassShader.setUniform("shadowsEnabled", parameters.lighting.shadows.enabled);
 		lightingPassShader.setUniform("translucencyEnabled", parameters.lighting.translucency.enabled);
@@ -715,6 +717,12 @@ public class App {
 	private void loop() {
 		System.out.println("Render loop started");
 		while (!glfwWindowShouldClose(window)) {
+
+			// Generate reasonable random data collection positions if enabled
+			if (parameters.input.randomDataCollection.enabled) {
+				updateRandomPosition();
+			}
+
 			updateDeltaTime();
 			stepper += deltaTime / 10;
 			stepper -= (int) stepper;
@@ -828,8 +836,13 @@ public class App {
 			glActiveTexture(GL_TEXTURE8);
 			glBindTexture(GL_TEXTURE_2D, gTranslucency);
 
+			lightingPassShader.setUniform("gSegmentation", 9);
+			glActiveTexture(GL_TEXTURE9);
+			glBindTexture(GL_TEXTURE_2D, gSegmentation);
+
 			if (parameters.output.frameImages.enabled && parameters.output.colour) {
 				lightingPassShader.setUniform("renderDepth", false);
+				lightingPassShader.setUniform("renderSegmentation", false);
 			}
 			(new Quad(lightingPassShader)).render();
 
@@ -846,6 +859,16 @@ public class App {
 					outputFrame("depth");
 				}
 
+				// And now save the segmentation frame.
+				if (parameters.output.colour && parameters.output.segmentation) {
+					glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+					lightingPassShader.setUniform("renderSegmentation", true);
+					(new Quad(lightingPassShader)).render();
+					glfwSwapBuffers(window);
+					outputFrame("seg");
+				}
+				lightingPassShader.setUniform("renderSegmentation", parameters.output.segmentation);
+
 				lightingPassShader.setUniform("renderDepth", parameters.output.depth);
 				frame += 1;
 			}
@@ -859,6 +882,28 @@ public class App {
 			}
 
 			checkError("render loop");
+		}
+	}
+
+	private void updateRandomPosition() {
+		float min = -130.f / 2;
+		float max = 130.f / 2;
+		float rX = min + (float) Math.random() * (max - min);
+		float rZ = min + (float) Math.random() * (max - min);
+		float rYaw = (float) Math.random() * 359.f;
+		float rPitch = -30.f + (float) Math.random() * (30.f - (-30.f));
+		float rHeight = 0.15f + (float) Math.random() * (1.f - 0.3f);
+
+		float height = quadtree.getHeight(rX, rZ) + rHeight;
+
+		camera.setPosition(new Vector3f(rX, height, rZ));
+
+		camera.setYaw(rYaw);
+		camera.setPitch(rPitch);
+		camera.updateVectorsFromAngles();
+
+		if (frame >= parameters.input.randomDataCollection.maxFrames - 1) {
+			exit();
 		}
 	}
 

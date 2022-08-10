@@ -36,6 +36,7 @@ import org.joml.Vector2f;
 import org.joml.Vector3f;
 import params.ParameterLoader;
 import params.Parameters;
+import segmentation.Colour;
 
 public class TerrainGenerator {
 
@@ -148,6 +149,7 @@ public class TerrainGenerator {
 
 		Mesh mesh = new Mesh(vertices, indices, List.of(VertexAttribute.POSITION, VertexAttribute.NORMAL, VertexAttribute.TANGENT, VertexAttribute.TEXTURE));
 		mesh.addTexture("diffuseTexture", texture);
+		mesh.setSegColour(Colour.ground);
 		return mesh;
 	}
 
